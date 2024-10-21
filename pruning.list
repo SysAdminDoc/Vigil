@@ -105,11 +105,13 @@ chrome/installer/test/data/SETUP.EX_
 chrome/services/cups_proxy/test/data/basic_handshake.bin
 chrome/test/enterprise/e2e/connector/common/demo_agent/agent.zip
 chrome/test/media_router/resources/bigbuck.webm
+chrome/updater/enterprise/win/google/GoogleCloudManagement.adm
 chrome/updater/test/data/ChromiumMSI/{c28fcf72-bcf2-45c5-8def-31a74ac02012}.1.0.0.0/TestSystemMsiInstaller.msi
 chrome/updater/test/data/ChromiumMSI/{c28fcf72-bcf2-45c5-8def-31a74ac02012}.2.0.0.0/TestSystemMsiInstaller.msi
 chrome/updater/test/data/GoogleMSI/{c28fcf72-bcf2-45c5-8def-31a74ac02012}.1.0.0.0/TestSystemMsiInstaller.msi
 chrome/updater/test/data/GoogleMSI/{c28fcf72-bcf2-45c5-8def-31a74ac02012}.2.0.0.0/TestSystemMsiInstaller.msi
 chrome/updater/test/data/ProcmonConfiguration.pmc
+chrome/updater/test/data/enterprise/win/google/test_gold.adm
 chrome/updater/test/data/enterprise/win/google/test_gold.adml
 chrome/updater/test/data/enterprise/win/google/test_gold.admx
 chrome/updater/test/data/selfupdate_test_key.der
@@ -233,6 +235,7 @@ components/test/data/feed/response.binarypb
 components/test/data/history/HistoryNoDuration
 components/test/data/history/HistoryNoSource
 components/test/data/history/History_with_starred
+components/test/data/history_embeddings/fake_search_strings_file
 components/test/data/media_router/common/providers/cast/certificate/testsuite/testsuite1.pb
 components/test/data/omnibox/adder.tflite
 components/test/data/omnibox/on_device_head_test_deep_model.bin
@@ -60555,6 +60558,9 @@ third_party/crashpad/crashpad/snapshot/ios/testdata/crash-6605504629637120
 third_party/crashpad/crashpad/snapshot/ios/testdata/crash-c44acfcbccd8c7a8
 third_party/crashpad/crashpad/util/net/testdata/binary_http_body.dat
 third_party/dawn/test/tint/bug/oss-fuzz/57795.spv
+third_party/dawn/third_party/benchmark_shaders/unity_boat_attack/unity_webgpu_0000017E9E2D81A0.vs.spv
+third_party/dawn/third_party/benchmark_shaders/unity_boat_attack/unity_webgpu_000002778DE78280.cs.spv
+third_party/dawn/third_party/benchmark_shaders/unity_boat_attack/unity_webgpu_000002778F740030.fs.spv
 third_party/dawn/third_party/dxc/projects/dxilconv/test/dxbc2dxil-asm/call2.dxbc
 third_party/dawn/third_party/dxc/projects/dxilconv/test/dxbc2dxil-asm/cs3.dxbc
 third_party/dawn/third_party/dxc/projects/dxilconv/test/dxbc2dxil-asm/cyclecounter.dxbc
@@ -61206,6 +61212,7 @@ third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/lcp-
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/lcp-images.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/lcp-web-font.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/load-simple.json.gz
+third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/loading-dt1.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/mainWasm_profile.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/many-requests.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/missing-process-data.json.gz
@@ -61239,6 +61246,7 @@ third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/rend
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/selector-stats.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/server-timings.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/set-timeout-long-task.json.gz
+third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/shift-attribution.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/simple-js-program.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/slow-interaction-button-click.json.gz
 third_party/devtools-frontend/src/front_end/panels/timeline/fixtures/traces/slow-interaction-keydown.json.gz
@@ -67450,10 +67458,10 @@ third_party/quic_trace/src/examples/example.json.gz
 third_party/quic_trace/src/examples/example.qtr
 third_party/r8/custom_d8.jar
 third_party/r8/custom_r8.jar
-third_party/rust/chromium_crates_io/vendor/flate2-1.0.31/examples/hello_world.txt.gz
-third_party/rust/chromium_crates_io/vendor/flate2-1.0.31/tests/corrupt-gz-file.bin
-third_party/rust/chromium_crates_io/vendor/flate2-1.0.31/tests/good-file.gz
-third_party/rust/chromium_crates_io/vendor/flate2-1.0.31/tests/multi.gz
+third_party/rust/chromium_crates_io/vendor/flate2-1.0.33/examples/hello_world.txt.gz
+third_party/rust/chromium_crates_io/vendor/flate2-1.0.33/tests/corrupt-gz-file.bin
+third_party/rust/chromium_crates_io/vendor/flate2-1.0.33/tests/good-file.gz
+third_party/rust/chromium_crates_io/vendor/flate2-1.0.33/tests/multi.gz
 third_party/rust/chromium_crates_io/vendor/regex-1.10.6/testdata/fowler/dat/basic.dat
 third_party/rust/chromium_crates_io/vendor/regex-1.10.6/tests/fuzz/testdata/crash-7eb3351f0965e5d6c1cb98aa8585949ef96531ff
 third_party/rust/chromium_crates_io/vendor/regex-1.10.6/tests/fuzz/testdata/crash-8760b19b25d74e3603d4c643e9c7404fdd3631f9
@@ -68108,6 +68116,9 @@ third_party/tflite/src/tensorflow/core/util/tensor_bundle/testdata/old_string_te
 third_party/tflite/src/tensorflow/go/testdata/saved_model/half_plus_two/00000123/saved_model.pb
 third_party/tflite/src/tensorflow/go/testdata/saved_model/half_plus_two/00000123/variables/variables.data-00000-of-00001
 third_party/tflite/src/tensorflow/go/testdata/saved_model/half_plus_two/00000123/variables/variables.index
+third_party/tflite/src/tensorflow/go/testdata/saved_model/half_plus_two_empty_tags/00000123/saved_model.pb
+third_party/tflite/src/tensorflow/go/testdata/saved_model/half_plus_two_empty_tags/00000123/variables/variables.data-00000-of-00001
+third_party/tflite/src/tensorflow/go/testdata/saved_model/half_plus_two_empty_tags/00000123/variables/variables.index
 third_party/tflite/src/tensorflow/lite/delegates/xnnpack/odml_sdpa_composite_gqa.tflite.bin
 third_party/tflite/src/tensorflow/lite/delegates/xnnpack/odml_sdpa_composite_mha.tflite.bin
 third_party/tflite/src/tensorflow/lite/delegates/xnnpack/odml_sdpa_composite_mqa.tflite.bin
@@ -68176,6 +68187,7 @@ third_party/tflite/src/tensorflow/lite/testdata/multi_add_flex.bin
 third_party/tflite/src/tensorflow/lite/testdata/multi_signatures.bin
 third_party/tflite/src/tensorflow/lite/testdata/multi_subgraphs_while.bin
 third_party/tflite/src/tensorflow/lite/testdata/nested_while.bin
+third_party/tflite/src/tensorflow/lite/testdata/no_signatures.bin
 third_party/tflite/src/tensorflow/lite/testdata/no_subgraphs.bin
 third_party/tflite/src/tensorflow/lite/testdata/segment_sum_invalid_buffer.bin
 third_party/tflite/src/tensorflow/lite/testdata/softplus_flex.bin
@@ -68815,7 +68827,6 @@ third_party/win_build_output/mc/base/trace_event/etw_manifest/MSG00001.bin
 third_party/win_build_output/mc/base/trace_event/etw_manifest/chrome_events_winTEMP.BIN
 third_party/win_build_output/mc/chrome/common/win/MSG00409.bin
 third_party/win_build_output/mc/chrome/credential_provider/eventlog/MSG00409.bin
-third_party/win_build_output/mc/remoting/host/win/MSG0000d.bin
 third_party/win_build_output/mc/remoting/host/win/MSG00401.bin
 third_party/win_build_output/mc/remoting/host/win/MSG00402.bin
 third_party/win_build_output/mc/remoting/host/win/MSG00403.bin
