@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Downloads and installs uBlock Origin into the ungoogled-chromium build output
+Downloads and installs uBlock Origin into the Vigil build output
 so it is pre-installed on first launch.
 
 Uses Chromium's external extensions mechanism (file-based JSON provider).
@@ -11,7 +11,6 @@ Run this AFTER build.py completes but BEFORE package.py.
 
 import io
 import json
-import os
 import shutil
 import sys
 import zipfile
@@ -36,7 +35,7 @@ def get_ublock_download_url():
     try:
         req = urllib.request.Request(
             UBLOCK_RELEASES_API,
-            headers={"Accept": "application/vnd.github.v3+json", "User-Agent": "ungoogled-chromium-builder"}
+            headers={"Accept": "application/vnd.github.v3+json", "User-Agent": "Vigil-Browser-Builder"}
         )
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode())
@@ -67,21 +66,18 @@ def download_and_extract_ublock(chrome_dir):
     url, version = get_ublock_download_url()
     if not url:
         print("  ERROR: Could not find uBlock Origin release.")
-        print("  You can manually download from: https://github.com/gorhill/uBlock/releases")
         return False
 
     print(f"  Downloading uBlock Origin {version}...")
-    print(f"  URL: {url}")
 
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "ungoogled-chromium-builder"})
+        req = urllib.request.Request(url, headers={"User-Agent": "Vigil-Browser-Builder"})
         with urllib.request.urlopen(req, timeout=120) as resp:
             zip_data = resp.read()
     except Exception as e:
         print(f"  ERROR: Download failed: {e}")
         return False
 
-    # Temporary extraction to read manifest
     print("  Extracting...")
     try:
         zf = zipfile.ZipFile(io.BytesIO(zip_data))
@@ -89,7 +85,7 @@ def download_and_extract_ublock(chrome_dir):
         print(f"  ERROR: Invalid zip file: {e}")
         return False
 
-    # Detect if files are nested in a subdirectory
+    # Detect nested subdirectory
     names = zf.namelist()
     prefix = ""
     if names:
@@ -103,7 +99,7 @@ def download_and_extract_ublock(chrome_dir):
             if all(n.startswith(potential) or n.rstrip("/") + "/" == potential for n in names):
                 prefix = potential
 
-    # Read manifest.json to get the actual version
+    # Read manifest.json to get actual version
     manifest_path = prefix + "manifest.json"
     try:
         manifest_data = json.loads(zf.read(manifest_path).decode("utf-8"))
@@ -132,9 +128,7 @@ def download_and_extract_ublock(chrome_dir):
 
     zf.close()
 
-    # Create the external extension preference JSON
-    # Chromium's ExternalPrefExtensionLoader reads JSON files from a known directory
-    # For Windows portable builds, we use the "default_extensions" directory next to chrome.exe
+    # Create external extension preference JSON
     ext_json_dir = chrome_dir / "default_extensions"
     ext_json_dir.mkdir(parents=True, exist_ok=True)
 
@@ -148,8 +142,6 @@ def download_and_extract_ublock(chrome_dir):
         json.dump(ext_json, f, indent=2)
 
     print(f"  uBlock Origin {actual_version} installed successfully!")
-    print(f"  Extension dir: {ext_dir}")
-    print(f"  JSON manifest: {json_path}")
     return True
 
 
@@ -162,12 +154,10 @@ def main():
         print("Run build.py first, then run this script before package.py.")
         sys.exit(1)
 
-    success = download_and_extract_ublock(chrome_dir)
-    if success:
+    if download_and_extract_ublock(chrome_dir):
         print("\nExtension setup complete!")
-        print("Run package.py to create the final package with uBlock Origin included.")
     else:
-        print("\nExtension setup had errors. You can install uBlock Origin manually later.")
+        print("\nExtension setup failed. You can install uBlock Origin manually later.")
         sys.exit(1)
 
 
