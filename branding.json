@@ -2,8 +2,8 @@
   "browser_name": "Vigil",
   "browser_short_name": "Vigil",
   "company_name": "SysAdminDoc",
-  "homepage_url": "https://github.com/SysAdminDoc/ungoogled-chromium-windows",
-  "support_url": "https://github.com/SysAdminDoc/ungoogled-chromium-windows/issues",
+  "homepage_url": "https://github.com/SysAdminDoc/Vigil",
+  "support_url": "https://github.com/SysAdminDoc/Vigil/issues",
   "version_suffix": "",
   "ntp_url": "chrome://newtab"
 }
