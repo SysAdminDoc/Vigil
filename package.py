@@ -15,6 +15,7 @@ if sys.version_info.major < 3:
 import argparse
 import os
 import platform
+import subprocess
 from pathlib import Path
 import shutil
 
@@ -77,6 +78,20 @@ def main():
         get_chromium_version(), _get_release_revision(),
         _get_packaging_revision(), _get_target_cpu(build_outputs)))
 
+    # Copy initial_preferences next to chrome.exe for first-run defaults
+    root_dir = Path(__file__).resolve().parent
+    initial_prefs_src = root_dir / 'initial_preferences'
+    initial_prefs_dst = build_outputs / 'initial_preferences'
+    if initial_prefs_src.exists():
+        shutil.copyfile(initial_prefs_src, initial_prefs_dst)
+        print('Copied initial_preferences to build output')
+
+    # Run extension setup to download and bundle uBlock Origin
+    setup_ext = root_dir / 'setup_extensions.py'
+    if setup_ext.exists():
+        print('Running extension setup...')
+        subprocess.run([sys.executable, str(setup_ext)], cwd=str(root_dir))
+
     excluded_files = set([
         Path('mini_installer.exe'),
         Path('mini_installer_exe_version.rc'),
@@ -86,8 +101,33 @@ def main():
     files_generator = filescfg.filescfg_generator(
         Path('build/src/chrome/tools/build/win/FILES.cfg'),
         build_outputs, args.cpu_arch, excluded_files)
+
+    # Copy custom NTP to build output
+    ntp_src = root_dir / 'ntp'
+    ntp_dst = build_outputs / 'ntp'
+    if ntp_src.exists():
+        if ntp_dst.exists():
+            shutil.rmtree(ntp_dst)
+        shutil.copytree(ntp_src, ntp_dst)
+        print('Copied custom NTP to build output')
+
+    # Collect extra files (initial_preferences, extensions, default_extensions, ntp)
+    # These are relative to build_outputs and chained into file_iter to preserve paths
+    def extra_files_generator():
+        if initial_prefs_dst.exists():
+            yield Path('initial_preferences')
+        for subdir in ('Extensions', 'default_extensions', 'ntp'):
+            d = build_outputs / subdir
+            if d.exists():
+                for f in d.rglob('*'):
+                    if f.is_file():
+                        yield f.relative_to(build_outputs)
+
+    import itertools
+    all_files = itertools.chain(files_generator, extra_files_generator())
+
     filescfg.create_archive(
-        files_generator, tuple(), build_outputs, output, timestamp)
+        all_files, tuple(), build_outputs, output, timestamp)
 
 if __name__ == '__main__':
     main()
