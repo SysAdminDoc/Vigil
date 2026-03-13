@@ -69,7 +69,7 @@ Google only supports [Windows 10 x64 or newer](https://chromium.googlesource.com
 
 ```bash
 # Clone with submodules
-git clone --recurse-submodules https://github.com/SysAdminDoc/ungoogled-chromium-windows.git
+git clone --recurse-submodules https://github.com/SysAdminDoc/Vigil.git
 cd ungoogled-chromium-windows
 
 # Build (downloads sources, applies patches + overlays, compiles)
