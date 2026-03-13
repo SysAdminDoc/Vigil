@@ -236,6 +236,12 @@ def main():
             None
         )
 
+        # Apply custom overlays (chromium_src, NTP, branding)
+        apply_overlays = _ROOT_DIR / 'apply_overlays.py'
+        if apply_overlays.exists():
+            get_logger().info('Applying custom overlays...')
+            subprocess.run([sys.executable, str(apply_overlays)], check=True)
+
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32
     RUST_DIR_DST = source_tree / 'third_party' / 'rust-toolchain'

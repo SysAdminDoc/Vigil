@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vigil - New Tab</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface-hover:#1c2333;
+  --border:#30363d;--text:#e6edf3;--text-muted:#8b949e;
+  --accent:#58a6ff;--accent-glow:rgba(88,166,255,.15);
+  --green:#3fb950;--radius:12px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;position:relative}
+
+/* Clock */
+#clock{font-size:72px;font-weight:200;letter-spacing:-2px;opacity:0;animation:fadeUp .6s ease forwards}
+#date{font-size:16px;color:var(--text-muted);margin-top:4px;text-align:center;opacity:0;animation:fadeUp .6s ease .1s forwards}
+
+/* Search */
+#search-wrapper{width:min(600px,90vw);position:relative;opacity:0;animation:fadeUp .6s ease .2s forwards}
+#search{
+  width:100%;padding:14px 20px 14px 48px;font-size:16px;font-family:var(--font);
+  background:var(--surface);color:var(--text);border:1px solid var(--border);
+  border-radius:24px;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+#search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+#search::placeholder{color:var(--text-muted)}
+#search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
+
+/* Shortcuts grid */
+#shortcuts{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));
+  gap:16px;width:min(600px,90vw);opacity:0;animation:fadeUp .6s ease .3s forwards;
+}
+.shortcut{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:16px 8px;border-radius:var(--radius);cursor:pointer;
+  transition:background .2s,transform .15s;text-decoration:none;color:var(--text);
+}
+.shortcut:hover{background:var(--surface-hover);transform:translateY(-2px)}
+.shortcut-icon{
+  width:48px;height:48px;border-radius:50%;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  border:1px solid var(--border);overflow:hidden;transition:border-color .2s;
+}
+.shortcut:hover .shortcut-icon{border-color:var(--accent)}
+.shortcut-icon img{width:24px;height:24px}
+.shortcut-label{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+
+/* Settings gear */
+#settings-btn{
+  position:fixed;bottom:16px;right:16px;width:36px;height:36px;
+  border-radius:50%;background:transparent;border:none;color:var(--text-muted);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:color .2s,background .2s;font-size:18px;
+}
+#settings-btn:hover{color:var(--text);background:var(--surface)}
+
+/* Settings panel */
+#settings-panel{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;z-index:100;
+  pointer-events:none;opacity:0;transition:opacity .2s;
+}
+#settings-panel.open{display:flex;pointer-events:auto;opacity:1}
+#settings-inner{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:32px;width:min(480px,90vw);max-height:80vh;overflow-y:auto;
+}
+#settings-inner h2{font-size:20px;font-weight:600;margin-bottom:16px}
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.setting-row:last-child{border:none}
+.setting-label{font-size:14px}
+.setting-desc{font-size:12px;color:var(--text-muted);margin-top:2px}
+
+/* Toggle switch */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--border);border-radius:12px;
+  cursor:pointer;transition:background .2s;
+}
+.toggle-slider::before{
+  content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;
+  border-radius:50%;background:var(--text);transition:transform .2s;
+}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+
+/* Shortcut editor */
+#shortcut-editor{margin-top:16px}
+.shortcut-edit-row{
+  display:flex;gap:8px;align-items:center;margin-bottom:8px;
+}
+.shortcut-edit-row input{
+  flex:1;padding:8px 12px;font-size:13px;background:var(--bg);
+  color:var(--text);border:1px solid var(--border);border-radius:8px;
+  outline:none;font-family:var(--font);
+}
+.shortcut-edit-row input:focus{border-color:var(--accent)}
+.btn-remove{
+  background:none;border:none;color:#f85149;cursor:pointer;font-size:18px;
+  padding:4px 8px;border-radius:6px;transition:background .2s;
+}
+.btn-remove:hover{background:rgba(248,81,73,.1)}
+.btn-add{
+  padding:8px 16px;font-size:13px;background:var(--accent);color:#0d1117;
+  border:none;border-radius:8px;cursor:pointer;font-weight:600;
+  transition:opacity .2s;
+}
+.btn-add:hover{opacity:.85}
+.btn-close{
+  margin-top:16px;padding:10px;width:100%;font-size:14px;
+  background:var(--border);color:var(--text);border:none;border-radius:8px;
+  cursor:pointer;font-weight:500;transition:background .2s;
+}
+.btn-close:hover{background:var(--text-muted)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div>
+  <div id="clock"></div>
+  <div id="date"></div>
+</div>
+
+<div id="search-wrapper">
+  <svg id="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+  <input id="search" type="text" placeholder="Search Google or type a URL" autocomplete="off" autofocus>
+</div>
+
+<div id="shortcuts"></div>
+
+<button id="settings-btn" title="Settings">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+</button>
+
+<div id="settings-panel">
+  <div id="settings-inner">
+    <h2>Vigil Settings</h2>
+    <div class="setting-row">
+      <div><div class="setting-label">Show Clock</div><div class="setting-desc">Display time on new tab page</div></div>
+      <label class="toggle"><input type="checkbox" id="opt-clock" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">24-Hour Format</div><div class="setting-desc">Use 24h time instead of 12h</div></div>
+      <label class="toggle"><input type="checkbox" id="opt-24h"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Show Shortcuts</div><div class="setting-desc">Display quick-access website tiles</div></div>
+      <label class="toggle"><input type="checkbox" id="opt-shortcuts" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Show Search Bar</div><div class="setting-desc">Display the search input</div></div>
+      <label class="toggle"><input type="checkbox" id="opt-search" checked><span class="toggle-slider"></span></label>
+    </div>
+    <h2 style="margin-top:24px">Shortcuts</h2>
+    <div id="shortcut-editor"></div>
+    <button class="btn-add" id="add-shortcut">+ Add Shortcut</button>
+    <button class="btn-close" id="close-settings">Close</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const DEFAULT_SHORTCUTS = [
+    {name:"Google",url:"https://www.google.com"},
+    {name:"YouTube",url:"https://www.youtube.com"},
+    {name:"Gmail",url:"https://mail.google.com"},
+    {name:"Reddit",url:"https://www.reddit.com"},
+    {name:"GitHub",url:"https://github.com"},
+    {name:"Wikipedia",url:"https://www.wikipedia.org"}
+  ];
+
+  const STORAGE_KEY = "ntp_settings";
+
+  function load(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch(e){return{}}
+  }
+  function save(s){localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
+
+  let settings = Object.assign({
+    showClock:true, use24h:false, showShortcuts:true, showSearch:true,
+    shortcuts:DEFAULT_SHORTCUTS
+  }, load());
+
+  // Clock
+  const clockEl=document.getElementById("clock");
+  const dateEl=document.getElementById("date");
+  function updateClock(){
+    const now=new Date();
+    if(settings.showClock){
+      clockEl.style.display="";
+      dateEl.style.display="";
+      if(settings.use24h){
+        clockEl.textContent=now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",hour12:false});
+      }else{
+        clockEl.textContent=now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true});
+      }
+      dateEl.textContent=now.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+    }else{
+      clockEl.style.display="none";
+      dateEl.style.display="none";
+    }
+  }
+  updateClock();
+  setInterval(updateClock,1000);
+
+  // Search
+  const searchWrapper=document.getElementById("search-wrapper");
+  const searchInput=document.getElementById("search");
+  searchInput.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){
+      const q=searchInput.value.trim();
+      if(!q)return;
+      if(/^https?:\/\//i.test(q)||/^[a-z0-9]([a-z0-9-]*\.)+[a-z]{2,}/i.test(q)){
+        window.location.href=q.startsWith("http")?q:"https://"+q;
+      }else{
+        window.location.href="https://www.google.com/search?q="+encodeURIComponent(q);
+      }
+    }
+  });
+
+  // Shortcuts
+  const shortcutsEl=document.getElementById("shortcuts");
+  function faviconUrl(url){
+    try{const u=new URL(url);return"https://www.google.com/s2/favicons?domain="+u.hostname+"&sz=64"}catch(e){return""}
+  }
+  function renderShortcuts(){
+    shortcutsEl.innerHTML="";
+    if(!settings.showShortcuts){shortcutsEl.style.display="none";return}
+    shortcutsEl.style.display="";
+    settings.shortcuts.forEach(function(s){
+      const a=document.createElement("a");
+      a.className="shortcut";
+      a.href=s.url;
+      a.innerHTML='<div class="shortcut-icon"><img src="'+faviconUrl(s.url)+'" alt=""></div><div class="shortcut-label">'+
+        s.name.replace(/</g,"&lt;")+'</div>';
+      shortcutsEl.appendChild(a);
+    });
+  }
+  renderShortcuts();
+
+  // Settings panel
+  const settingsPanel=document.getElementById("settings-panel");
+  document.getElementById("settings-btn").addEventListener("click",function(){
+    settingsPanel.classList.add("open");
+    renderEditor();
+    syncToggles();
+  });
+  document.getElementById("close-settings").addEventListener("click",function(){
+    settingsPanel.classList.remove("open");
+  });
+  settingsPanel.addEventListener("click",function(e){
+    if(e.target===settingsPanel)settingsPanel.classList.remove("open");
+  });
+
+  function syncToggles(){
+    document.getElementById("opt-clock").checked=settings.showClock;
+    document.getElementById("opt-24h").checked=settings.use24h;
+    document.getElementById("opt-shortcuts").checked=settings.showShortcuts;
+    document.getElementById("opt-search").checked=settings.showSearch;
+  }
+
+  document.getElementById("opt-clock").addEventListener("change",function(){
+    settings.showClock=this.checked;save(settings);updateClock();
+  });
+  document.getElementById("opt-24h").addEventListener("change",function(){
+    settings.use24h=this.checked;save(settings);updateClock();
+  });
+  document.getElementById("opt-shortcuts").addEventListener("change",function(){
+    settings.showShortcuts=this.checked;save(settings);renderShortcuts();
+  });
+  document.getElementById("opt-search").addEventListener("change",function(){
+    settings.showSearch=this.checked;save(settings);
+    searchWrapper.style.display=settings.showSearch?"":"none";
+  });
+
+  // Shortcut editor
+  const editorEl=document.getElementById("shortcut-editor");
+  function renderEditor(){
+    editorEl.innerHTML="";
+    settings.shortcuts.forEach(function(s,i){
+      const row=document.createElement("div");
+      row.className="shortcut-edit-row";
+      row.innerHTML='<input type="text" value="'+s.name.replace(/"/g,"&quot;")+'" placeholder="Name">'+
+        '<input type="text" value="'+s.url.replace(/"/g,"&quot;")+'" placeholder="URL">'+
+        '<button class="btn-remove" title="Remove">&times;</button>';
+      row.querySelector(".btn-remove").addEventListener("click",function(){
+        settings.shortcuts.splice(i,1);save(settings);renderEditor();renderShortcuts();
+      });
+      var inputs=row.querySelectorAll("input");
+      inputs[0].addEventListener("input",function(){
+        settings.shortcuts[i].name=this.value;save(settings);renderShortcuts();
+      });
+      inputs[1].addEventListener("input",function(){
+        settings.shortcuts[i].url=this.value;save(settings);renderShortcuts();
+      });
+      editorEl.appendChild(row);
+    });
+  }
+  document.getElementById("add-shortcut").addEventListener("click",function(){
+    settings.shortcuts.push({name:"New Site",url:"https://"});
+    save(settings);renderEditor();renderShortcuts();
+  });
+
+  // Apply search visibility on load
+  if(!settings.showSearch)searchWrapper.style.display="none";
+})();
+</script>
+</body>
+</html>

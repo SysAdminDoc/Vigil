@@ -1,0 +1,27 @@
+--- a/chrome/browser/extensions/chrome_content_browser_client_extensions_part.cc
++++ b/chrome/browser/extensions/chrome_content_browser_client_extensions_part.cc
+@@ -38,6 +38,7 @@
+ #include "extensions/browser/extension_registry.h"
+ #include "extensions/browser/extension_system.h"
+ #include "extensions/browser/guest_view/web_view/web_view_renderer_state.h"
++#include "extensions/common/constants.h"
+ #include "extensions/common/manifest_handlers/background_info.h"
+ #include "extensions/common/permissions/permissions_data.h"
+ #include "extensions/common/switches.h"
+--- a/chrome/browser/extensions/extension_install_prompt.cc
++++ b/chrome/browser/extensions/extension_install_prompt.cc
+@@ -0,0 +0,0 @@
++// No changes needed - placeholder to maintain patch format
+--- a/extensions/common/extension_urls.cc
++++ b/extensions/common/extension_urls.cc
+@@ -18,8 +18,8 @@
+
+ namespace extension_urls {
+
+-const char kChromeWebstoreBaseURL[] = "";
+-const char kChromeWebstoreUpdateURL[] = "";
++const char kChromeWebstoreBaseURL[] = "https://chrome.google.com/webstore";
++const char kChromeWebstoreUpdateURL[] = "https://clients2.google.com/service/update2/crx";
+
+ GURL GetWebstoreLaunchURL() {
+   std::string webstore_base_url =

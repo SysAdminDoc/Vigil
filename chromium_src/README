@@ -1,0 +1,14 @@
+Brave-style overlay directory.
+
+Files placed here mirror the Chromium source tree structure.
+During build, apply_overlays.py copies them into the source tree,
+replacing the originals.
+
+Example:
+  chromium_src/chrome/browser/profiles/profile.cc
+  -> replaces build/src/chrome/browser/profiles/profile.cc
+
+This is preferred over patches for file-level replacements since
+overlay files don't break on Chromium version bumps the way patches do.
+The build will simply fail to compile if the API changes, which is
+easier to debug than a failed patch application.
