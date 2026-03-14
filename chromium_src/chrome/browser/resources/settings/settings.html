@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html dir="$i18n{textdirection}" lang="$i18n{language}" class="loading">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>$i18n{settings}</title>
+  <base href="chrome://settings">
+  <link rel="stylesheet" href="chrome://resources/css/md_colors.css">
+  <style>
+    html {
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html {
+        background: var(--md-background-color);
+      }
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+  </style>
+
+  <!-- Vigil: Professional IT admin settings UI -->
+  <style>
+    /* ================================================================
+       VIGIL SETTINGS - Professional IT Admin Theme
+       Palette derived from Vigil branding (shield blue / dark navy)
+       ================================================================ */
+
+    :root {
+      --vigil-bg:           #0c1018;
+      --vigil-surface:      #111827;
+      --vigil-surface-alt:  #151d2b;
+      --vigil-border:       rgba(96,165,250,0.08);
+      --vigil-border-hover: rgba(96,165,250,0.18);
+      --vigil-accent:       #60a5fa;
+      --vigil-accent-dim:   #3b82f6;
+      --vigil-accent-bg:    rgba(96,165,250,0.06);
+      --vigil-accent-bg-hi: rgba(96,165,250,0.12);
+      --vigil-text:         #d1d5db;
+      --vigil-text-bright:  #f3f4f6;
+      --vigil-text-muted:   #6b7280;
+      --vigil-red:          #f87171;
+      --vigil-green:        #34d399;
+      --vigil-yellow:       #fbbf24;
+      --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono",
+                            "SF Mono", "Consolas", monospace;
+      --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --vigil-radius:       4px;
+    }
+
+    /* ===== Global overrides (dark) ===== */
+    @media (prefers-color-scheme: dark) {
+      html {
+        --md-background-color: var(--vigil-bg);
+        --cr-card-background-color: var(--vigil-surface);
+        --cr-card-shadow: none;
+        --cr-card-border-radius: var(--vigil-radius);
+        --cr-primary-text-color: var(--vigil-text);
+        --cr-secondary-text-color: var(--vigil-text-muted);
+        --cr-link-color: var(--vigil-accent);
+        --cr-separator-line: 1px solid var(--vigil-border);
+        --cr-active-background-color: var(--vigil-accent-bg-hi);
+        --cr-hover-background-color: var(--vigil-accent-bg);
+        --cr-focus-outline-color: var(--vigil-accent-dim);
+        --cr-section-min-height: 36px;
+        --cr-section-two-line-min-height: 48px;
+        --cr-section-padding: 16px;
+        --google-grey-700: var(--vigil-text-muted);
+        --google-grey-500: #9ca3af;
+        --iron-icon-fill-color: var(--vigil-text-muted);
+        --iron-icon-height: 18px;
+        --iron-icon-width: 18px;
+        --google-blue-600: var(--vigil-accent-dim);
+        --google-blue-300: var(--vigil-accent);
+        font-family: var(--vigil-sans);
+      }
+
+      body {
+        background: var(--vigil-bg);
+        color: var(--vigil-text);
+      }
+    }
+
+    /* ===== Typography - tighter, professional ===== */
+    settings-ui,
+    settings-ui * {
+      font-family: var(--vigil-sans) !important;
+    }
+
+    /* Section headers - uppercase label style */
+    h2 {
+      font-family: var(--vigil-sans) !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.1em !important;
+      text-transform: uppercase !important;
+      color: var(--vigil-accent) !important;
+      padding-top: 16px !important;
+      padding-bottom: 6px !important;
+      border-bottom: 1px solid var(--vigil-border) !important;
+      margin-bottom: 2px !important;
+    }
+
+    /* ===== Toolbar - minimal command bar ===== */
+    @media (prefers-color-scheme: dark) {
+      settings-ui cr-toolbar {
+        --cr-toolbar-background-color: var(--vigil-surface);
+        min-height: 42px !important;
+        border-bottom: 1px solid var(--vigil-border);
+        box-shadow: none;
+      }
+
+      cr-toolbar-search-field {
+        --cr-toolbar-search-field-background: var(--vigil-bg);
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 13px !important;
+      }
+
+      cr-toolbar-search-field:focus-within {
+        border-color: var(--vigil-accent) !important;
+        box-shadow: 0 0 0 1px var(--vigil-accent-dim) !important;
+      }
+    }
+
+    /* ===== Sidebar - flat nav panel ===== */
+    @media (prefers-color-scheme: dark) {
+      settings-ui #left {
+        background: var(--vigil-surface);
+        border-right: 1px solid var(--vigil-border);
+      }
+
+      settings-menu {
+        padding: 6px 0 !important;
+      }
+
+      settings-menu .cr-nav-menu-item {
+        min-height: 32px !important;
+        margin: 0 !important;
+        padding: 0 12px 0 16px !important;
+        border-radius: 0 !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.01em !important;
+        color: var(--vigil-text-muted) !important;
+        border-left: 2px solid transparent !important;
+        transition: color 80ms ease, background 80ms ease,
+                    border-color 80ms ease !important;
+      }
+
+      settings-menu .cr-nav-menu-item:hover {
+        background: var(--vigil-accent-bg) !important;
+        color: var(--vigil-text) !important;
+      }
+
+      settings-menu .cr-nav-menu-item[selected] {
+        background: var(--vigil-accent-bg) !important;
+        color: var(--vigil-accent) !important;
+        border-left-color: var(--vigil-accent) !important;
+        font-weight: 600 !important;
+      }
+
+      settings-menu .cr-nav-menu-item cr-icon,
+      settings-menu .cr-nav-menu-item iron-icon {
+        --iron-icon-height: 16px !important;
+        --iron-icon-width: 16px !important;
+        margin-inline-end: 10px !important;
+      }
+
+      settings-menu .cr-nav-menu-item[selected] cr-icon,
+      settings-menu .cr-nav-menu-item[selected] iron-icon {
+        --iron-icon-fill-color: var(--vigil-accent) !important;
+      }
+
+      settings-menu .cr-nav-menu-item:hover cr-icon,
+      settings-menu .cr-nav-menu-item:hover iron-icon {
+        --iron-icon-fill-color: var(--vigil-text) !important;
+      }
+
+      settings-menu .menu-separator {
+        border-bottom-color: var(--vigil-border) !important;
+        margin: 6px 16px !important;
+      }
+
+      /* Hide ripple effects - cleaner flat look */
+      settings-menu cr-ripple {
+        display: none !important;
+      }
+    }
+
+    /* ===== Content area - dense rows ===== */
+    @media (prefers-color-scheme: dark) {
+      settings-ui #main {
+        background: var(--vigil-bg);
+      }
+
+      /* Settings rows */
+      .settings-box {
+        min-height: 36px !important;
+        padding: 0 16px !important;
+        border-top-color: var(--vigil-border) !important;
+      }
+
+      .settings-box.two-line {
+        min-height: 48px !important;
+      }
+
+      .settings-box:hover {
+        background: var(--vigil-accent-bg) !important;
+      }
+
+      .list-item {
+        min-height: 36px !important;
+      }
+
+      .list-frame {
+        padding-inline-start: 16px !important;
+        padding-inline-end: 16px !important;
+      }
+
+      /* Toggle switches - Vigil accent */
+      cr-toggle {
+        --cr-toggle-unchecked-bar-color: #374151 !important;
+        --cr-toggle-unchecked-button-color: #6b7280 !important;
+      }
+
+      cr-toggle[checked] {
+        --cr-toggle-checked-bar-color: var(--vigil-accent-dim) !important;
+        --cr-toggle-checked-button-color: var(--vigil-accent) !important;
+        --cr-toggle-checked-ripple-color: transparent !important;
+      }
+
+      /* Buttons - flat, sharp */
+      cr-button {
+        border-radius: var(--vigil-radius) !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.03em !important;
+        text-transform: uppercase !important;
+        min-height: 28px !important;
+        padding: 0 12px !important;
+        border-color: var(--vigil-border) !important;
+        transition: background 80ms ease, border-color 80ms ease !important;
+      }
+
+      cr-button:hover {
+        border-color: var(--vigil-border-hover) !important;
+        background: var(--vigil-accent-bg) !important;
+      }
+
+      cr-button.action-button {
+        background: var(--vigil-accent-dim) !important;
+        color: #0c1018 !important;
+        border-color: var(--vigil-accent-dim) !important;
+      }
+
+      cr-button.action-button:hover {
+        background: var(--vigil-accent) !important;
+        border-color: var(--vigil-accent) !important;
+      }
+
+      /* Cards - bordered, no shadow */
+      .cr-row,
+      settings-section .cr-padded-card {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        box-shadow: none !important;
+      }
+
+      /* Icon button */
+      cr-icon-button {
+        --cr-icon-button-fill-color: var(--vigil-text-muted) !important;
+        --cr-icon-button-size: 28px !important;
+        --cr-icon-button-icon-size: 16px !important;
+      }
+
+      cr-icon-button:hover {
+        --cr-icon-button-fill-color: var(--vigil-accent) !important;
+      }
+
+      /* Dropdowns / selects */
+      select,
+      settings-dropdown-menu select {
+        background: var(--vigil-bg) !important;
+        color: var(--vigil-text) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 12px !important;
+        padding: 4px 8px !important;
+      }
+
+      select:focus {
+        border-color: var(--vigil-accent) !important;
+        outline: none !important;
+      }
+
+      /* Input fields */
+      cr-input {
+        --cr-input-background-color: var(--vigil-bg) !important;
+        --cr-input-color: var(--vigil-text) !important;
+        --cr-input-focus-color: var(--vigil-accent) !important;
+        --cr-input-border-radius: var(--vigil-radius) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 13px !important;
+      }
+
+      /* Dialogs - bordered panel */
+      cr-dialog::part(dialog) {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border-hover) !important;
+        border-radius: 6px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+      }
+
+      /* Radio buttons */
+      cr-radio-button {
+        min-height: 32px !important;
+      }
+
+      /* Expand buttons */
+      cr-expand-button {
+        min-height: 36px !important;
+      }
+
+      /* Secondary text - monospace for technical values */
+      .secondary:not(:empty),
+      .cr-secondary-text {
+        font-size: 11px !important;
+      }
+
+      /* Links */
+      a[href] {
+        color: var(--vigil-accent) !important;
+        text-decoration: none !important;
+      }
+
+      a[href]:hover {
+        text-decoration: underline !important;
+        color: var(--vigil-accent) !important;
+      }
+
+      /* Scrollbar - thin, branded */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(96,165,250,0.15);
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(96,165,250,0.3);
+      }
+
+      /* Selection color */
+      ::selection {
+        background: rgba(96,165,250,0.3);
+        color: var(--vigil-text-bright);
+      }
+
+      /* Policy / managed indicators */
+      cr-icon.policy,
+      iron-icon.policy {
+        --iron-icon-fill-color: var(--vigil-yellow) !important;
+      }
+
+      cr-tooltip-icon {
+        --cr-tooltip-icon-fill-color: var(--vigil-text-muted) !important;
+      }
+
+      /* Warning / error colors */
+      .settings-box .error,
+      #errorMessage {
+        color: var(--vigil-red) !important;
+      }
+    }
+
+    /* ===== Light mode - same density, neutral palette ===== */
+    @media (prefers-color-scheme: light) {
+      h2 {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        color: #3b82f6 !important;
+        padding-top: 16px !important;
+        padding-bottom: 6px !important;
+        border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+      }
+
+      .settings-box {
+        min-height: 36px !important;
+      }
+
+      .settings-box.two-line {
+        min-height: 48px !important;
+      }
+
+      .list-item {
+        min-height: 36px !important;
+      }
+
+      settings-menu .cr-nav-menu-item {
+        min-height: 32px !important;
+        border-radius: 0 !important;
+        font-size: 12px !important;
+        border-left: 2px solid transparent !important;
+      }
+
+      settings-menu .cr-nav-menu-item[selected] {
+        border-left-color: #3b82f6 !important;
+        color: #3b82f6 !important;
+      }
+
+      cr-button {
+        border-radius: 4px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.03em !important;
+        text-transform: uppercase !important;
+        min-height: 28px !important;
+      }
+
+      settings-menu cr-ripple {
+        display: none !important;
+      }
+    }
+  </style>
+
+  <script type="module" src="settings.js"></script>
+</head>
+<body>
+  <link rel="stylesheet" href="chrome://resources/css/text_defaults_md.css">
+  <settings-ui></settings-ui>
+</body>
+</html>

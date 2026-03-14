@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html dir="$i18n{textdirection}" lang="$i18n{language}"
+    class="loading $i18n{loadTimeClasses}">
+<head>
+  <meta charset="utf8">
+  <meta name="color-scheme" content="light dark">
+  <title>$i18n{title}</title>
+  <base href="chrome://extensions">
+  <link rel="stylesheet" href="chrome://resources/css/md_colors.css">
+  <style>
+    html {
+      touch-action: manipulation;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html {
+        background: var(--md-background-color);
+      }
+    }
+
+    html.loading.in-dev-mode body::before {
+      box-sizing: border-box;
+      content: '';
+      display: block;
+      border-bottom: var(--md-toolbar-border);
+      height: calc(var(--md-toolbar-height) + 58px);
+    }
+
+    html,
+    body {
+      height: 100%;
+      line-height: 154%;
+      margin: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+  </style>
+
+  <!-- Vigil: Professional IT admin extensions UI -->
+  <style>
+    /* ================================================================
+       VIGIL EXTENSIONS - Matches settings page visual language
+       ================================================================ */
+
+    :root {
+      --vigil-bg:           #0c1018;
+      --vigil-surface:      #111827;
+      --vigil-border:       rgba(96,165,250,0.08);
+      --vigil-border-hover: rgba(96,165,250,0.18);
+      --vigil-accent:       #60a5fa;
+      --vigil-accent-dim:   #3b82f6;
+      --vigil-accent-bg:    rgba(96,165,250,0.06);
+      --vigil-text:         #d1d5db;
+      --vigil-text-bright:  #f3f4f6;
+      --vigil-text-muted:   #6b7280;
+      --vigil-red:          #f87171;
+      --vigil-green:        #34d399;
+      --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono",
+                            "SF Mono", "Consolas", monospace;
+      --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --vigil-radius:       4px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html {
+        --md-background-color: var(--vigil-bg);
+        --cr-card-background-color: var(--vigil-surface);
+        --cr-card-shadow: none;
+        --cr-card-border-radius: var(--vigil-radius);
+        --cr-primary-text-color: var(--vigil-text);
+        --cr-secondary-text-color: var(--vigil-text-muted);
+        --cr-link-color: var(--vigil-accent);
+        --cr-separator-line: 1px solid var(--vigil-border);
+        font-family: var(--vigil-sans);
+      }
+
+      body {
+        background: var(--vigil-bg);
+      }
+
+      /* ---- Hide background tooltip ---- */
+      extensions-item #enable-toggle-tooltip {
+        display: none !important;
+      }
+
+      /* ---- Toolbar ---- */
+      extensions-toolbar {
+        --cr-toolbar-background-color: var(--vigil-surface);
+        border-bottom: 1px solid var(--vigil-border);
+      }
+
+      extensions-toolbar cr-toolbar {
+        --cr-toolbar-background-color: var(--vigil-surface);
+        min-height: 42px;
+      }
+
+      cr-toolbar-search-field {
+        --cr-toolbar-search-field-background: var(--vigil-bg);
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 13px !important;
+      }
+
+      /* ---- Extension cards - bordered flat panels ---- */
+      extensions-item #card {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        box-shadow: none !important;
+        transition: border-color 120ms ease !important;
+      }
+
+      extensions-item #card:hover {
+        border-color: var(--vigil-border-hover) !important;
+      }
+
+      /* Condensed card */
+      extensions-item {
+        --extensions-card-height: 96px;
+        font-family: var(--vigil-sans) !important;
+      }
+
+      extensions-item #main {
+        padding: 10px 16px;
+      }
+
+      extensions-item #icon {
+        height: 28px;
+        width: 28px;
+      }
+
+      extensions-item #icon-wrapper {
+        padding: 4px;
+      }
+
+      extensions-item #content {
+        margin-inline-start: 14px;
+      }
+
+      extensions-item #name {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--vigil-text-bright);
+      }
+
+      extensions-item #version {
+        font-family: var(--vigil-mono) !important;
+        font-size: 11px !important;
+        color: var(--vigil-text-muted) !important;
+      }
+
+      extensions-item #extension-id {
+        font-family: var(--vigil-mono) !important;
+        font-size: 10px !important;
+        color: var(--vigil-text-muted) !important;
+        opacity: 0.7;
+      }
+
+      extensions-item #description {
+        font-size: 12px;
+        color: var(--vigil-text-muted);
+        line-height: 1.3;
+      }
+
+      extensions-item #name-and-version {
+        margin-bottom: 2px;
+      }
+
+      extensions-item #button-strip {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-inline-end: 16px;
+        border-top: 1px solid var(--vigil-border);
+      }
+
+      extensions-item #card.dev-mode {
+        height: 160px;
+      }
+
+      /* ---- Buttons ---- */
+      extensions-item cr-button {
+        border-radius: var(--vigil-radius) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        min-height: 26px !important;
+        padding: 0 10px !important;
+        border-color: var(--vigil-border) !important;
+      }
+
+      extensions-item cr-button:hover {
+        border-color: var(--vigil-border-hover) !important;
+        background: var(--vigil-accent-bg) !important;
+      }
+
+      extensions-item #errors-button.error {
+        --cr-button-text-color: var(--vigil-red) !important;
+        border-color: rgba(248,113,113,0.2) !important;
+      }
+
+      extensions-item #errors-button.warning {
+        --cr-button-text-color: #fbbf24 !important;
+        border-color: rgba(251,191,36,0.2) !important;
+      }
+
+      /* ---- Toggle ---- */
+      extensions-item cr-toggle {
+        --cr-toggle-unchecked-bar-color: #374151 !important;
+        --cr-toggle-unchecked-button-color: #6b7280 !important;
+      }
+
+      extensions-item cr-toggle[checked] {
+        --cr-toggle-checked-bar-color: var(--vigil-accent-dim) !important;
+        --cr-toggle-checked-button-color: var(--vigil-accent) !important;
+        --cr-toggle-checked-ripple-color: transparent !important;
+      }
+
+      /* ---- Source indicator (sideloaded/unpacked badge) ---- */
+      extensions-item .source-icon-wrapper {
+        background: var(--vigil-accent-dim) !important;
+      }
+
+      /* ---- Warning styling ---- */
+      extensions-item #warnings .message-icon {
+        color: var(--vigil-red) !important;
+      }
+
+      extensions-item #allowlist-warning .message-icon {
+        --iron-icon-fill-color: #fbbf24 !important;
+      }
+
+      /* ---- Developer mode toolbar ---- */
+      extensions-toolbar #devMode {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      extensions-toolbar cr-toggle[checked] {
+        --cr-toggle-checked-bar-color: var(--vigil-accent-dim) !important;
+        --cr-toggle-checked-button-color: var(--vigil-accent) !important;
+      }
+
+      /* ---- Detail view ---- */
+      extensions-detail-view .section-header {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        color: var(--vigil-accent) !important;
+      }
+
+      /* ---- Scrollbar ---- */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(96,165,250,0.15);
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(96,165,250,0.3);
+      }
+
+      /* Selection */
+      ::selection {
+        background: rgba(96,165,250,0.3);
+        color: var(--vigil-text-bright);
+      }
+
+      /* Inspect views link - monospace */
+      extensions-item #inspect-views a {
+        font-family: var(--vigil-mono) !important;
+        font-size: 11px !important;
+      }
+
+      /* ---- Vigil: Risk indicators ---- */
+      extensions-item .vigil-perm-badge {
+        display: inline-block;
+        font-family: var(--vigil-mono) !important;
+        font-size: 9px !important;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--vigil-text-muted);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--vigil-border);
+        border-radius: 3px;
+        padding: 1px 6px;
+        margin-inline-start: 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      extensions-item .vigil-host-access {
+        font-family: var(--vigil-mono) !important;
+        font-size: 10px !important;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        margin-top: 2px;
+      }
+
+      extensions-item .vigil-risk-high {
+        color: var(--vigil-red) !important;
+      }
+
+      extensions-item .vigil-risk-med {
+        color: #fbbf24 !important;
+      }
+
+      extensions-item .vigil-risk-low {
+        color: var(--vigil-green) !important;
+      }
+    }
+
+    /* ===== Light mode - same density ===== */
+    @media (prefers-color-scheme: light) {
+      extensions-item #enable-toggle-tooltip {
+        display: none !important;
+      }
+
+      extensions-item {
+        --extensions-card-height: 96px;
+      }
+
+      extensions-item #main {
+        padding: 10px 16px;
+      }
+
+      extensions-item #icon {
+        height: 28px;
+        width: 28px;
+      }
+
+      extensions-item #button-strip {
+        padding-top: 4px;
+        padding-bottom: 4px;
+      }
+
+      extensions-item cr-button {
+        border-radius: 4px !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        min-height: 26px !important;
+      }
+
+      extensions-item #card.dev-mode {
+        height: 160px;
+      }
+
+      extensions-item .vigil-perm-badge {
+        display: inline-block;
+        font-size: 9px !important;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+        background: rgba(0,0,0,0.04);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 3px;
+        padding: 1px 6px;
+        margin-inline-start: 8px;
+        white-space: nowrap;
+      }
+
+      extensions-item .vigil-host-access {
+        font-size: 10px !important;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        margin-top: 2px;
+      }
+
+      extensions-item .vigil-risk-high {
+        color: #dc2626 !important;
+      }
+
+      extensions-item .vigil-risk-med {
+        color: #d97706 !important;
+      }
+    }
+  </style>
+
+  <script type="module" src="extensions.js"></script>
+</head>
+<body>
+  <extensions-manager></extensions-manager>
+  <link rel="stylesheet" href="chrome://resources/css/text_defaults_md.css">
+</body>
+</html>

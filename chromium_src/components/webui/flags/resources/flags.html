@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<!-- Note that chrome://flags is intentionally not a translated UI surface, -->
+<!-- so don't mark it with direction or language attributes. -->
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<if expr="not is_ios">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="chrome://resources/css/text_defaults_md.css">
+</if>
+<title>$i18n{title}</title>
+
+<if expr="is_ios">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="chrome://resources/css/text_defaults.css">
+</if>
+<style>
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+  }
+</style>
+
+<!-- Vigil: Professional IT admin flags theme -->
+<style>
+  :root {
+    --vigil-bg:           #0c1018;
+    --vigil-surface:      #111827;
+    --vigil-surface-alt:  #151d2b;
+    --vigil-border:       rgba(96,165,250,0.08);
+    --vigil-border-hover: rgba(96,165,250,0.18);
+    --vigil-accent:       #60a5fa;
+    --vigil-accent-dim:   #3b82f6;
+    --vigil-accent-bg:    rgba(96,165,250,0.06);
+    --vigil-accent-bg-hi: rgba(96,165,250,0.12);
+    --vigil-text:         #d1d5db;
+    --vigil-text-bright:  #f3f4f6;
+    --vigil-text-muted:   #6b7280;
+    --vigil-red:          #f87171;
+    --vigil-green:        #34d399;
+    --vigil-yellow:       #fbbf24;
+    --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono",
+                          "SF Mono", "Consolas", monospace;
+    --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --vigil-radius:       4px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    html, body {
+      background: var(--vigil-bg) !important;
+      color: var(--vigil-text);
+      font-family: var(--vigil-sans);
+    }
+
+    /* Override flags-app component variables via inheritance */
+    flags-app {
+      --primary-color: var(--vigil-text) !important;
+      --secondary-color: var(--vigil-text-muted) !important;
+      --interactive-color: var(--vigil-accent) !important;
+      --warning-color: var(--vigil-red) !important;
+      --link-color: var(--vigil-accent) !important;
+      --input-background: var(--vigil-bg) !important;
+      --toolbar-color: var(--vigil-surface) !important;
+      --separator-color: var(--vigil-border) !important;
+      --shadow-color: transparent !important;
+      --focus-shadow-color: var(--vigil-accent-dim) !important;
+      --google-blue-300: var(--vigil-accent) !important;
+      --google-blue-600: var(--vigil-accent-dim) !important;
+      --google-blue-700: var(--vigil-accent-dim) !important;
+      --google-grey-100: var(--vigil-surface-alt) !important;
+      --google-grey-200: var(--vigil-text) !important;
+      --google-grey-500: var(--vigil-text-muted) !important;
+      --google-grey-700: var(--vigil-text-muted) !important;
+      --google-grey-900: var(--vigil-bg) !important;
+      --google-grey-900-white-4-percent: var(--vigil-surface) !important;
+      --google-red-300: var(--vigil-red) !important;
+      background: var(--vigil-bg) !important;
+      font-family: var(--vigil-sans) !important;
+    }
+
+    /* Toolbar / header */
+    flags-app #header {
+      background: var(--vigil-surface) !important;
+      border-bottom: 1px solid var(--vigil-border) !important;
+      box-shadow: none !important;
+    }
+
+    /* Search box */
+    flags-app #search {
+      background-color: var(--vigil-bg) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 13px !important;
+    }
+
+    flags-app #search:focus {
+      border-color: var(--vigil-accent) !important;
+      box-shadow: 0 0 0 1px var(--vigil-accent-dim) !important;
+    }
+
+    flags-app #search::placeholder {
+      color: var(--vigil-text-muted) !important;
+    }
+
+    /* Content area */
+    flags-app #flagsTemplate {
+      background: var(--vigil-surface) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      margin-top: 8px !important;
+    }
+
+    /* Page title */
+    flags-app h1 {
+      color: var(--vigil-text-bright) !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 1.2rem !important;
+      font-weight: 600 !important;
+    }
+
+    /* Warning text */
+    flags-app .blurb-warning {
+      color: var(--vigil-yellow) !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.1em !important;
+    }
+
+    /* Blurb text */
+    flags-app .blurb-container {
+      color: var(--vigil-text-muted) !important;
+      font-size: 12px !important;
+      line-height: 1.5 !important;
+    }
+
+    /* Tabs */
+    flags-app cr-tabs {
+      --cr-tabs-selected-color: var(--vigil-accent) !important;
+      --cr-tabs-selected-icon-color: var(--vigil-accent) !important;
+      border-bottom-color: var(--vigil-border) !important;
+    }
+
+    /* Experiment cards */
+    flags-experiment .experiment {
+      border-bottom: 1px solid var(--vigil-border) !important;
+      padding: 8px 0 !important;
+    }
+
+    flags-experiment .experiment:hover {
+      background: var(--vigil-accent-bg) !important;
+    }
+
+    /* Experiment name */
+    flags-experiment .experiment-name {
+      color: var(--vigil-text-bright) !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+    }
+
+    /* Non-default indicator dot */
+    flags-experiment:not([is-default_]) .experiment-name::before {
+      background-color: var(--vigil-accent) !important;
+    }
+
+    /* Search match highlight */
+    flags-experiment .match,
+    flags-experiment.referenced .experiment-name {
+      background: rgba(96,165,250,0.2) !important;
+      color: var(--vigil-text-bright) !important;
+    }
+
+    /* Dropdown selects */
+    flags-experiment select {
+      background: var(--vigil-bg) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 11px !important;
+      height: 28px !important;
+    }
+
+    flags-experiment select:focus {
+      border-color: var(--vigil-accent) !important;
+    }
+
+    flags-experiment:not([is-default_]) select {
+      background: var(--vigil-accent-dim) !important;
+      color: #0c1018 !important;
+      border-color: var(--vigil-accent-dim) !important;
+      font-weight: 600 !important;
+    }
+
+    flags-experiment option {
+      background: var(--vigil-surface) !important;
+      color: var(--vigil-text) !important;
+    }
+
+    /* Textarea / input */
+    flags-experiment textarea,
+    flags-experiment input {
+      background: var(--vigil-bg) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 12px !important;
+    }
+
+    flags-experiment textarea:focus,
+    flags-experiment input:focus {
+      border-color: var(--vigil-accent) !important;
+    }
+
+    /* Permalink */
+    flags-experiment .permalink {
+      color: var(--vigil-text-muted) !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 10px !important;
+    }
+
+    /* Restart bar */
+    flags-app #needs-restart {
+      background: var(--vigil-surface) !important;
+      border-top: 1px solid var(--vigil-accent-dim) !important;
+      box-shadow: none !important;
+    }
+
+    flags-app .restart-notice {
+      color: var(--vigil-text-bright) !important;
+      font-size: 13px !important;
+    }
+
+    /* Version text */
+    flags-app #version {
+      color: var(--vigil-text-muted) !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 11px !important;
+    }
+
+    /* Reset all button style */
+    flags-app button {
+      background: transparent !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.05em !important;
+      text-transform: uppercase !important;
+      padding: 6px 14px !important;
+    }
+
+    flags-app button:hover {
+      background: var(--vigil-accent-bg) !important;
+      border-color: var(--vigil-border-hover) !important;
+    }
+
+    /* Relaunch button - primary action */
+    flags-app #experiment-restart-button {
+      background: var(--vigil-accent-dim) !important;
+      border-color: var(--vigil-accent-dim) !important;
+      color: #0c1018 !important;
+    }
+
+    flags-app #experiment-restart-button:hover {
+      background: var(--vigil-accent) !important;
+      border-color: var(--vigil-accent) !important;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(96,165,250,0.15);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(96,165,250,0.3);
+    }
+
+    /* Selection */
+    ::selection {
+      background: rgba(96,165,250,0.3);
+      color: var(--vigil-text-bright);
+    }
+
+    /* Links */
+    flags-app a,
+    flags-experiment a {
+      color: var(--vigil-accent) !important;
+    }
+  }
+</style>
+
+</head>
+<body>
+  <script src="app.js" type="module"></script>
+  <flags-app></flags-app>
+</body>
+</html>

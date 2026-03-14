@@ -1,0 +1,236 @@
+<style include="cr-shared-style settings-shared">
+  :host {
+    --about-page-image-space: 10px;
+  }
+
+  .info-sections {
+    padding: var(--cr-section-vertical-padding) var(--cr-section-padding);
+  }
+
+  .info-section {
+    margin-bottom: 12px;
+  }
+
+  .product-title {
+    font-size: 153.85%;  /* 20px / 13px */
+    font-weight: 400;
+    margin-bottom: auto;
+    margin-top: auto;
+  }
+
+  #product-logo {
+    margin-inline-end: var(--about-page-image-space);
+  }
+
+  .icon-container {
+    margin-inline-end: var(--about-page-image-space);
+    min-width: 32px;
+    text-align: center;
+  }
+
+  cr-icon[icon='cr:check-circle'] {
+    fill: var(--cr-checked-color);
+  }
+
+  cr-icon[icon='cr:error'] {
+    fill: var(--settings-error-color);
+  }
+
+  #throbber {
+    height: var(--cr-icon-size);
+    vertical-align: middle;
+  }
+
+  cr-button {
+    white-space: nowrap;
+  }
+
+  /* ====== Vigil About Page Branding ====== */
+  .vigil-brand-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0 16px;
+  }
+
+  .vigil-shield {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .vigil-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .vigil-product-name {
+    font-size: 22px;
+    font-weight: 600;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: var(--cr-primary-text-color);
+    letter-spacing: -0.02em;
+  }
+
+  .vigil-tagline {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #60a5fa;
+  }
+
+  .vigil-info-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+    padding: 12px 0;
+    font-size: 12px;
+  }
+
+  .vigil-info-label {
+    color: var(--cr-secondary-text-color);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    align-self: center;
+  }
+
+  .vigil-info-value {
+    color: var(--cr-primary-text-color);
+    font-family: "Cascadia Code", "Fira Code", "JetBrains Mono",
+                 "SF Mono", "Consolas", monospace;
+    font-size: 12px;
+  }
+
+  .vigil-separator {
+    border: none;
+    border-top: 1px solid rgba(96,165,250,0.08);
+    margin: 8px 0;
+  }
+</style>
+<settings-section page-title="$i18n{aboutPageTitle}">
+  <!-- Vigil branded header -->
+  <div class="cr-row first" style="border-top: none; padding: 16px;">
+    <div class="vigil-brand-header">
+      <svg class="vigil-shield" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3B82F6"/>
+            <stop offset="100%" stop-color="#1E3A5F"/>
+          </linearGradient>
+          <linearGradient id="ig" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1E293B"/>
+            <stop offset="100%" stop-color="#0F172A"/>
+          </linearGradient>
+          <linearGradient id="eg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#60A5FA"/>
+            <stop offset="100%" stop-color="#3B82F6"/>
+          </linearGradient>
+        </defs>
+        <path d="M256 28 L462 120 C462 120 472 310 256 488 C40 310 50 120 50 120 Z" fill="url(#sg)" stroke="#60A5FA" stroke-width="4"/>
+        <path d="M256 60 L432 140 C432 140 440 300 256 456 C72 300 80 140 80 140 Z" fill="url(#ig)"/>
+        <path d="M130 256 Q256 160 382 256 Q256 352 130 256 Z" fill="none" stroke="#60A5FA" stroke-width="6"/>
+        <circle cx="256" cy="256" r="52" fill="url(#eg)" opacity="0.9"/>
+        <circle cx="256" cy="256" r="24" fill="#0F172A"/>
+        <circle cx="244" cy="244" r="10" fill="#ffffff" opacity="0.7"/>
+      </svg>
+      <div class="vigil-brand-text">
+        <div class="vigil-product-name">Vigil</div>
+        <div class="vigil-tagline">Secure. Private. Vigilant.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cr-row two-line">
+<if expr="not is_chromeos">
+    <div class="icon-container"
+        hidden="[[!shouldShowIcons_(showUpdateStatus_)]]">
+      <cr-icon
+          hidden="[[shouldShowThrobber_(
+              obsoleteSystemInfo_, currentUpdateStatusEvent_)]]"
+          icon$="[[getUpdateStatusIcon_(
+              obsoleteSystemInfo_, currentUpdateStatusEvent_)]]">
+      </cr-icon>
+      <img id="throbber" src="chrome://resources/images/throbber_small.svg"
+          hidden="[[!shouldShowThrobber_(
+              obsoleteSystemInfo_, currentUpdateStatusEvent_)]]">
+    </div>
+</if>
+    <div class="flex cr-padded-text">
+<if expr="not is_chromeos">
+      <div id="updateStatusMessage" hidden="[[!showUpdateStatus_]]">
+        <div role="alert" aria-live="polite"
+            inner-h-t-m-l="[[getUpdateStatusMessage_(
+                currentUpdateStatusEvent_)]]">
+        </div>
+        <a hidden$="[[!shouldShowLearnMoreLink_(
+            currentUpdateStatusEvent_)]]" target="_blank"
+            href="https://support.google.com/chrome?p=update_error"
+            aria-label="$i18nPolymer{aboutLearnMoreUpdatingErrors}">
+          $i18n{learnMore}
+        </a>
+      </div>
+      <span id="deprecationWarning"
+          hidden="[[!obsoleteSystemInfo_.obsolete]]">
+        $i18n{aboutObsoleteSystem}
+        <a href="$i18n{aboutObsoleteSystemURL}" target="_blank"
+            aria-label="$i18nPolymer{aboutLearnMoreSystemRequirements}">
+          $i18n{learnMore}
+        </a>
+      </span>
+</if>
+      <div class="secondary">$i18n{aboutBrowserVersion}</div>
+    </div>
+<if expr="not is_chromeos">
+    <div class="separator" hidden="[[!showButtonContainer_]]"></div>
+    <span id="buttonContainer" hidden="[[!showButtonContainer_]]">
+      <cr-button id="relaunch" hidden="[[!showRelaunch_]]"
+          on-click="onRelaunchClick_">
+        $i18n{aboutRelaunch}
+      </cr-button>
+    </span>
+</if>
+  </div>
+  <cr-link-row class="hr" id="help" on-click="onHelpClick_"
+      label="$i18n{aboutGetHelpUsingChrome}"
+      external></cr-link-row>
+<if expr="_google_chrome">
+  <cr-link-row class="hr" id="reportIssue" on-click="onReportIssueClick_"
+      hidden="[[!prefs.feedback_allowed.value]]"
+      label="$i18n{aboutReportAnIssue}" external></cr-link-row>
+  <cr-link-row class="hr" id="privacyPolicy"
+      on-click="onPrivacyPolicyClick_" label="$i18n{aboutPrivacyPolicy}"
+      external></cr-link-row>
+</if>
+  <cr-link-row class="hr" on-click="onManagementPageClick_"
+      start-icon="[[managedByIcon_]]" label="$i18n{managementPage}"
+      role-description="$i18n{subpageArrowRoleDescription}"
+      hidden$="[[!isManaged_]]"></cr-link-row>
+</settings-section>
+
+<settings-section>
+  <div class="info-sections">
+    <div class="info-section">
+      <div class="secondary">$i18n{aboutProductTitle}</div>
+      <div class="secondary">$i18n{aboutProductCopyright}</div>
+    </div>
+
+    <div class="info-section">
+      <div class="secondary">$i18nRaw{aboutProductLicense}</div>
+    </div>
+<if expr="_google_chrome or _is_chrome_for_testing_branded">
+    <div class="secondary">
+      <a id="tos" href="$i18n{aboutTermsURL}">$i18n{aboutProductTos}</a>
+    </div>
+</if>
+<if expr="not is_chromeos">
+  <template is="dom-if" if="[[shouldShowRelaunchDialog]]" restamp>
+    <relaunch-confirmation-dialog restart-type="[[restartTypeEnum.RELAUNCH]]"
+        on-close="onRelaunchDialogClose"></relaunch-confirmation-dialog>
+  </template>
+</if>
+  </div>
+</settings-section>

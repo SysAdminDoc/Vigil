@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html dir="$i18n{textdirection}" lang="$i18n{language}" class="loading">
+<head>
+  <meta charset="utf8">
+  <meta name="color-scheme" content="light dark">
+  <base href="chrome://bookmarks">
+  <title>$i18n{title}</title>
+  <link rel="stylesheet" href="chrome://resources/css/md_colors.css">
+  <style>
+    html {
+      touch-action: manipulation;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    @media (prefers-color-scheme: dark) {
+      html {
+        background: var(--md-background-color);
+      }
+    }
+  </style>
+  <style>
+    /* ======================================================
+       Vigil Theme - Bookmarks Manager Overlay
+       Professional IT Admin Dark Theme
+       ====================================================== */
+
+    :root {
+      --vigil-bg:           #0c1018;
+      --vigil-surface:      #111827;
+      --vigil-surface-alt:  #151d2b;
+      --vigil-border:       rgba(96,165,250,0.08);
+      --vigil-border-hover: rgba(96,165,250,0.18);
+      --vigil-accent:       #60a5fa;
+      --vigil-accent-dim:   #3b82f6;
+      --vigil-accent-bg:    rgba(96,165,250,0.06);
+      --vigil-text:         #d1d5db;
+      --vigil-text-bright:  #f3f4f6;
+      --vigil-text-muted:   #6b7280;
+      --vigil-red:          #f87171;
+      --vigil-green:        #34d399;
+      --vigil-yellow:       #fbbf24;
+      --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+      --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --vigil-radius:       4px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+    /* ---- Global Overrides ---- */
+    html, body {
+      background: var(--vigil-bg) !important;
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-sans) !important;
+    }
+
+    /* ---- Scrollbar ---- */
+    ::-webkit-scrollbar {
+      width: 6px !important;
+      height: 6px !important;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--vigil-bg) !important;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(96,165,250,0.15) !important;
+      border-radius: 3px !important;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(96,165,250,0.3) !important;
+    }
+
+    /* ---- Selection ---- */
+    ::selection {
+      background: rgba(96,165,250,0.25) !important;
+      color: var(--vigil-text-bright) !important;
+    }
+
+    /* ---- Main App Container ---- */
+    bookmarks-app {
+      background: var(--vigil-bg) !important;
+      color: var(--vigil-text) !important;
+      --iron-icon-fill-color: var(--vigil-text-muted) !important;
+    }
+
+    /* ---- Toolbar ---- */
+    cr-toolbar,
+    cr-toolbar #toolbar {
+      background: var(--vigil-surface) !important;
+      color: var(--vigil-text-bright) !important;
+      border-bottom: 1px solid var(--vigil-border) !important;
+      font-family: var(--vigil-sans) !important;
+      --cr-toolbar-color: var(--vigil-text-bright) !important;
+      --cr-toolbar-background-color: var(--vigil-surface) !important;
+    }
+
+    cr-toolbar .title {
+      font-family: var(--vigil-sans) !important;
+      font-weight: 600 !important;
+      color: var(--vigil-text-bright) !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    /* ---- Search Field ---- */
+    cr-toolbar-search-field {
+      --cr-toolbar-search-field-background: var(--vigil-surface-alt) !important;
+      --cr-toolbar-search-field-color: var(--vigil-text) !important;
+      border-radius: var(--vigil-radius) !important;
+    }
+
+    cr-toolbar-search-field #searchInput,
+    cr-toolbar-search-field input {
+      background: var(--vigil-surface-alt) !important;
+      color: var(--vigil-text) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      font-family: var(--vigil-sans) !important;
+      caret-color: var(--vigil-accent) !important;
+    }
+
+    cr-toolbar-search-field #searchInput:focus,
+    cr-toolbar-search-field input:focus {
+      border-color: var(--vigil-accent-dim) !important;
+      outline: none !important;
+    }
+
+    cr-toolbar-search-field .search-label,
+    cr-toolbar-search-field #prompt {
+      color: var(--vigil-text-muted) !important;
+      font-family: var(--vigil-sans) !important;
+    }
+
+    /* ---- Sidebar ---- */
+    #sidebar,
+    bookmarks-app [id="sidebar"],
+    bookmarks-app .sidebar {
+      background: var(--vigil-surface) !important;
+      border-right: 1px solid var(--vigil-border) !important;
+      color: var(--vigil-text) !important;
+    }
+
+    /* ---- Folder Tree Nodes ---- */
+    bookmarks-folder-node {
+      font-family: var(--vigil-sans) !important;
+    }
+
+    bookmarks-folder-node .folder-node {
+      height: 32px !important;
+      line-height: 32px !important;
+      padding: 0 12px !important;
+      border-radius: 0 !important;
+      border-left: 2px solid transparent !important;
+      color: var(--vigil-text) !important;
+      font-size: 13px !important;
+      font-family: var(--vigil-sans) !important;
+      transition: background 0.15s ease, border-color 0.15s ease !important;
+    }
+
+    bookmarks-folder-node .folder-node:hover {
+      background: var(--vigil-accent-bg) !important;
+      border-left-color: var(--vigil-border-hover) !important;
+      color: var(--vigil-text-bright) !important;
+    }
+
+    bookmarks-folder-node .folder-node.selected,
+    bookmarks-folder-node .folder-node[selected],
+    bookmarks-folder-node[selected] .folder-node {
+      background: var(--vigil-accent-bg) !important;
+      border-left-color: var(--vigil-accent) !important;
+      color: var(--vigil-accent) !important;
+      font-weight: 500 !important;
+    }
+
+    /* Remove ripple effects from folder nodes */
+    bookmarks-folder-node paper-ripple,
+    bookmarks-folder-node .ripple,
+    bookmarks-folder-node cr-ripple {
+      display: none !important;
+    }
+
+    /* Folder icons in sidebar */
+    bookmarks-folder-node .icon,
+    bookmarks-folder-node cr-icon,
+    bookmarks-folder-node iron-icon {
+      color: var(--vigil-text-muted) !important;
+      --iron-icon-fill-color: var(--vigil-text-muted) !important;
+    }
+
+    bookmarks-folder-node .folder-node.selected .icon,
+    bookmarks-folder-node .folder-node.selected cr-icon,
+    bookmarks-folder-node .folder-node.selected iron-icon,
+    bookmarks-folder-node[selected] .folder-node .icon,
+    bookmarks-folder-node[selected] .folder-node cr-icon {
+      color: var(--vigil-accent) !important;
+      --iron-icon-fill-color: var(--vigil-accent) !important;
+    }
+
+    /* ---- Bookmarks List ---- */
+    bookmarks-list {
+      background: var(--vigil-bg) !important;
+    }
+
+    /* ---- Bookmark Items ---- */
+    bookmarks-item {
+      font-family: var(--vigil-sans) !important;
+      border-bottom: 1px solid var(--vigil-border) !important;
+    }
+
+    bookmarks-item .row-container,
+    bookmarks-item .list-item {
+      height: 36px !important;
+      padding: 0 16px !important;
+      background: transparent !important;
+      color: var(--vigil-text) !important;
+      border-radius: 0 !important;
+      transition: background 0.12s ease !important;
+    }
+
+    bookmarks-item .row-container:hover,
+    bookmarks-item .list-item:hover {
+      background: var(--vigil-accent-bg) !important;
+    }
+
+    bookmarks-item[selected] .row-container,
+    bookmarks-item[selected] .list-item,
+    bookmarks-item .row-container.selected,
+    bookmarks-item .list-item.selected {
+      background: rgba(96,165,250,0.10) !important;
+      color: var(--vigil-accent) !important;
+    }
+
+    /* Bookmark title text */
+    bookmarks-item .title,
+    bookmarks-item .folder-label {
+      font-family: var(--vigil-sans) !important;
+      font-size: 13px !important;
+      color: var(--vigil-text) !important;
+    }
+
+    bookmarks-item[selected] .title,
+    bookmarks-item[selected] .folder-label {
+      color: var(--vigil-accent) !important;
+    }
+
+    /* Bookmark URL text - monospace */
+    bookmarks-item .url,
+    bookmarks-item .subtitle {
+      font-family: var(--vigil-mono) !important;
+      font-size: 11px !important;
+      color: var(--vigil-text-muted) !important;
+    }
+
+    /* Bookmark favicons */
+    bookmarks-item .bookmark-icon,
+    .bookmark-icon {
+      border-radius: 2px !important;
+    }
+
+    /* Remove ripple from bookmark items */
+    bookmarks-item paper-ripple,
+    bookmarks-item .ripple,
+    bookmarks-item cr-ripple {
+      display: none !important;
+    }
+
+    /* ---- Buttons (Uppercase Style) ---- */
+    cr-button,
+    paper-button,
+    button.action-button,
+    .cr-button-primary {
+      text-transform: uppercase !important;
+      letter-spacing: 0.04em !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      border-radius: var(--vigil-radius) !important;
+      background: var(--vigil-surface-alt) !important;
+      color: var(--vigil-text) !important;
+      border: 1px solid var(--vigil-border) !important;
+      transition: background 0.15s ease, border-color 0.15s ease !important;
+    }
+
+    cr-button:hover,
+    paper-button:hover,
+    button.action-button:hover {
+      background: var(--vigil-accent-bg) !important;
+      border-color: var(--vigil-border-hover) !important;
+      color: var(--vigil-text-bright) !important;
+    }
+
+    cr-button.action-button,
+    .action-button,
+    cr-button[class~="action-button"] {
+      background: var(--vigil-accent-dim) !important;
+      color: #fff !important;
+      border-color: var(--vigil-accent-dim) !important;
+    }
+
+    cr-button.action-button:hover {
+      background: var(--vigil-accent) !important;
+      border-color: var(--vigil-accent) !important;
+    }
+
+    /* ---- Context Menu ---- */
+    cr-action-menu,
+    cr-action-menu .dropdown-content,
+    .cr-menu,
+    #command-toolbar .dropdown-content {
+      background: var(--vigil-surface) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+      padding: 4px 0 !important;
+    }
+
+    cr-action-menu .dropdown-item,
+    cr-action-menu button,
+    .cr-menu .menu-item,
+    .dropdown-item {
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 13px !important;
+      padding: 6px 16px !important;
+      background: transparent !important;
+      min-height: 32px !important;
+    }
+
+    cr-action-menu .dropdown-item:hover,
+    cr-action-menu button:hover,
+    .cr-menu .menu-item:hover,
+    .dropdown-item:hover {
+      background: var(--vigil-accent-bg) !important;
+      color: var(--vigil-text-bright) !important;
+    }
+
+    cr-action-menu hr,
+    .cr-menu hr {
+      border-color: var(--vigil-border) !important;
+      margin: 4px 0 !important;
+    }
+
+    /* ---- Edit Dialog ---- */
+    bookmarks-edit-dialog,
+    bookmarks-edit-dialog cr-dialog,
+    cr-dialog {
+      --cr-dialog-background-color: var(--vigil-surface) !important;
+    }
+
+    cr-dialog .title-container,
+    cr-dialog #title {
+      color: var(--vigil-text-bright) !important;
+      font-family: var(--vigil-sans) !important;
+      font-weight: 600 !important;
+      border-bottom: 1px solid var(--vigil-border) !important;
+    }
+
+    cr-dialog .body,
+    cr-dialog .dialog-body {
+      background: var(--vigil-surface) !important;
+      color: var(--vigil-text) !important;
+    }
+
+    cr-dialog .wrapper,
+    cr-dialog::part(wrapper) {
+      background: var(--vigil-surface) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6) !important;
+    }
+
+    cr-dialog .button-container,
+    cr-dialog .action-buttons {
+      border-top: 1px solid var(--vigil-border) !important;
+    }
+
+    /* Dialog input fields */
+    cr-dialog cr-input,
+    cr-dialog input,
+    cr-input {
+      --cr-input-background-color: var(--vigil-surface-alt) !important;
+      --cr-input-color: var(--vigil-text) !important;
+      --cr-input-focus-color: var(--vigil-accent) !important;
+    }
+
+    cr-input input,
+    cr-input #input {
+      background: var(--vigil-surface-alt) !important;
+      color: var(--vigil-text) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      font-family: var(--vigil-sans) !important;
+      caret-color: var(--vigil-accent) !important;
+    }
+
+    cr-input input:focus,
+    cr-input #input:focus {
+      border-color: var(--vigil-accent-dim) !important;
+    }
+
+    cr-input .label,
+    cr-input label {
+      color: var(--vigil-text-muted) !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 11px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.04em !important;
+    }
+
+    /* URL input specifically monospace */
+    cr-input[label*="URL" i] input,
+    cr-input[label*="url" i] input,
+    cr-input#url input,
+    cr-input[id*="url" i] input {
+      font-family: var(--vigil-mono) !important;
+      font-size: 12px !important;
+    }
+
+    /* ---- Icon Buttons (more menu, sort, etc.) ---- */
+    cr-icon-button {
+      --cr-icon-button-fill-color: var(--vigil-text-muted) !important;
+      --cr-icon-button-hover-background-color: var(--vigil-accent-bg) !important;
+    }
+
+    cr-icon-button:hover {
+      --cr-icon-button-fill-color: var(--vigil-text-bright) !important;
+    }
+
+    /* ---- Toast / Snackbar ---- */
+    cr-toast {
+      background: var(--vigil-surface-alt) !important;
+      color: var(--vigil-text) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      font-family: var(--vigil-sans) !important;
+    }
+
+    /* ---- Checkbox ---- */
+    cr-checkbox {
+      --cr-checkbox-checked-box-color: var(--vigil-accent) !important;
+      --cr-checkbox-unchecked-box-color: var(--vigil-text-muted) !important;
+      --cr-checkbox-label-color: var(--vigil-text) !important;
+    }
+
+    /* ---- Empty State ---- */
+    .empty-state,
+    .empty-list {
+      color: var(--vigil-text-muted) !important;
+      font-family: var(--vigil-sans) !important;
+    }
+
+    /* ---- MD Color Variable Overrides ---- */
+    html {
+      --md-background-color: var(--vigil-bg) !important;
+      --md-sys-color-surface: var(--vigil-surface) !important;
+      --md-sys-color-on-surface: var(--vigil-text) !important;
+      --md-sys-color-primary: var(--vigil-accent) !important;
+      --md-sys-color-on-primary: #fff !important;
+      --md-sys-color-surface-container: var(--vigil-surface-alt) !important;
+      --md-sys-color-outline: var(--vigil-border) !important;
+      --cr-card-background-color: var(--vigil-surface) !important;
+      --cr-primary-text-color: var(--vigil-text) !important;
+      --cr-secondary-text-color: var(--vigil-text-muted) !important;
+      --google-blue-600: var(--vigil-accent) !important;
+      --google-blue-700: var(--vigil-accent-dim) !important;
+      --cr-link-color: var(--vigil-accent) !important;
+      --cr-focus-outline-color: var(--vigil-accent-dim) !important;
+      color-scheme: dark !important;
+    }
+
+    } /* end @media (prefers-color-scheme: dark) */
+  </style>
+</head>
+<body>
+  <bookmarks-app></bookmarks-app>
+  <link rel="stylesheet" href="chrome://resources/css/text_defaults_md.css">
+  <script type="module" src="bookmarks.js"></script>
+</body>
+</html>
