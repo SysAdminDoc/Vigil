@@ -1,0 +1,371 @@
+/* interstitial_core.css - Vigil Override
+ * Replaces all Google color variables with Vigil design system palette.
+ * This file is a complete overlay of the upstream interstitial_core.css.
+ */
+
+a {
+  color: #60a5fa;
+}
+
+body {
+  --background-color: #0c1018;
+  --heading-color: #f3f4f6;
+  --link-color: #60a5fa;
+  --primary-button-fill-color: transparent;
+  --primary-button-fill-color-active: #3b82f6;
+  --primary-button-text-color: #60a5fa;
+  --secondary-button-border-color: rgba(96,165,250,0.08);
+  --secondary-button-fill-color: transparent;
+  --secondary-button-text-color: #6b7280;
+  --text-color: #d1d5db;
+
+  background: var(--background-color);
+  color: var(--text-color);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 75%;
+  margin: 0;
+  padding: 0;
+  word-wrap: break-word;
+}
+
+.nav-wrapper .secondary-button {
+  background: transparent;
+  border: 1px solid rgba(96,165,250,0.08);
+  color: #6b7280;
+  float: none;
+  margin: 0;
+  padding: 10px 24px;
+}
+
+.hidden {
+  display: none;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  font-size: 125%;
+}
+
+.icon {
+  background-repeat: no-repeat;
+  background-size: 100%;
+  height: 72px;
+  margin: 0 0 20px;
+  width: 72px;
+  opacity: 0.6;
+}
+
+.icon-generic {
+  content: -webkit-image-set(
+      url(../../images/default_100_percent/neterror/generic_error.png) 1x,
+      url(../../images/default_200_percent/neterror/generic_error.png) 2x);
+  filter: brightness(0.7) saturate(0.5) hue-rotate(190deg);
+}
+
+.icon-offline {
+  content: -webkit-image-set(
+      url(../../images/default_100_percent/neterror/offline.png) 1x,
+      url(../../images/default_200_percent/neterror/offline.png) 2x);
+  filter: brightness(0.7) saturate(0.5) hue-rotate(190deg);
+}
+
+.interstitial-wrapper {
+  box-sizing: border-box;
+  margin: 48px auto 0;
+  max-width: 680px;
+  width: 100%;
+}
+
+#main-content {
+  margin: 0;
+  padding: 40px 36px;
+  background: #111827;
+  border: 1px solid rgba(96,165,250,0.08);
+  border-radius: 4px;
+}
+
+.bad-clock #main-content,
+.ssl #main-content {
+  border-top: none;
+}
+
+#main-content > :first-child {
+  margin-top: 0;
+}
+
+h1 {
+  color: #f3f4f6;
+  font-size: 1.6em;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  color: #d1d5db;
+  font-size: 1.2em;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+p {
+  color: #d1d5db;
+  font-size: 0.95em;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+
+.error-code {
+  display: block;
+  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+  font-size: 0.85em;
+  color: #f87171;
+  background: rgba(248,113,113,0.06);
+  border: 1px solid rgba(248,113,113,0.12);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-top: 16px;
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+
+.primary-button {
+  background: transparent;
+  border: 1px solid #60a5fa;
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: #60a5fa;
+  cursor: pointer;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0;
+  padding: 10px 24px;
+  text-transform: uppercase;
+  transition: background 0.15s ease, color 0.15s ease;
+  user-select: none;
+}
+
+.primary-button:active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #0c1018;
+}
+
+.primary-button:hover {
+  background: #60a5fa;
+  color: #0c1018;
+}
+
+.secondary-button {
+  background: transparent;
+  border: 1px solid rgba(96,165,250,0.08);
+  border-radius: 4px;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0;
+  padding: 10px 24px;
+  text-transform: uppercase;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.secondary-button:hover {
+  border-color: rgba(96,165,250,0.18);
+  color: #d1d5db;
+  background: rgba(96,165,250,0.04);
+}
+
+.secondary-button:active {
+  border-color: rgba(96,165,250,0.25);
+}
+
+.snackbar {
+  background: #111827;
+  border: 1px solid rgba(96,165,250,0.08);
+  border-radius: 4px;
+  bottom: 24px;
+  box-sizing: border-box;
+  color: #d1d5db;
+  font-size: 0.87em;
+  left: 0;
+  margin: 0 auto;
+  max-width: 680px;
+  opacity: 0;
+  padding: 16px 24px;
+  position: fixed;
+  right: 0;
+  transition: opacity 0.3s ease;
+  visibility: hidden;
+  z-index: 1;
+}
+
+.snackbar-show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.snackbar-content {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.snackbar .action-link {
+  color: #60a5fa;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#details {
+  background: rgba(96,165,250,0.03);
+  border: 1px solid rgba(96,165,250,0.08);
+  border-radius: 4px;
+  color: #6b7280;
+  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+  font-size: 0.8em;
+  line-height: 1.7;
+  margin-top: 16px;
+  padding: 16px 18px;
+}
+
+#details p {
+  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+  font-size: 0.95em;
+  color: #6b7280;
+}
+
+#buttons,
+#control-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+#error-information-button,
+#details-button {
+  background: transparent;
+  border: 1px solid rgba(96,165,250,0.08);
+  border-radius: 4px;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0;
+  padding: 10px 24px;
+  text-transform: uppercase;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#error-information-button:hover,
+#details-button:hover {
+  border-color: rgba(96,165,250,0.18);
+  color: #d1d5db;
+  background: rgba(96,165,250,0.04);
+}
+
+#suggestions-list {
+  color: #6b7280;
+  font-size: 0.9em;
+  line-height: 1.7;
+  padding-left: 20px;
+  margin: 16px 0;
+}
+
+#suggestions-list li {
+  margin-bottom: 6px;
+}
+
+#sub-frame-error {
+  align-items: center;
+  background: #0c1018;
+  color: #6b7280;
+  display: flex;
+  font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+  font-size: 0.8em;
+  height: 100%;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  text-align: center;
+  top: 0;
+  transition: background-color 200ms;
+  width: 100%;
+}
+
+#sub-frame-error:hover {
+  background: #111827;
+}
+
+#sub-frame-error .icon-generic {
+  margin: 0 auto 16px;
+}
+
+/* --- Dark mode is the ONLY mode for Vigil --- */
+
+@media (prefers-color-scheme: dark) {
+  body {
+    --background-color: #0c1018;
+    --heading-color: #f3f4f6;
+    --link-color: #60a5fa;
+    --primary-button-fill-color: transparent;
+    --primary-button-fill-color-active: #3b82f6;
+    --primary-button-text-color: #60a5fa;
+    --secondary-button-border-color: rgba(96,165,250,0.08);
+    --secondary-button-fill-color: transparent;
+    --secondary-button-text-color: #6b7280;
+    --text-color: #d1d5db;
+  }
+}
+
+/* Light mode override - force Vigil dark theme regardless */
+@media (prefers-color-scheme: light) {
+  body {
+    --background-color: #0c1018;
+    --heading-color: #f3f4f6;
+    --link-color: #60a5fa;
+    --primary-button-fill-color: transparent;
+    --primary-button-fill-color-active: #3b82f6;
+    --primary-button-text-color: #60a5fa;
+    --secondary-button-border-color: rgba(96,165,250,0.08);
+    --secondary-button-fill-color: transparent;
+    --secondary-button-text-color: #6b7280;
+    --text-color: #d1d5db;
+  }
+}
+
+/* --- Scrollbar --- */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c1018;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(96,165,250,0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(96,165,250,0.25);
+}
+
+/* --- Selection --- */
+
+::selection {
+  background: rgba(96,165,250,0.25);
+  color: #f3f4f6;
+}

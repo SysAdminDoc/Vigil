@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html dir="$i18n{textdirection}" lang="$i18n{language}">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0c1018">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>$i18n{title}</title>
+  <link rel="stylesheet" href="../../.../components/security_interstitials/core/common/resources/interstitial_core.css">
+  <link rel="stylesheet" href="../../.../components/security_interstitials/core/common/resources/interstitial_common.css">
+  <link rel="stylesheet" href="neterror.css">
+  <style>
+    /* Vigil Error Page Overlay */
+
+    :root {
+      --vigil-bg:           #0c1018;
+      --vigil-surface:      #111827;
+      --vigil-border:       rgba(96,165,250,0.08);
+      --vigil-border-hover: rgba(96,165,250,0.18);
+      --vigil-accent:       #60a5fa;
+      --vigil-accent-dim:   #3b82f6;
+      --vigil-text:         #d1d5db;
+      --vigil-text-bright:  #f3f4f6;
+      --vigil-text-muted:   #6b7280;
+      --vigil-red:          #f87171;
+      --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+      --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --vigil-radius:       4px;
+    }
+
+    body {
+      background-color: var(--vigil-bg) !important;
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-sans) !important;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    /* --- Main Layout --- */
+
+    .interstitial-wrapper {
+      background: var(--vigil-bg) !important;
+      color: var(--vigil-text) !important;
+      max-width: 680px !important;
+      margin: 0 auto !important;
+      padding: 60px 32px 48px !important;
+      box-sizing: border-box !important;
+    }
+
+    #main-content {
+      background: var(--vigil-surface) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      padding: 40px 36px !important;
+      margin: 0 !important;
+    }
+
+    #main-message {
+      margin: 0 0 24px 0 !important;
+      padding: 0 !important;
+    }
+
+    /* --- Headings --- */
+
+    h1 {
+      color: var(--vigil-text-bright) !important;
+      font-family: var(--vigil-sans) !important;
+      font-weight: 600 !important;
+      font-size: 22px !important;
+      letter-spacing: -0.01em !important;
+      margin: 0 0 12px 0 !important;
+      line-height: 1.3 !important;
+    }
+
+    h2 {
+      color: var(--vigil-text) !important;
+      font-family: var(--vigil-sans) !important;
+      font-weight: 500 !important;
+      font-size: 15px !important;
+      margin: 0 0 8px 0 !important;
+      line-height: 1.5 !important;
+    }
+
+    p {
+      color: var(--vigil-text) !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+    }
+
+    a {
+      color: var(--vigil-accent) !important;
+      text-decoration: none !important;
+    }
+
+    a:hover {
+      color: var(--vigil-accent-dim) !important;
+      text-decoration: underline !important;
+    }
+
+    /* --- Error Icons --- */
+
+    .icon,
+    .icon-generic,
+    .icon-offline {
+      filter: brightness(0.7) saturate(0.5) hue-rotate(190deg) !important;
+      opacity: 0.6 !important;
+      margin-bottom: 16px !important;
+    }
+
+    /* --- Error Code - Prominent & Visible --- */
+
+    .error-code {
+      display: block !important;
+      visibility: visible !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 13px !important;
+      color: var(--vigil-red) !important;
+      background: rgba(248,113,113,0.06) !important;
+      border: 1px solid rgba(248,113,113,0.12) !important;
+      border-radius: var(--vigil-radius) !important;
+      padding: 10px 14px !important;
+      margin: 20px 0 8px 0 !important;
+      letter-spacing: 0.02em !important;
+      word-break: break-all !important;
+    }
+
+    /* --- Suggestions --- */
+
+    #suggestions-list {
+      color: var(--vigil-text) !important;
+      font-size: 13px !important;
+      line-height: 1.7 !important;
+      padding-left: 20px !important;
+      margin: 16px 0 !important;
+    }
+
+    #suggestions-list li {
+      margin-bottom: 6px !important;
+      color: var(--vigil-text-muted) !important;
+    }
+
+    /* --- Details Section - More Prominent --- */
+
+    #details {
+      background: rgba(96,165,250,0.03) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      padding: 16px 18px !important;
+      margin-top: 16px !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 12px !important;
+      color: var(--vigil-text-muted) !important;
+      line-height: 1.7 !important;
+    }
+
+    #details p {
+      font-family: var(--vigil-mono) !important;
+      font-size: 12px !important;
+      color: var(--vigil-text-muted) !important;
+    }
+
+    /* --- Buttons --- */
+
+    #buttons,
+    #control-buttons {
+      margin-top: 24px !important;
+      display: flex !important;
+      gap: 12px !important;
+    }
+
+    .primary-button {
+      background: transparent !important;
+      color: var(--vigil-accent) !important;
+      border: 1px solid var(--vigil-accent) !important;
+      border-radius: var(--vigil-radius) !important;
+      padding: 10px 24px !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.08em !important;
+      text-transform: uppercase !important;
+      cursor: pointer !important;
+      transition: background 0.15s ease, color 0.15s ease !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    .primary-button:hover {
+      background: var(--vigil-accent) !important;
+      color: var(--vigil-bg) !important;
+    }
+
+    .primary-button:active {
+      background: var(--vigil-accent-dim) !important;
+      border-color: var(--vigil-accent-dim) !important;
+      color: var(--vigil-bg) !important;
+    }
+
+    .secondary-button,
+    #error-information-button,
+    #details-button {
+      background: transparent !important;
+      color: var(--vigil-text-muted) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      padding: 10px 24px !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.08em !important;
+      text-transform: uppercase !important;
+      cursor: pointer !important;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    .secondary-button:hover,
+    #error-information-button:hover,
+    #details-button:hover {
+      border-color: var(--vigil-border-hover) !important;
+      color: var(--vigil-text) !important;
+      background: rgba(96,165,250,0.04) !important;
+    }
+
+    /* --- Snackbar --- */
+
+    .snackbar {
+      background: var(--vigil-surface) !important;
+      color: var(--vigil-text) !important;
+      border: 1px solid var(--vigil-border) !important;
+      border-radius: var(--vigil-radius) !important;
+      font-family: var(--vigil-sans) !important;
+      font-size: 13px !important;
+    }
+
+    /* --- Sub-frame Errors --- */
+
+    #sub-frame-error {
+      background: var(--vigil-bg) !important;
+      color: var(--vigil-text-muted) !important;
+      font-family: var(--vigil-mono) !important;
+      font-size: 12px !important;
+    }
+
+    /* --- Hide Google Dino Game Imagery --- */
+
+    #offline-resources {
+      display: none !important;
+    }
+
+    /* --- Scrollbar --- */
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--vigil-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(96,165,250,0.15);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(96,165,250,0.25);
+    }
+
+    /* --- Selection --- */
+
+    ::selection {
+      background: rgba(96,165,250,0.25);
+      color: var(--vigil-text-bright);
+    }
+  </style>
+<if expr="not optimize_webui">
+  <script src="%ROOT_GEN_DIR%/components/neterror/resources/bundled/neterror.rollup.js"></script>
+</if>
+<if expr="optimize_webui">
+  <script src="%ROOT_GEN_DIR%/components/neterror/resources/minified/neterror.rollup.js"></script>
+</if>
+</head>
+<body class="neterror" style="font-family: $i18n{fontfamily}; font-size: $i18n{fontsize}">
+  <div id="content"></div>
+  <div id="offline-resources">
+    <img id="offline-resources-1x" src="images/default_100_percent/offline/100-offline-sprite.png">
+    <img id="offline-resources-2x" src="images/default_200_percent/offline/200-offline-sprite.png">
+    <template id="audio-resources">
+      <audio id="offline-sound-press" src="sounds/button-press.mp3"></audio>
+      <audio id="offline-sound-hit" src="sounds/hit.mp3"></audio>
+      <audio id="offline-sound-reached" src="sounds/score-reached.mp3"></audio>
+    </template>
+  </div>
+</body>
+</html>

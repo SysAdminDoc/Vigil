@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html dir="$i18n{textdirection}" lang="$i18n{language}">
+<head>
+  <base href="chrome://history">
+  <meta charset="utf8">
+  <meta name="color-scheme" content="light dark">
+  <title>$i18n{title}</title>
+  <link rel="stylesheet" href="chrome://resources/css/md_colors.css">
+  <style>
+    html {
+      touch-action: manipulation;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    body {
+      cursor: default;
+    }
+    @media (prefers-color-scheme: dark) {
+      html {
+        background: var(--md-background-color);
+      }
+    }
+    .loading history-app {
+      visibility: hidden;
+    }
+    #app-shim {
+      display: none;
+    }
+    .loading #app-shim {
+      display: block;
+      position: absolute;
+      inset: 0;
+      font-size: 123%;
+      color: var(--md-loading-message-color);
+      font-weight: 500;
+      align-content: center;
+      text-align: center;
+    }
+  </style>
+  <style>
+    /* ── Vigil Theme for chrome://history ── */
+
+    :root {
+      --vigil-bg:           #0c1018;
+      --vigil-surface:      #111827;
+      --vigil-surface-alt:  #151d2b;
+      --vigil-border:       rgba(96,165,250,0.08);
+      --vigil-border-hover: rgba(96,165,250,0.18);
+      --vigil-accent:       #60a5fa;
+      --vigil-accent-dim:   #3b82f6;
+      --vigil-accent-bg:    rgba(96,165,250,0.06);
+      --vigil-text:         #d1d5db;
+      --vigil-text-bright:  #f3f4f6;
+      --vigil-text-muted:   #6b7280;
+      --vigil-red:          #f87171;
+      --vigil-green:        #34d399;
+      --vigil-yellow:       #fbbf24;
+      --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+      --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --vigil-radius:       4px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+      /* ── Global ── */
+
+      html {
+        background: var(--vigil-bg) !important;
+      }
+
+      body {
+        background: var(--vigil-bg) !important;
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+      }
+
+      ::selection {
+        background: var(--vigil-accent-dim) !important;
+        color: var(--vigil-text-bright) !important;
+      }
+
+      /* ── Scrollbar ── */
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--vigil-bg);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--vigil-border-hover);
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--vigil-accent-dim);
+      }
+
+      /* ── Loading shim ── */
+
+      .loading #app-shim {
+        background: var(--vigil-bg) !important;
+        color: var(--vigil-text-muted) !important;
+        font-family: var(--vigil-sans) !important;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+      }
+
+      /* ── Main app container ── */
+
+      history-app {
+        background: var(--vigil-bg) !important;
+        color: var(--vigil-text) !important;
+        --cr-primary-text-color: var(--vigil-text) !important;
+        --cr-secondary-text-color: var(--vigil-text-muted) !important;
+        --cr-card-background-color: var(--vigil-surface) !important;
+        --cr-background-color: var(--vigil-bg) !important;
+      }
+
+      /* ── Toolbar ── */
+
+      cr-toolbar,
+      history-toolbar {
+        background: var(--vigil-surface) !important;
+        border-bottom: 1px solid var(--vigil-border) !important;
+        color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-sans) !important;
+        --cr-toolbar-background-color: var(--vigil-surface) !important;
+      }
+
+      cr-toolbar .title,
+      cr-toolbar #main-title,
+      history-toolbar .title {
+        color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-sans) !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em;
+      }
+
+      /* ── Search field ── */
+
+      cr-toolbar-search-field {
+        background: var(--vigil-surface-alt) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        color: var(--vigil-text) !important;
+        --cr-toolbar-search-field-background: var(--vigil-surface-alt) !important;
+      }
+
+      cr-toolbar-search-field:hover {
+        border-color: var(--vigil-border-hover) !important;
+      }
+
+      cr-toolbar-search-field:focus-within {
+        border-color: var(--vigil-accent) !important;
+        box-shadow: 0 0 0 1px var(--vigil-accent-dim) !important;
+      }
+
+      cr-toolbar-search-field #searchInput,
+      cr-toolbar-search-field input {
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 13px !important;
+      }
+
+      cr-toolbar-search-field #searchInput::placeholder,
+      cr-toolbar-search-field input::placeholder {
+        color: var(--vigil-text-muted) !important;
+      }
+
+      /* ── Sidebar / Menu ── */
+
+      #drawer,
+      cr-drawer,
+      [id*="sidebar"],
+      [class*="sidebar"],
+      cr-lazy-render {
+        background: var(--vigil-surface) !important;
+        border-right: 1px solid var(--vigil-border) !important;
+      }
+
+      cr-drawer .drawer-header,
+      [id*="sidebar"] .header {
+        background: var(--vigil-surface) !important;
+        color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-sans) !important;
+        font-weight: 600 !important;
+        border-bottom: 1px solid var(--vigil-border) !important;
+      }
+
+      iron-selector a,
+      .menu-item,
+      paper-item,
+      [class*="sidebar"] a {
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 12px !important;
+        border-radius: var(--vigil-radius) !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
+      }
+
+      iron-selector a:hover,
+      .menu-item:hover,
+      paper-item:hover,
+      [class*="sidebar"] a:hover {
+        background: var(--vigil-accent-bg) !important;
+        color: var(--vigil-accent) !important;
+      }
+
+      iron-selector a.iron-selected,
+      iron-selector a[selected],
+      .menu-item.selected,
+      paper-item[selected] {
+        background: var(--vigil-accent-bg) !important;
+        color: var(--vigil-accent) !important;
+        font-weight: 600 !important;
+        border-inline-start: 2px solid var(--vigil-accent) !important;
+      }
+
+      /* ── Content area ── */
+
+      #content,
+      #main-container,
+      [id*="content"] {
+        background: var(--vigil-bg) !important;
+      }
+
+      /* ── History list ── */
+
+      history-list {
+        background: var(--vigil-bg) !important;
+      }
+
+      /* ── Date / section headers ── */
+
+      history-list .card-title,
+      history-list [class*="header"],
+      .history-card .card-title,
+      [class*="date-header"],
+      h3 {
+        color: var(--vigil-accent) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        padding: 10px 16px 6px !important;
+        border-bottom: 1px solid var(--vigil-border) !important;
+      }
+
+      /* ── History items ── */
+
+      history-item {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        margin: 2px 8px !important;
+        padding: 6px 12px !important;
+        transition: border-color 0.15s ease, background 0.15s ease !important;
+        font-family: var(--vigil-sans) !important;
+      }
+
+      history-item:hover {
+        border-color: var(--vigil-border-hover) !important;
+        background: var(--vigil-surface-alt) !important;
+      }
+
+      history-item[selected] {
+        background: var(--vigil-accent-bg) !important;
+        border-color: var(--vigil-accent-dim) !important;
+      }
+
+      /* ── Item fields ── */
+
+      history-item #title,
+      history-item #title a,
+      history-item .title a {
+        color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        text-decoration: none !important;
+        transition: color 0.15s ease !important;
+      }
+
+      history-item #title a:hover,
+      history-item .title a:hover {
+        color: var(--vigil-accent) !important;
+      }
+
+      history-item #domain,
+      history-item .domain {
+        color: var(--vigil-text-muted) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 11px !important;
+      }
+
+      history-item #time-accessed,
+      history-item .time {
+        color: var(--vigil-text-muted) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+      }
+
+      /* ── Favicons ── */
+
+      history-item .website-icon,
+      .website-icon {
+        border-radius: 2px !important;
+        opacity: 0.85;
+        transition: opacity 0.15s ease !important;
+      }
+
+      history-item:hover .website-icon {
+        opacity: 1;
+      }
+
+      /* ── Checkboxes ── */
+
+      history-item #checkbox,
+      cr-checkbox {
+        --cr-checkbox-checked-box-color: var(--vigil-accent) !important;
+        --cr-checkbox-unchecked-box-color: var(--vigil-text-muted) !important;
+        --cr-checkbox-checked-ripple-color: var(--vigil-accent-bg) !important;
+        --cr-checkbox-ripple-unchecked-color: transparent !important;
+        --cr-checkbox-mark-color: var(--vigil-bg) !important;
+      }
+
+      /* ── Buttons ── */
+
+      cr-button,
+      paper-button,
+      .action-button,
+      button:not(.icon-button) {
+        background: var(--vigil-surface-alt) !important;
+        color: var(--vigil-text) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        padding: 6px 14px !important;
+        transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease !important;
+        cursor: pointer !important;
+      }
+
+      cr-button:hover,
+      paper-button:hover,
+      .action-button:hover,
+      button:not(.icon-button):hover {
+        border-color: var(--vigil-border-hover) !important;
+        background: var(--vigil-accent-bg) !important;
+        color: var(--vigil-accent) !important;
+      }
+
+      cr-button.action-button,
+      .action-button[class*="primary"],
+      cr-button[class*="action"] {
+        background: var(--vigil-accent-dim) !important;
+        color: var(--vigil-bg) !important;
+        border-color: var(--vigil-accent-dim) !important;
+        font-weight: 600 !important;
+      }
+
+      cr-button.action-button:hover,
+      cr-button[class*="action"]:hover {
+        background: var(--vigil-accent) !important;
+        border-color: var(--vigil-accent) !important;
+      }
+
+      /* ── Delete / danger buttons ── */
+
+      cr-button.cancel-button,
+      .delete-button,
+      [class*="delete"],
+      [class*="remove"] {
+        color: var(--vigil-red) !important;
+      }
+
+      cr-button.cancel-button:hover,
+      .delete-button:hover {
+        background: rgba(248,113,113,0.08) !important;
+        border-color: rgba(248,113,113,0.25) !important;
+      }
+
+      /* ── Icon buttons ── */
+
+      cr-icon-button,
+      .icon-button {
+        --cr-icon-button-fill-color: var(--vigil-text-muted) !important;
+        --cr-icon-button-hover-background-color: var(--vigil-accent-bg) !important;
+        transition: opacity 0.15s ease !important;
+      }
+
+      cr-icon-button:hover,
+      .icon-button:hover {
+        --cr-icon-button-fill-color: var(--vigil-accent) !important;
+      }
+
+      /* ── More actions menu / dropdown ── */
+
+      cr-action-menu,
+      [class*="dropdown"],
+      [class*="menu-popup"],
+      iron-dropdown {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+        --cr-menu-background-color: var(--vigil-surface) !important;
+      }
+
+      cr-action-menu button,
+      .dropdown-item {
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 12px !important;
+        background: transparent !important;
+        border: none !important;
+        text-transform: none !important;
+      }
+
+      cr-action-menu button:hover,
+      .dropdown-item:hover {
+        background: var(--vigil-accent-bg) !important;
+        color: var(--vigil-accent) !important;
+      }
+
+      /* ── Dialogs ── */
+
+      cr-dialog,
+      [class*="dialog"] .body,
+      .cr-dialog-native {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        color: var(--vigil-text) !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+      }
+
+      cr-dialog .title-container,
+      cr-dialog [slot="title"] {
+        color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-sans) !important;
+        font-weight: 600 !important;
+        border-bottom: 1px solid var(--vigil-border) !important;
+      }
+
+      cr-dialog .body,
+      cr-dialog [slot="body"] {
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 13px !important;
+      }
+
+      cr-dialog::backdrop,
+      .cr-dialog-native::backdrop {
+        background: rgba(0,0,0,0.65) !important;
+      }
+
+      /* ── Synced device manager ── */
+
+      history-synced-device-manager {
+        background: var(--vigil-bg) !important;
+        color: var(--vigil-text) !important;
+      }
+
+      history-synced-device-manager .device-name,
+      history-synced-device-manager [class*="card-title"],
+      history-synced-device-manager h3 {
+        color: var(--vigil-accent) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+      }
+
+      history-synced-device-manager .device-card,
+      [class*="synced-device-card"] {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        margin: 4px 8px !important;
+      }
+
+      history-synced-device-manager a {
+        color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 13px !important;
+        text-decoration: none !important;
+      }
+
+      history-synced-device-manager a:hover {
+        color: var(--vigil-accent) !important;
+      }
+
+      /* ── Cards ── */
+
+      .card,
+      [class*="history-card"],
+      .history-card {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        box-shadow: none !important;
+      }
+
+      /* ── Dividers / separators ── */
+
+      hr,
+      [class*="separator"],
+      [class*="divider"] {
+        border-color: var(--vigil-border) !important;
+        opacity: 1 !important;
+      }
+
+      /* ── Links ── */
+
+      a {
+        color: var(--vigil-accent) !important;
+        text-decoration: none !important;
+      }
+
+      a:hover {
+        color: var(--vigil-text-bright) !important;
+      }
+
+      a:visited {
+        color: var(--vigil-accent-dim) !important;
+      }
+
+      /* ── Toolbar selection overlay ── */
+
+      #toolbar-container [class*="selection"],
+      [class*="number-selected"],
+      .toolbar-selection-overlay {
+        background: var(--vigil-surface) !important;
+        color: var(--vigil-accent) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        border-bottom: 1px solid var(--vigil-accent-dim) !important;
+      }
+
+      /* ── Toast / snackbar ── */
+
+      cr-toast,
+      [class*="toast"] {
+        background: var(--vigil-surface-alt) !important;
+        color: var(--vigil-text) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 12px !important;
+      }
+
+      /* ── Empty state ── */
+
+      [class*="no-results"],
+      [class*="empty-state"] {
+        color: var(--vigil-text-muted) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 13px !important;
+      }
+
+      /* ── Ripple overrides ── */
+
+      paper-ripple,
+      cr-ripple {
+        color: var(--vigil-accent-dim) !important;
+        opacity: 0.08 !important;
+      }
+
+      /* ── Focus rings ── */
+
+      :focus-visible {
+        outline: 1px solid var(--vigil-accent) !important;
+        outline-offset: 1px !important;
+      }
+
+    } /* end @media (prefers-color-scheme: dark) */
+  </style>
+</head>
+<body class="loading">
+  <history-app id="history-app"></history-app>
+  <div id="app-shim">$i18n{loading}</div>
+  <link rel="stylesheet" href="chrome://resources/css/text_defaults_md.css">
+  <script type="module" src="history.js"></script>
+</body>
+</html>

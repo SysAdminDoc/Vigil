@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html dir="$i18n{textdirection}" lang="$i18n{language}" class="loading">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <base href="chrome://downloads">
+  <title>$i18n{title}</title>
+  <link rel="stylesheet" href="chrome://resources/css/md_colors.css">
+  <style>
+    html {
+      touch-action: manipulation;
+    }
+    @media (prefers-color-scheme: dark) {
+      html {
+        background: var(--md-background-color);
+      }
+    }
+    html:not(.loading),
+    body {
+      height: 100%;
+    }
+    body {
+      display: flex;
+      margin: 0;
+    }
+  </style>
+  <style>
+    /* ── Vigil Theme: Downloads ── */
+
+    :root {
+      --vigil-bg:           #0c1018;
+      --vigil-surface:      #111827;
+      --vigil-surface-alt:  #151d2b;
+      --vigil-border:       rgba(96,165,250,0.08);
+      --vigil-border-hover: rgba(96,165,250,0.18);
+      --vigil-accent:       #60a5fa;
+      --vigil-accent-dim:   #3b82f6;
+      --vigil-accent-bg:    rgba(96,165,250,0.06);
+      --vigil-text:         #d1d5db;
+      --vigil-text-bright:  #f3f4f6;
+      --vigil-text-muted:   #6b7280;
+      --vigil-red:          #f87171;
+      --vigil-green:        #34d399;
+      --vigil-yellow:       #fbbf24;
+      --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono", "Consolas", monospace;
+      --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --vigil-radius:       4px;
+    }
+
+    /* ── Density (applies to both light and dark) ── */
+
+    downloads-manager {
+      font-family: var(--vigil-sans);
+    }
+
+    downloads-item {
+      --downloads-item-padding: 12px 16px;
+    }
+
+    /* ── Dark mode overrides ── */
+
+    @media (prefers-color-scheme: dark) {
+
+      /* ── Page background ── */
+      html {
+        background: var(--vigil-bg) !important;
+      }
+
+      body {
+        background: var(--vigil-bg) !important;
+        color: var(--vigil-text) !important;
+      }
+
+      /* ── Selection ── */
+      ::selection {
+        background: rgba(96,165,250,0.25);
+        color: var(--vigil-text-bright);
+      }
+
+      /* ── Scrollbar ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--vigil-bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(96,165,250,0.15);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(96,165,250,0.30);
+      }
+
+      /* ── Main container ── */
+      downloads-manager {
+        background: var(--vigil-bg) !important;
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+      }
+
+      /* ── Toolbar ── */
+      cr-toolbar {
+        background: var(--vigil-surface) !important;
+        color: var(--vigil-text-bright) !important;
+        border-bottom: 1px solid var(--vigil-border) !important;
+        --cr-toolbar-background-color: var(--vigil-surface) !important;
+        --cr-toolbar-color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-sans) !important;
+      }
+
+      cr-toolbar h1,
+      cr-toolbar .title {
+        font-family: var(--vigil-sans) !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        color: var(--vigil-text-bright) !important;
+      }
+
+      /* ── Search field ── */
+      cr-toolbar-search-field {
+        --cr-toolbar-search-field-background: var(--vigil-surface-alt) !important;
+        --cr-toolbar-search-field-border-radius: var(--vigil-radius) !important;
+        background: var(--vigil-surface-alt) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+      }
+
+      cr-toolbar-search-field:hover {
+        border-color: var(--vigil-border-hover) !important;
+      }
+
+      cr-toolbar-search-field input,
+      cr-toolbar-search-field #searchInput {
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+      }
+
+      /* ── Content area ── */
+      #content,
+      #mainContainer,
+      #downloads-list {
+        background: var(--vigil-bg) !important;
+      }
+
+      /* ── Section headers ── */
+      .section-header,
+      h3 {
+        font-family: var(--vigil-sans) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        color: var(--vigil-accent) !important;
+        padding: 8px 16px !important;
+      }
+
+      /* ── Download item rows ── */
+      downloads-item {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        margin: 4px 16px !important;
+        padding: 12px 16px !important;
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+        box-shadow: none !important;
+        transition: border-color 0.15s ease !important;
+      }
+
+      downloads-item:hover {
+        border-color: var(--vigil-border-hover) !important;
+        background: var(--vigil-surface-alt) !important;
+      }
+
+      /* Active downloads */
+      downloads-item.is-active {
+        border-left: 2px solid var(--vigil-accent) !important;
+        background: var(--vigil-accent-bg) !important;
+      }
+
+      /* ── Filename link ── */
+      #file-link,
+      downloads-item #file-link {
+        color: var(--vigil-text-bright) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        text-decoration: none !important;
+      }
+
+      #file-link:hover {
+        color: var(--vigil-accent) !important;
+        text-decoration: underline !important;
+      }
+
+      /* ── URL ── */
+      #url,
+      downloads-item #url {
+        color: var(--vigil-text-muted) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 11px !important;
+        opacity: 0.8 !important;
+      }
+
+      /* ── File size, date, status text ── */
+      #description,
+      .description,
+      downloads-item [id="description"] {
+        color: var(--vigil-text-muted) !important;
+        font-family: var(--vigil-mono) !important;
+        font-size: 11px !important;
+      }
+
+      /* ── Progress bar ── */
+      #progress,
+      downloads-item #progress,
+      cr-progress {
+        --cr-progress-active-color: var(--vigil-accent) !important;
+        --cr-progress-background-color: var(--vigil-surface-alt) !important;
+        background: var(--vigil-surface-alt) !important;
+        border-radius: 2px !important;
+        overflow: hidden !important;
+      }
+
+      #progress::-webkit-progress-bar,
+      cr-progress::-webkit-progress-bar {
+        background: var(--vigil-surface-alt) !important;
+      }
+
+      #progress::-webkit-progress-value,
+      cr-progress::-webkit-progress-value {
+        background: var(--vigil-accent) !important;
+        border-radius: 2px !important;
+      }
+
+      /* ── Status badges / tags ── */
+      #tag,
+      downloads-item #tag {
+        font-family: var(--vigil-sans) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        border-radius: var(--vigil-radius) !important;
+        padding: 2px 8px !important;
+        border: 1px solid var(--vigil-border) !important;
+        background: var(--vigil-surface-alt) !important;
+        color: var(--vigil-yellow) !important;
+      }
+
+      /* Dangerous tag */
+      #tag[value="DANGEROUS"],
+      downloads-item.dangerous #tag {
+        color: var(--vigil-red) !important;
+        border-color: rgba(248,113,113,0.2) !important;
+        background: rgba(248,113,113,0.06) !important;
+      }
+
+      /* ── Action buttons ── */
+      #remove,
+      #retry,
+      #pause,
+      #resume,
+      #show,
+      #cancel,
+      #save-dangerous,
+      #discard-dangerous,
+      downloads-item cr-button,
+      downloads-item .action-button {
+        font-family: var(--vigil-sans) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        border-radius: var(--vigil-radius) !important;
+        border: 1px solid var(--vigil-border) !important;
+        background: var(--vigil-surface-alt) !important;
+        color: var(--vigil-text) !important;
+        padding: 4px 12px !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        box-shadow: none !important;
+      }
+
+      #remove:hover,
+      #retry:hover,
+      #pause:hover,
+      #resume:hover,
+      #show:hover,
+      #cancel:hover,
+      #save-dangerous:hover,
+      #discard-dangerous:hover,
+      downloads-item cr-button:hover,
+      downloads-item .action-button:hover {
+        border-color: var(--vigil-border-hover) !important;
+        color: var(--vigil-accent) !important;
+        background: var(--vigil-accent-bg) !important;
+      }
+
+      /* Dangerous action buttons */
+      #save-dangerous {
+        color: var(--vigil-yellow) !important;
+        border-color: rgba(251,191,36,0.2) !important;
+      }
+
+      #save-dangerous:hover {
+        background: rgba(251,191,36,0.08) !important;
+        border-color: rgba(251,191,36,0.35) !important;
+        color: var(--vigil-yellow) !important;
+      }
+
+      #discard-dangerous {
+        color: var(--vigil-red) !important;
+        border-color: rgba(248,113,113,0.2) !important;
+      }
+
+      #discard-dangerous:hover {
+        background: rgba(248,113,113,0.08) !important;
+        border-color: rgba(248,113,113,0.35) !important;
+        color: var(--vigil-red) !important;
+      }
+
+      /* ── Action links (remove, retry as text links) ── */
+      downloads-item a,
+      downloads-item .controlled-by a {
+        color: var(--vigil-accent) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 11px !important;
+        text-decoration: none !important;
+      }
+
+      downloads-item a:hover,
+      downloads-item .controlled-by a:hover {
+        text-decoration: underline !important;
+        color: var(--vigil-accent-dim) !important;
+      }
+
+      /* ── Icon area ── */
+      downloads-item .icon-wrapper img,
+      downloads-item img[id="file-icon"] {
+        filter: brightness(0.85) !important;
+      }
+
+      /* ── Empty state ── */
+      #no-downloads,
+      .no-downloads {
+        color: var(--vigil-text-muted) !important;
+        font-family: var(--vigil-sans) !important;
+        font-size: 13px !important;
+      }
+
+      /* ── Toast / notification bar ── */
+      cr-toast {
+        background: var(--vigil-surface) !important;
+        border: 1px solid var(--vigil-border) !important;
+        border-radius: var(--vigil-radius) !important;
+        color: var(--vigil-text) !important;
+        font-family: var(--vigil-sans) !important;
+        box-shadow: none !important;
+      }
+
+      /* ── Generic overrides for md vars ── */
+      downloads-manager,
+      downloads-manager * {
+        --md-background-color: var(--vigil-bg) !important;
+        --md-background-sibling-color: var(--vigil-surface) !important;
+        --google-blue-600: var(--vigil-accent) !important;
+        --google-blue-300: var(--vigil-accent) !important;
+        --cr-primary-text-color: var(--vigil-text) !important;
+        --cr-secondary-text-color: var(--vigil-text-muted) !important;
+        --cr-card-background-color: var(--vigil-surface) !important;
+        --cr-card-shadow-color: transparent !important;
+        --cr-separator-color: var(--vigil-border) !important;
+        --cr-link-color: var(--vigil-accent) !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <downloads-manager></downloads-manager>
+  <link rel="stylesheet" href="chrome://resources/css/text_defaults_md.css">
+  <script type="module" src="downloads.js"></script>
+</body>
+</html>
