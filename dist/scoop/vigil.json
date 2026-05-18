@@ -1,0 +1,68 @@
+{
+  "version": "0.2.0",
+  "description": "Lean, privacy-respecting Chromium fork with uBlock Origin pre-installed. Built on ungoogled-chromium-windows.",
+  "homepage": "https://github.com/SysAdminDoc/Vigil",
+  "license": "BSD-3-Clause",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.0/ungoogled-chromium_145.0.7632.159-1.0.2.0_windows_x64.zip",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "bin": "chrome.exe",
+      "shortcuts": [
+        [
+          "chrome.exe",
+          "Vigil"
+        ]
+      ]
+    },
+    "32bit": {
+      "url": "https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.0/ungoogled-chromium_145.0.7632.159-1.0.2.0_windows_x86.zip",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "bin": "chrome.exe",
+      "shortcuts": [
+        [
+          "chrome.exe",
+          "Vigil"
+        ]
+      ]
+    },
+    "arm64": {
+      "url": "https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.0/ungoogled-chromium_145.0.7632.159-1.0.2.0_windows_arm64.zip",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "bin": "chrome.exe",
+      "shortcuts": [
+        [
+          "chrome.exe",
+          "Vigil"
+        ]
+      ]
+    }
+  },
+  "persist": [
+    "User Data"
+  ],
+  "post_install": [
+    "# Vigil's initial_preferences ships next to chrome.exe and seeds first-run defaults."
+  ],
+  "checkver": {
+    "github": "https://github.com/SysAdminDoc/Vigil",
+    "regex": "tag/v([\\d.]+)"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/SysAdminDoc/Vigil/releases/download/v$version/ungoogled-chromium_$matchVersion_windows_x64.zip"
+      },
+      "32bit": {
+        "url": "https://github.com/SysAdminDoc/Vigil/releases/download/v$version/ungoogled-chromium_$matchVersion_windows_x86.zip"
+      },
+      "arm64": {
+        "url": "https://github.com/SysAdminDoc/Vigil/releases/download/v$version/ungoogled-chromium_$matchVersion_windows_arm64.zip"
+      }
+    },
+    "hash": {
+      "url": "$baseurl/SHA256SUMS"
+    }
+  },
+  "_comment": "Roadmap X21. Publish to a Scoop bucket repo (e.g. SysAdminDoc/scoop-bucket) on every tag release. The hash fields are placeholder zeros; CI fills them from the GitHub Releases SHA256SUMS artifact."
+}

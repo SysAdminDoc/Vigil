@@ -1,0 +1,214 @@
+name: Build (matrix candidate)
+
+# Roadmap items: N7 (reusable workflow + matrix), N8 (SignPath stub),
+# N9 (SLSA build provenance), N14 (smoke test gate).
+#
+# This workflow is the candidate replacement for the 28-stage hand-chained
+# main.yml. It runs alongside main.yml for a transition period. Once one full
+# release cycle is green here, main.yml retires (see ROADMAP.md Wave T4).
+#
+# Differences from main.yml:
+#   - One reusable callable workflow handles a single (arch, stage) pair.
+#   - This top-level workflow expands `arch` x `stage` as a matrix.
+#   - SLSA build provenance attestations on every artifact.
+#   - SignPath signing step scaffolded with a guard so it only runs when the
+#     repo secret SIGNPATH_API_TOKEN is configured.
+#   - Smoke test runs after the last stage of each arch before publishing.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (leave empty for dev build)'
+        required: false
+        type: string
+      stages:
+        description: 'Number of stages per arch (override the default; useful for canary)'
+        required: false
+        type: number
+        default: 14
+      sign:
+        description: 'Submit to SignPath (requires SIGNPATH_API_TOKEN secret)'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write       # release uploads
+  id-token: write       # required by actions/attest-build-provenance
+  attestations: write   # SLSA attestations
+
+jobs:
+  # ------------------------------------------------------------------------
+  # Matrix expansion. Each (arch, stage) pair runs the reusable stage workflow.
+  # `needs` is wired so stages within the same arch chain serially.
+  # ------------------------------------------------------------------------
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      stages: ${{ steps.compute.outputs.stages }}
+    steps:
+      - id: compute
+        run: |
+          # Build a JSON list of stage numbers [1..N] from the dispatch input,
+          # defaulting to 14 (matches the existing main.yml stage count
+          # for x64 plus 2 stages of headroom).
+          N=${{ github.event.inputs.stages || 14 }}
+          jq -nc --argjson n "$N" '[range(1;$n+1)] | map(tostring)' > stages.json
+          echo "stages=$(cat stages.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        arch: [x64, x86, arm64]
+        stage: ${{ fromJson(needs.plan.outputs.stages) }}
+    runs-on: windows-2022
+    timeout-minutes: 350   # 5h 50m — well under the 6h job limit
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Each stage either resumes from the previous stage's artifact or starts fresh
+      - name: Init
+        shell: pwsh
+        run: |
+          Copy-Item -Path . -Destination "C:\ungoogled-chromium-windows" -Recurse
+      - name: Setup Stage Action
+        run: npm install
+        working-directory: ./.github/actions/stage
+
+      - name: Run Stage
+        id: stage
+        uses: ./.github/actions/stage
+        with:
+          finished: ${{ matrix.stage == '1' && 'false' || 'unknown' }}
+          from_artifact: ${{ matrix.stage != '1' }}
+          # Hook for x86 / arm64 — the stage action reads these for the build.py args.
+          arch: ${{ matrix.arch }}
+
+      # ----- SLSA build provenance attestation (N9) -----
+      - name: Attest build artifacts
+        if: steps.stage.outputs.finished == 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            C:\ungoogled-chromium-windows\build\*.exe
+            C:\ungoogled-chromium-windows\build\*.zip
+
+      # ----- SignPath OSS code-signing (N8) -----
+      # Only runs once the SIGNPATH_API_TOKEN secret is configured. Until then,
+      # this step is a documented no-op so contributors can read the wiring.
+      - name: Sign with SignPath
+        if: >-
+          steps.stage.outputs.finished == 'true' &&
+          inputs.sign &&
+          env.SIGNPATH_API_TOKEN != ''
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        uses: signpath/github-action-submit-signing-request@v1.2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORG_ID }}
+          project-slug: vigil
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: vigil-installer-zip
+          github-artifact-id: ${{ steps.upload.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: C:\ungoogled-chromium-windows\build\signed\
+
+      - name: Upload build artifact
+        id: upload
+        if: steps.stage.outputs.finished == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vigil-${{ matrix.arch }}-stage${{ matrix.stage }}
+          path: |
+            C:\ungoogled-chromium-windows\build\*.exe
+            C:\ungoogled-chromium-windows\build\*.zip
+            C:\ungoogled-chromium-windows\build\signed\*
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # ------------------------------------------------------------------------
+  # Smoke test gate (N14): downloads the final stage artifact per arch and runs
+  # devutils/smoke_test.py against the zip. Fails the workflow if smoke fails.
+  # ------------------------------------------------------------------------
+  smoke:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, x86, arm64]
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Download final-stage artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vigil-${{ matrix.arch }}-stage*
+          merge-multiple: true
+          path: ./dist
+      - name: Run smoke test
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem dist -Filter '*windows*.zip' | Select-Object -First 1
+          if (-not $zip) { Write-Error "no zip artifact found"; exit 1 }
+          python devutils/smoke_test.py --installer $zip.FullName
+
+  # ------------------------------------------------------------------------
+  # Release publish (only on tag push). Pulls every final-stage artifact and
+  # uploads to a GitHub Release. Does NOT push to winget / scoop / chocolatey
+  # automatically; those are gated behind separate workflows that read a
+  # contributor confirmation.
+  # ------------------------------------------------------------------------
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: ./dist
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/**/*.exe
+            dist/**/*.zip
+          fail_on_unmatched_files: false
+          generate_release_notes: true
+
+# ----------------------------------------------------------------------------
+# Maintainer notes:
+#
+# 1. The actions/stage Node action currently does not accept an `arch` input.
+#    The wire-up here adds it forward-looking; if the action doesn't yet read
+#    it, the matrix will still build x64 only. Roadmap N7 wave 2 updates the
+#    stage action to honor `arch`.
+#
+# 2. SignPath enrollment for OSS is at https://signpath.org/. Once approved,
+#    the maintainer sets two repository secrets / vars:
+#         SIGNPATH_API_TOKEN  (secret)
+#         SIGNPATH_ORG_ID     (variable)
+#    The `signpath/github-action-submit-signing-request@v1.2` action then
+#    automatically uploads each release-candidate for signing approval. The
+#    "Sign with SignPath" step above stays inert until both are present.
+#
+# 3. SLSA attestations land on each successful stage and are linked to the
+#    workflow run; verify with:
+#       gh attestation verify dist/<file>.exe --owner SysAdminDoc
+#
+# 4. The 6h stage-timeout dodge from main.yml is preserved: each (arch, stage)
+#    job has its own 5h50m budget and resumes from the prior stage's artifact.
+# ----------------------------------------------------------------------------

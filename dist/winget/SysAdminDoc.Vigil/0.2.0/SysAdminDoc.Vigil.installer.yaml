@@ -1,0 +1,28 @@
+# Vigil Browser — installer manifest
+# Roadmap item N15. Once a tagged release exists, this directory is the unit of
+# work submitted as a PR to microsoft/winget-pkgs at
+#   manifests/s/SysAdminDoc/Vigil/<Version>/
+# See https://learn.microsoft.com/en-us/windows/package-manager/package/repository
+
+PackageIdentifier: SysAdminDoc.Vigil
+PackageVersion: 0.2.0
+InstallerType: nullsoft        # ungoogled-chromium's mini_installer is Nullsoft
+Scope: machine
+InstallerSwitches:
+  Silent: '--do-not-launch-chrome'
+  SilentWithProgress: '--do-not-launch-chrome'
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.0/ungoogled-chromium_145.0.7632.159-1.0.2.0_installer_x64.exe
+    # InstallerSha256 must be filled in by `devutils/release_helper.py` after
+    # the tag's release artifacts are published. Until then the manifest fails
+    # CI in winget-pkgs.
+    InstallerSha256: TODO_FILL_BEFORE_PR
+  - Architecture: x86
+    InstallerUrl: https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.0/ungoogled-chromium_145.0.7632.159-1.0.2.0_installer_x86.exe
+    InstallerSha256: TODO_FILL_BEFORE_PR
+  - Architecture: arm64
+    InstallerUrl: https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.0/ungoogled-chromium_145.0.7632.159-1.0.2.0_installer_arm64.exe
+    InstallerSha256: TODO_FILL_BEFORE_PR
+ManifestType: installer
+ManifestVersion: 1.6.0

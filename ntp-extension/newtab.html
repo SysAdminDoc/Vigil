@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vigil &mdash; New Tab</title>
+<link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+
+<div class="clock-wrap">
+  <div id="clock"></div>
+  <div id="date"></div>
+</div>
+
+<div id="search-wrapper">
+  <svg id="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+  </svg>
+  <input id="search" type="text" placeholder="Search or type a URL" autocomplete="off" autofocus aria-label="Search">
+</div>
+
+<div id="shortcuts" aria-label="Pinned shortcuts"></div>
+
+<button id="settings-btn" title="Vigil NTP settings" aria-label="Open new-tab settings">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+  </svg>
+</button>
+
+<div id="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div id="settings-inner">
+    <h2 id="settings-title">Vigil New Tab</h2>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Show clock</div>
+        <div class="setting-desc">Display time on the new-tab page</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="opt-clock"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">24-hour time</div>
+        <div class="setting-desc">Use 24-hour format instead of 12-hour</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="opt-24h"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Show shortcuts</div>
+        <div class="setting-desc">Display the quick-access shortcut grid</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="opt-shortcuts"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Show search bar</div>
+        <div class="setting-desc">Display the search input</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="opt-search"><span class="toggle-slider"></span></label>
+    </div>
+
+    <h2 class="subhead">Shortcuts</h2>
+    <div id="shortcut-editor"></div>
+    <button class="btn-add" id="add-shortcut">+ Add shortcut</button>
+
+    <button class="btn-close" id="close-settings">Close</button>
+  </div>
+</div>
+
+<script src="newtab.js"></script>
+</body>
+</html>

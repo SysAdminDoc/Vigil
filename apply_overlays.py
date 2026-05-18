@@ -45,7 +45,17 @@ def apply_chromium_src_overlays(root_dir, source_tree):
 
 
 def install_ntp(root_dir, source_tree):
-    """Install the custom New Tab Page into the build."""
+    """Legacy: install the custom NTP HTML into the source tree.
+
+    Superseded by tools/install_ntp_extension.py (roadmap N3), which wires the
+    Vigil NTP via a bundled extension declaring chrome_url_overrides.newtab.
+    When the new ntp-extension/ exists, this legacy path is a no-op.
+    """
+    if (root_dir / 'ntp-extension' / 'manifest.json').exists():
+        print('  ntp-extension/ present, skipping legacy NTP overlay '
+              '(install_ntp_extension.py handles it at package time).')
+        return
+
     ntp_dir = root_dir / 'ntp'
     if not ntp_dir.exists():
         print('  No ntp/ directory found, skipping.')

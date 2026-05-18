@@ -1,0 +1,10 @@
+{
+  "browser_name": "Vigil-Kiosk",
+  "browser_short_name": "VigilK",
+  "company_name": "SysAdminDoc",
+  "homepage_url": "https://github.com/SysAdminDoc/Vigil",
+  "support_url": "https://github.com/SysAdminDoc/Vigil/issues",
+  "version_suffix": "-kiosk",
+  "ntp_url": "about:blank",
+  "_comment": "Vigil-Kiosk variant. Roadmap X12. Pair with kiosk/vigil-kiosk.cmd, kiosk/install-watchdog.ps1, and the VigilKioskUrl ADMX policy."
+}

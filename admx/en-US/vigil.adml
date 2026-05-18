@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vigil ADML (en-US strings) — pairs with admx/vigil.admx. Roadmap X10. -->
+<policyDefinitionResources revision="0.2" schemaVersion="1.0">
+  <displayName>Vigil Browser administrative templates</displayName>
+  <description>Group Policy template for the Vigil Browser, version 0.2 and later.</description>
+
+  <resources>
+    <stringTable>
+      <string id="SUPPORTED_VIGIL_0_2">Vigil 0.2 or later</string>
+
+      <string id="Vigil">Vigil</string>
+      <string id="VigilExtensions">Extensions</string>
+      <string id="VigilStartup">Startup, home page, and new tab page</string>
+      <string id="VigilSecurity">Security &amp; privacy</string>
+      <string id="VigilKiosk">Kiosk mode &amp; deployment</string>
+
+      <string id="ExtensionInstallForcelist">Force-install a list of extensions</string>
+      <string id="ExtensionInstallForcelist_Explain">Setting this policy specifies a list of apps and extensions that are installed silently, without user interaction, and that users cannot uninstall or disable. Each list item is `&lt;extension-id&gt;;&lt;update-url&gt;`. Vigil ships uBlock Origin force-installed by default (`cjpalhdlnbpafiamejdnhcphjbkeiagm;https://clients2.google.com/service/update2/crx`); add additional IDs as your deployment requires. See https://chromeenterprise.google/policies/#ExtensionInstallForcelist .</string>
+
+      <string id="ExtensionInstallBlocklist">Configure extension installation blocklist</string>
+      <string id="ExtensionInstallBlocklist_Explain">Setting this policy controls which extensions users cannot install. Already installed extensions matching the blocklist are disabled without uninstalling, and the user cannot enable them. To prevent all extensions, use `*`.</string>
+
+      <string id="HomepageLocation">Configure the home page URL</string>
+      <string id="HomepageLocation_Explain">Sets the URL used as the home page in the Vigil Browser. If unset, the user can set their own home page.</string>
+
+      <string id="NewTabPageLocation">Configure the new tab page URL</string>
+      <string id="NewTabPageLocation_Explain">Sets the URL loaded when the user opens a new tab. If unset, Vigil uses its bundled NTP extension.</string>
+
+      <string id="HttpsOnlyMode">HTTPS-First mode</string>
+      <string id="HttpsOnlyMode_Explain">Controls whether HTTPS-First mode is enabled. `Balanced` upgrades typed and bookmarked navigations and warns on HTTP fallback. `Strict` warns on every HTTP load. `Disallowed` returns to upstream Chromium's HTTP-default behavior.</string>
+      <string id="HttpsOnlyMode_Disallowed">Disallowed — HTTP allowed silently</string>
+      <string id="HttpsOnlyMode_Balanced">Balanced — recommended default</string>
+      <string id="HttpsOnlyMode_Strict">Strict — warn on every HTTP load</string>
+
+      <string id="IncognitoModeAvailability">Incognito mode availability</string>
+      <string id="IncognitoModeAvailability_Explain">Specifies whether incognito mode can be used by the user.</string>
+      <string id="Incognito_Available">Incognito mode available</string>
+      <string id="Incognito_Disabled">Incognito mode disabled</string>
+      <string id="Incognito_Forced">Incognito mode forced (incognito only)</string>
+
+      <string id="URLBlocklist">Block access to a list of URLs</string>
+      <string id="URLBlocklist_Explain">Setting this policy blocks the listed URL patterns. Format mirrors Chrome's URLBlocklist filter syntax. See https://chromeenterprise.google/policies/#URLBlocklist .</string>
+
+      <string id="URLAllowlist">Allowlist URLs that bypass URLBlocklist</string>
+      <string id="URLAllowlist_Explain">Setting this policy allows the listed URLs to bypass URLBlocklist matches.</string>
+
+      <string id="VigilKioskUrl">Vigil kiosk mode: pinned URL</string>
+      <string id="VigilKioskUrl_Explain">When set, Vigil boots directly to this URL with the chrome UI hidden, suitable for kiosk and clinic deployments. Pairs with the VigilKiosk launcher and Windows Task Scheduler watchdog. Leave unset for normal browser behavior.</string>
+
+      <string id="VigilPanicHotkeyEnabled">Enable Panic hotkey (Ctrl+Alt+Shift+P)</string>
+      <string id="VigilPanicHotkeyEnabled_Explain">When enabled, Ctrl+Alt+Shift+P immediately closes all windows, wipes the session, and returns to the Windows lock screen. Designed for clinic / shared-kiosk scenarios where a user must rapidly leave the device.</string>
+
+      <string id="VigilNetworkFilterPanel">Show the Network Filter side panel</string>
+      <string id="VigilNetworkFilterPanel_Explain">When enabled, Vigil surfaces the Network Filter Companion panel (BetterNext integration), which detects NextDNS, Pi-hole, AdGuard Home, and Mullvad DNS resolvers on the active network and displays live block stats.</string>
+    </stringTable>
+
+    <presentationTable>
+      <presentation id="ExtensionInstallForcelist">
+        <listBox refId="ExtensionInstallForcelistDesc">Extension IDs and update URLs</listBox>
+      </presentation>
+      <presentation id="ExtensionInstallBlocklist">
+        <listBox refId="ExtensionInstallBlocklistDesc">Extension IDs (or * for all)</listBox>
+      </presentation>
+      <presentation id="HomepageLocation">
+        <textBox refId="HomepageLocationText"><label>Home page URL</label></textBox>
+      </presentation>
+      <presentation id="NewTabPageLocation">
+        <textBox refId="NewTabPageLocationText"><label>New tab page URL</label></textBox>
+      </presentation>
+      <presentation id="HttpsOnlyMode">
+        <dropdownList refId="HttpsOnlyModeEnum">HTTPS-First mode</dropdownList>
+      </presentation>
+      <presentation id="IncognitoModeAvailability">
+        <dropdownList refId="IncognitoModeAvailabilityEnum">Incognito availability</dropdownList>
+      </presentation>
+      <presentation id="URLBlocklist">
+        <listBox refId="URLBlocklistDesc">Blocked URLs</listBox>
+      </presentation>
+      <presentation id="URLAllowlist">
+        <listBox refId="URLAllowlistDesc">Allowlisted URLs</listBox>
+      </presentation>
+      <presentation id="VigilKioskUrl">
+        <textBox refId="VigilKioskUrlText"><label>Kiosk URL</label></textBox>
+      </presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>
