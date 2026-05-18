@@ -1,0 +1,135 @@
+/*
+ * Vigil dark theme for chrome://policy. Roadmap X13.
+ *
+ * This file lands at:
+ *   build/src/chrome/browser/resources/policy/vigil_policy_theme.css
+ *
+ * Activate by adding a one-line patch to policy_ui.html that includes this
+ * stylesheet -- see docs/design/X13-policy-overlay.md for the exact patch.
+ *
+ * Style budget: only override colors, typography, spacing. Do NOT touch
+ * layout or row indicators (the "Status" column and policy state badges are
+ * functional UI; tampering with them costs IT-admins their workflow).
+ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vigil-bg:           #0c1018;
+    --vigil-surface:      #111827;
+    --vigil-surface-alt:  #151d2b;
+    --vigil-border:       rgba(96, 165, 250, 0.08);
+    --vigil-border-hover: rgba(96, 165, 250, 0.18);
+    --vigil-accent:       #60a5fa;
+    --vigil-accent-dim:   #3b82f6;
+    --vigil-accent-bg:    rgba(96, 165, 250, 0.06);
+    --vigil-accent-bg-hi: rgba(96, 165, 250, 0.12);
+    --vigil-text:         #d1d5db;
+    --vigil-text-bright:  #f3f4f6;
+    --vigil-text-muted:   #6b7280;
+    --vigil-yellow:       #fbbf24;
+    --vigil-red:          #f87171;
+    --vigil-green:        #34d399;
+    --vigil-mono:         "Cascadia Code", "Fira Code", "JetBrains Mono",
+                          "SF Mono", "Consolas", monospace;
+    --vigil-sans:         "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  html, body {
+    background: var(--vigil-bg) !important;
+    color: var(--vigil-text) !important;
+    font-family: var(--vigil-sans) !important;
+  }
+
+  /* Top toolbar */
+  cr-toolbar {
+    --cr-toolbar-background-color: var(--vigil-surface) !important;
+    border-bottom: 1px solid var(--vigil-border);
+    box-shadow: none !important;
+    min-height: 42px !important;
+  }
+
+  /* Section headers */
+  .policy-table-header,
+  .header {
+    background: var(--vigil-surface) !important;
+    border-bottom: 1px solid var(--vigil-border);
+    color: var(--vigil-accent) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Policy rows */
+  .policy-row,
+  .policy.show-unset,
+  table.policy-table tr {
+    border-bottom-color: var(--vigil-border) !important;
+  }
+
+  table.policy-table tr:hover {
+    background: var(--vigil-accent-bg) !important;
+  }
+
+  /* Policy value cells should use monospace for readability */
+  .policy-value,
+  .policy-value-cell,
+  .row-cell .value {
+    font-family: var(--vigil-mono) !important;
+    font-size: 12px !important;
+    color: var(--vigil-text-bright) !important;
+  }
+
+  /* Source / scope / level pills */
+  .policy-source,
+  .policy-scope,
+  .policy-level {
+    color: var(--vigil-text-muted) !important;
+    font-size: 11px !important;
+  }
+
+  /* Status indicators preserve their colors but lighten for dark theme */
+  .status-ok    { color: var(--vigil-green) !important; }
+  .status-error { color: var(--vigil-red) !important; }
+  .status-warning { color: var(--vigil-yellow) !important; }
+
+  /* Buttons */
+  cr-button {
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    text-transform: uppercase !important;
+    border-color: var(--vigil-border) !important;
+  }
+  cr-button.action-button {
+    background: var(--vigil-accent-dim) !important;
+    color: var(--vigil-bg) !important;
+    border-color: var(--vigil-accent-dim) !important;
+  }
+  cr-button.action-button:hover {
+    background: var(--vigil-accent) !important;
+  }
+
+  /* Reload / Export buttons in the toolbar */
+  cr-icon-button {
+    --cr-icon-button-fill-color: var(--vigil-text-muted) !important;
+  }
+  cr-icon-button:hover {
+    --cr-icon-button-fill-color: var(--vigil-accent) !important;
+  }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.15); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(96, 165, 250, 0.3); }
+}
+
+@media (prefers-color-scheme: light) {
+  /* Light mode: keep upstream defaults but tighten the accent color */
+  cr-button.action-button {
+    background: #3b82f6 !important;
+    color: white !important;
+  }
+}

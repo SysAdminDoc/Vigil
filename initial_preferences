@@ -18,11 +18,11 @@
   },
   "default_search_provider_data": {
     "template_url_data": {
-      "keyword": "google.com",
-      "short_name": "Google",
-      "url": "https://www.google.com/search?q={searchTerms}",
-      "suggest_url": "https://www.google.com/complete/search?client=chrome&q={searchTerms}",
-      "favicon_url": "https://www.google.com/favicon.ico"
+      "keyword": "duckduckgo.com",
+      "short_name": "DuckDuckGo",
+      "url": "https://duckduckgo.com/?q={searchTerms}",
+      "suggest_url": "https://duckduckgo.com/ac/?q={searchTerms}&type=list",
+      "favicon_url": "https://duckduckgo.com/favicon.ico"
     }
   },
   "search": {
@@ -35,8 +35,13 @@
     "network_prediction_options": 2
   },
   "safebrowsing": {
-    "enabled": false
+    "enabled": true,
+    "enhanced": false,
+    "scout_reporting_enabled": false,
+    "extended_reporting_enabled": false
   },
+  "https_only_mode_enabled": true,
+  "https_first_balanced_mode_enabled": true,
   "alternate_error_pages": {
     "enabled": false
   },
@@ -51,9 +56,31 @@
     "allowed_on_next_startup": false
   },
   "enable_do_not_track": true,
+  "privacy_sandbox": {
+    "apis_enabled_v2": false,
+    "m1": {
+      "topics_enabled": false,
+      "fledge_enabled": false,
+      "ad_measurement_enabled": false,
+      "consent_decision_made": true,
+      "row_notice_acknowledged": true,
+      "eea_notice_acknowledged": true,
+      "restricted_notice_acknowledged": true
+    }
+  },
   "profile": {
     "default_content_setting_values": {
-      "notifications": 2
+      "notifications": 2,
+      "usb_devices": 2,
+      "serial_ports": 2,
+      "hid_devices": 2,
+      "bluetooth_devices": 2,
+      "idle_detection": 2,
+      "local_fonts": 2,
+      "payment_handler": 2,
+      "ar": 2,
+      "vr": 2,
+      "automatic_downloads": 2
     },
     "password_manager_enabled": false
   },

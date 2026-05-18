@@ -92,6 +92,16 @@ def main():
         print('Running extension setup...')
         subprocess.run([sys.executable, str(setup_ext)], cwd=str(root_dir))
 
+    # Install the bundled Vigil NTP extension (roadmap N3).
+    # This is the in-tree replacement for the legacy ntp/ html copy.
+    install_ntp = root_dir / 'tools' / 'install_ntp_extension.py'
+    if install_ntp.exists() and (root_dir / 'ntp-extension').exists():
+        print('Installing Vigil NTP extension...')
+        subprocess.run(
+            [sys.executable, str(install_ntp),
+             '--build-out', str(build_outputs)],
+            cwd=str(root_dir))
+
     excluded_files = set([
         Path('mini_installer.exe'),
         Path('mini_installer_exe_version.rc'),
@@ -112,7 +122,9 @@ def main():
         print('Copied custom NTP to build output')
 
     # Collect extra files (initial_preferences, extensions, default_extensions, ntp)
-    # These are relative to build_outputs and chained into file_iter to preserve paths
+    # These are relative to build_outputs and chained into file_iter to preserve paths.
+    # 'ntp' is the legacy copy kept for backwards-compat; the bundled NTP now
+    # ships under Extensions/<id>/<version>/ via tools/install_ntp_extension.py.
     def extra_files_generator():
         if initial_prefs_dst.exists():
             yield Path('initial_preferences')

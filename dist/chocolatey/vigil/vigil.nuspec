@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Roadmap X21. Chocolatey package manifest. Publish via `choco push` against
+     community.chocolatey.org once the GitHub Release for the matching version
+     exists. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>vigil</id>
+    <version>0.2.0</version>
+    <packageSourceUrl>https://github.com/SysAdminDoc/Vigil/tree/master/dist/chocolatey/vigil</packageSourceUrl>
+    <owners>SysAdminDoc</owners>
+    <title>Vigil Browser</title>
+    <authors>SysAdminDoc</authors>
+    <projectUrl>https://github.com/SysAdminDoc/Vigil</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/SysAdminDoc/Vigil/master/branding/icons/vigil_256.png</iconUrl>
+    <copyright>SysAdminDoc</copyright>
+    <licenseUrl>https://github.com/SysAdminDoc/Vigil/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/SysAdminDoc/Vigil</projectSourceUrl>
+    <docsUrl>https://github.com/SysAdminDoc/Vigil/blob/master/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/SysAdminDoc/Vigil/issues</bugTrackerUrl>
+    <tags>browser chromium privacy ublock sysadmin admin-tools</tags>
+    <summary>A lean, privacy-respecting Chromium browser with sensible defaults.</summary>
+    <description><![CDATA[
+**Vigil** is a Windows-first Chromium fork built on
+[ungoogled-chromium-windows](https://github.com/ungoogled-software/ungoogled-chromium-windows).
+
+Differences from upstream Chromium:
+
+- uBlock Origin pre-installed (Manifest V2 retention patches)
+- HTTPS-First mode enabled by default
+- Privacy Sandbox APIs (Topics, Protected Audience, Attribution Reporting) disabled
+- Default-deny content settings for `usb`, `serial`, `hid`, `bluetooth`,
+  `idle-detection`, `local-fonts`, `payment`, `ar`, `vr`
+- Safe Browsing enabled, upload-side telemetry off
+- DuckDuckGo set as the first-run default search engine
+- Dark Vigil theme applied to `chrome://settings`, `chrome://flags`,
+  `chrome://history`, `chrome://bookmarks`, `chrome://downloads`,
+  `chrome://extensions`, `chrome://policy`
+- No telemetry, no crypto features, no integrated LLM, no integrated VPN service
+
+See https://github.com/SysAdminDoc/Vigil/blob/master/ROADMAP.md for full
+charter and non-goals.
+    ]]></description>
+    <releaseNotes>https://github.com/SysAdminDoc/Vigil/releases/tag/v0.2.0</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

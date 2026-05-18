@@ -1,0 +1,38 @@
+{
+  "_comment": "Vigil-recommended force-install extension policy. Roadmap X3.",
+  "_usage": "Drop this file (or its contents) under Chromium's `policies/managed/` JSON-policy directory on Windows, or load via the ADMX template at admx/vigil.admx. Each entry has format '<extension-id>;<update-url>'. uBlock Origin is the only Vigil default; admins extend this list as needed.",
+  "_references": [
+    "https://www.chromium.org/administrators/configuring-policy-for-extensions/",
+    "https://github.com/gorhill/uBlock/wiki/Deploying-uBlock-Origin",
+    "https://chromeenterprise.google/policies/#ExtensionInstallForcelist"
+  ],
+
+  "ExtensionInstallForcelist": [
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm;https://clients2.google.com/service/update2/crx"
+  ],
+
+  "_optional_clinic_addons_commented_out": {
+    "_doc": "Common additions sysadmins enable in clinic/enterprise deployments. Uncomment in your local copy.",
+    "_examples": [
+      "// LastPass:           hdokiejnpimakedhajhdlcegeplioahd",
+      "// Bitwarden:          nngceckbapebfimnlniiiahkandclblb",
+      "// 1Password X:        aeblfdkhhhdcdjpifhhbdiojplfjncoa",
+      "// ClearURLs:          lckanjgmijmafbedllaakclkaicjfmnk",
+      "// I Still Don't Care About Cookies: edibdbjcniadpccecjdfdjjppcpchdlm",
+      "// DuckDuckGo Privacy Essentials: bkdgflcldnnnapblkhphbgpggdiikppg"
+    ]
+  },
+
+  "ExtensionSettings": {
+    "*": {
+      "_comment": "Per-extension defaults. blocked_install_message is shown when a user tries to install something policy-blocked.",
+      "installation_mode": "allowed",
+      "blocked_install_message": "Extension installs are restricted by your Vigil deployment policy. Contact your administrator if you need an exception."
+    },
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm": {
+      "installation_mode": "force_installed",
+      "update_url": "https://clients2.google.com/service/update2/crx",
+      "_comment": "uBlock Origin - bundled by Vigil, force-installed via this policy"
+    }
+  }
+}

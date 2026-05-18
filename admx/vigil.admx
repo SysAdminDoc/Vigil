@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Vigil Group Policy Template (ADMX). Roadmap X10.
+
+  Drop this file into:
+    C:\Windows\PolicyDefinitions\vigil.admx
+    C:\Windows\PolicyDefinitions\en-US\vigil.adml
+
+  Or, for Active Directory central-store deployment:
+    \\<domain>\SYSVOL\<domain>\Policies\PolicyDefinitions\vigil.admx
+    \\<domain>\SYSVOL\<domain>\Policies\PolicyDefinitions\en-US\vigil.adml
+
+  Then open `gpedit.msc` and navigate to:
+    Computer Configuration -> Administrative Templates -> Vigil
+
+  The policy registry root is HKLM\Software\Policies\Vigil. Vigil inherits the
+  Chromium policy schema; this template covers the ~20 policies most IT admins
+  actually configure. The rest are documented at
+    https://chromeenterprise.google/policies/
+  and remain readable via Chromium's standard registry path.
+
+  Vigil-specific policies (those without a Chrome equivalent) are:
+    - VigilKioskUrl                - boot into a single URL with chrome hidden
+    - VigilPanicHotkeyEnabled      - enable Ctrl+Alt+Shift+P session-wipe hotkey
+    - VigilNetworkFilterPanel      - show BetterNext-companion side panel
+-->
+<policyDefinitions revision="0.2" schemaVersion="1.0">
+  <policyNamespaces>
+    <target prefix="vigil" namespace="SysAdminDoc.Policies.Vigil" />
+    <using  prefix="windows" namespace="Microsoft.Policies.Windows" />
+  </policyNamespaces>
+
+  <resources minRequiredRevision="0.2" />
+
+  <supportedOn>
+    <definitions>
+      <definition name="SUPPORTED_VIGIL_0_2" displayName="$(string.SUPPORTED_VIGIL_0_2)" />
+    </definitions>
+  </supportedOn>
+
+  <categories>
+    <category name="Vigil" displayName="$(string.Vigil)" />
+    <category name="VigilExtensions" displayName="$(string.VigilExtensions)">
+      <parentCategory ref="Vigil" />
+    </category>
+    <category name="VigilStartup" displayName="$(string.VigilStartup)">
+      <parentCategory ref="Vigil" />
+    </category>
+    <category name="VigilSecurity" displayName="$(string.VigilSecurity)">
+      <parentCategory ref="Vigil" />
+    </category>
+    <category name="VigilKiosk" displayName="$(string.VigilKiosk)">
+      <parentCategory ref="Vigil" />
+    </category>
+  </categories>
+
+  <policies>
+    <!-- =============================================================== -->
+    <!-- Extensions                                                      -->
+    <!-- =============================================================== -->
+    <policy name="ExtensionInstallForcelist"
+            class="Both"
+            displayName="$(string.ExtensionInstallForcelist)"
+            explainText="$(string.ExtensionInstallForcelist_Explain)"
+            presentation="$(presentation.ExtensionInstallForcelist)"
+            key="Software\Policies\Vigil\ExtensionInstallForcelist">
+      <parentCategory ref="VigilExtensions" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <list id="ExtensionInstallForcelistDesc" valuePrefix="" />
+      </elements>
+    </policy>
+
+    <policy name="ExtensionInstallBlocklist"
+            class="Both"
+            displayName="$(string.ExtensionInstallBlocklist)"
+            explainText="$(string.ExtensionInstallBlocklist_Explain)"
+            presentation="$(presentation.ExtensionInstallBlocklist)"
+            key="Software\Policies\Vigil\ExtensionInstallBlocklist">
+      <parentCategory ref="VigilExtensions" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <list id="ExtensionInstallBlocklistDesc" valuePrefix="" />
+      </elements>
+    </policy>
+
+    <!-- =============================================================== -->
+    <!-- Startup / homepage                                              -->
+    <!-- =============================================================== -->
+    <policy name="HomepageLocation"
+            class="Both"
+            displayName="$(string.HomepageLocation)"
+            explainText="$(string.HomepageLocation_Explain)"
+            presentation="$(presentation.HomepageLocation)"
+            key="Software\Policies\Vigil"
+            valueName="HomepageLocation">
+      <parentCategory ref="VigilStartup" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <text id="HomepageLocationText" valueName="HomepageLocation" required="true" />
+      </elements>
+    </policy>
+
+    <policy name="NewTabPageLocation"
+            class="Both"
+            displayName="$(string.NewTabPageLocation)"
+            explainText="$(string.NewTabPageLocation_Explain)"
+            presentation="$(presentation.NewTabPageLocation)"
+            key="Software\Policies\Vigil"
+            valueName="NewTabPageLocation">
+      <parentCategory ref="VigilStartup" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <text id="NewTabPageLocationText" valueName="NewTabPageLocation" required="true" />
+      </elements>
+    </policy>
+
+    <!-- =============================================================== -->
+    <!-- Security                                                        -->
+    <!-- =============================================================== -->
+    <policy name="HttpsOnlyMode"
+            class="Both"
+            displayName="$(string.HttpsOnlyMode)"
+            explainText="$(string.HttpsOnlyMode_Explain)"
+            presentation="$(presentation.HttpsOnlyMode)"
+            key="Software\Policies\Vigil"
+            valueName="HttpsOnlyMode">
+      <parentCategory ref="VigilSecurity" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <enum id="HttpsOnlyModeEnum" valueName="HttpsOnlyMode" required="true">
+          <item displayName="$(string.HttpsOnlyMode_Disallowed)">
+            <value><string>disallowed</string></value>
+          </item>
+          <item displayName="$(string.HttpsOnlyMode_Balanced)">
+            <value><string>force_balanced_enabled</string></value>
+          </item>
+          <item displayName="$(string.HttpsOnlyMode_Strict)">
+            <value><string>force_enabled</string></value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
+
+    <policy name="IncognitoModeAvailability"
+            class="Both"
+            displayName="$(string.IncognitoModeAvailability)"
+            explainText="$(string.IncognitoModeAvailability_Explain)"
+            presentation="$(presentation.IncognitoModeAvailability)"
+            key="Software\Policies\Vigil"
+            valueName="IncognitoModeAvailability">
+      <parentCategory ref="VigilSecurity" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <enum id="IncognitoModeAvailabilityEnum" valueName="IncognitoModeAvailability" required="true">
+          <item displayName="$(string.Incognito_Available)">  <value><decimal value="0" /></value></item>
+          <item displayName="$(string.Incognito_Disabled)">    <value><decimal value="1" /></value></item>
+          <item displayName="$(string.Incognito_Forced)">      <value><decimal value="2" /></value></item>
+        </enum>
+      </elements>
+    </policy>
+
+    <policy name="URLBlocklist"
+            class="Both"
+            displayName="$(string.URLBlocklist)"
+            explainText="$(string.URLBlocklist_Explain)"
+            presentation="$(presentation.URLBlocklist)"
+            key="Software\Policies\Vigil\URLBlocklist">
+      <parentCategory ref="VigilSecurity" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <list id="URLBlocklistDesc" valuePrefix="" />
+      </elements>
+    </policy>
+
+    <policy name="URLAllowlist"
+            class="Both"
+            displayName="$(string.URLAllowlist)"
+            explainText="$(string.URLAllowlist_Explain)"
+            presentation="$(presentation.URLAllowlist)"
+            key="Software\Policies\Vigil\URLAllowlist">
+      <parentCategory ref="VigilSecurity" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <list id="URLAllowlistDesc" valuePrefix="" />
+      </elements>
+    </policy>
+
+    <!-- =============================================================== -->
+    <!-- Vigil-specific: Kiosk                                           -->
+    <!-- =============================================================== -->
+    <policy name="VigilKioskUrl"
+            class="Machine"
+            displayName="$(string.VigilKioskUrl)"
+            explainText="$(string.VigilKioskUrl_Explain)"
+            presentation="$(presentation.VigilKioskUrl)"
+            key="Software\Policies\Vigil"
+            valueName="VigilKioskUrl">
+      <parentCategory ref="VigilKiosk" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <elements>
+        <text id="VigilKioskUrlText" valueName="VigilKioskUrl" required="true" />
+      </elements>
+    </policy>
+
+    <policy name="VigilPanicHotkeyEnabled"
+            class="Both"
+            displayName="$(string.VigilPanicHotkeyEnabled)"
+            explainText="$(string.VigilPanicHotkeyEnabled_Explain)"
+            key="Software\Policies\Vigil"
+            valueName="VigilPanicHotkeyEnabled">
+      <parentCategory ref="VigilKiosk" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+
+    <policy name="VigilNetworkFilterPanel"
+            class="Both"
+            displayName="$(string.VigilNetworkFilterPanel)"
+            explainText="$(string.VigilNetworkFilterPanel_Explain)"
+            key="Software\Policies\Vigil"
+            valueName="VigilNetworkFilterPanel">
+      <parentCategory ref="VigilSecurity" />
+      <supportedOn   ref="SUPPORTED_VIGIL_0_2" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><decimal value="0" /></disabledValue>
+    </policy>
+  </policies>
+</policyDefinitions>
