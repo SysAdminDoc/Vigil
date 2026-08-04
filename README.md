@@ -35,6 +35,10 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
   links, city weather, or up to three HTTPS RSS feeds from the new-tab settings
   panel. They are disabled by default; notes stay local and network widgets
   only fetch after you enable and configure them.
+- **Memory Saver is enabled by default.** Chromium's built-in performance
+  settings still expose the aggressiveness and per-domain exception controls;
+  Vigil starts with inactive tabs eligible for hibernation after the upstream
+  120-minute threshold.
 
 ### Manifest V2 Policy
 

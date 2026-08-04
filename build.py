@@ -119,6 +119,25 @@ def _verify_doh_policy(source_tree):
                 f'{provider}')
 
 
+def _verify_memory_saver_policy(source_tree):
+    """Fail closed if tab hibernation stops being enabled by default."""
+    patch_series = _ROOT_DIR / 'patches' / 'series'
+    series = patch_series.read_text(encoding=ENCODING)
+    patch_name = 'ungoogled-chromium/windows/windows-enable-memory-saver.patch'
+    if patch_name not in series.splitlines():
+        raise RuntimeError(
+            f'Memory Saver default patch is missing from {patch_series}')
+
+    prefs_path = source_tree / 'components' / 'performance_manager' / \
+        'user_tuning' / 'prefs.cc'
+    prefs = prefs_path.read_text(encoding=ENCODING)
+    expected = ('kMemorySaverModeState, '
+                'static_cast<int>(MemorySaverModeState::kEnabled))')
+    if expected not in prefs:
+        raise RuntimeError(
+            f'Memory Saver is not enabled by default in {prefs_path}')
+
+
 def _get_vcvars_path(name='64'):
     """
     Returns the path to the corresponding vcvars*.bat path
@@ -360,6 +379,7 @@ def main():
     _verify_mv2_retention(source_tree)
     _verify_client_hints_policy(source_tree)
     _verify_doh_policy(source_tree)
+    _verify_memory_saver_policy(source_tree)
 
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32

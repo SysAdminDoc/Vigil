@@ -56,6 +56,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 
 ### Next-tier scaffolds (T3, T6, T7)
 
+- **Memory Saver default.** Chromium's existing performance page now starts
+  tab hibernation enabled while retaining its aggressiveness and per-domain
+  exception controls. Roadmap `X16`.
 - **Optional NTP widgets.** The bundled new-tab page now supports opt-in local
   notes, top sites, and bookmark-folder links, plus city-based Open-Meteo
   weather and up to three HTTPS RSS feeds. All widget settings persist locally
