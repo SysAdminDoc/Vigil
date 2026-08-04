@@ -1,0 +1,10 @@
+{
+  "_comment": "Optional managed-policy baseline for Vigil deployments. Copy into the machine or user policy store.",
+  "DefaultWebUsbGuardSetting": 2,
+  "DefaultSerialGuardSetting": 2,
+  "DefaultWebHidGuardSetting": 2,
+  "DefaultWebBluetoothGuardSetting": 2,
+  "DefaultIdleDetectionSetting": 2,
+  "DefaultLocalFontsSetting": 2,
+  "PaymentMethodQueryEnabled": false
+}

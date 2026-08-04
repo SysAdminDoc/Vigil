@@ -25,10 +25,19 @@ set "HERE=%~dp0"
 set "CHROME_EXE=%HERE%chrome.exe"
 set "PORTABLE_DIR=%HERE%portable_data"
 
+if /I "%~1"=="--init" (
+  if not exist "%PORTABLE_DIR%" mkdir "%PORTABLE_DIR%"
+  if errorlevel 1 (
+    echo Could not create portable data directory: %PORTABLE_DIR%
+    exit /b 1
+  )
+  echo Initialized portable data directory: %PORTABLE_DIR%
+  shift
+)
+
 if not exist "%CHROME_EXE%" (
   echo Could not find chrome.exe at %CHROME_EXE%
   echo Place vigil-portable.cmd in the same folder as chrome.exe.
-  pause
   exit /b 1
 )
 
@@ -45,11 +54,6 @@ if not exist "%PORTABLE_DIR%" (
   echo.
   echo  (Or run this script with --init to create it for you.)
   echo.
-  if /I "%~1"=="--init" (
-    mkdir "%PORTABLE_DIR%"
-    echo  Created %PORTABLE_DIR%. Re-running...
-    goto :launch
-  )
   pause
   exit /b 0
 )

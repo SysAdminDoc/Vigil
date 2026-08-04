@@ -11,11 +11,13 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
 ## What's Different From Upstream
 
 ### Pre-configured Defaults
-- **Google as default search engine** with search suggestions enabled
+- **DuckDuckGo as default search engine** with Brave Search, Startpage, Kagi,
+  Mojeek, and Google available as built-in alternates
 - **Bookmark bar always visible**
 - **uBlock Origin pre-installed** (downloaded from GitHub releases at build time)
 - **Chrome Web Store access restored** for easy extension management
-- **Privacy-focused defaults**: Do Not Track enabled, Safe Browsing disabled, autofill disabled, translation disabled, network prediction disabled
+- **Privacy-focused defaults**: Do Not Track enabled, Safe Browsing protection on
+  with reporting disabled, autofill disabled, translation disabled, network prediction disabled
 - **Skip first-run UI** and default browser prompts
 
 ### Architecture (Brave-Inspired)
@@ -28,7 +30,7 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
 
 ### File Structure
 ```
-ungoogled-chromium-windows/
+Vigil/
   branding.json              # Browser name, company, URLs
   initial_preferences        # First-run browser settings
   setup_extensions.py        # Downloads and bundles uBlock Origin
@@ -37,10 +39,9 @@ ungoogled-chromium-windows/
   ntp/
     newtab.html              # Custom dark New Tab Page
   patches/
-    series                   # Patch order (includes CWS restore + Google search)
+    series                   # Patch order (CWS/search compatibility)
     ungoogled-chromium/windows/
       windows-restore-google-search-engine.patch
-      windows-restore-webstore.patch
       ...
 ```
 
@@ -72,7 +73,7 @@ Google only supports [Windows 10 x64 or newer](https://chromium.googlesource.com
 ```bash
 # Clone with submodules
 git clone --recurse-submodules https://github.com/SysAdminDoc/Vigil.git
-cd ungoogled-chromium-windows
+cd Vigil
 
 # Build (downloads sources, applies patches + overlays, compiles)
 python build.py
@@ -95,7 +96,7 @@ python package.py
 
 Build artifacts are placed in `build/`:
 - `ungoogled-chromium_*_installer_*.exe` -- Windows installer
-- `ungoogled-chromium_*_windows_*.zip` -- Portable zip (includes uBlock Origin + initial_preferences)
+- `ungoogled-chromium_*_windows_*.zip` -- Portable zip (includes uBlock Origin, initial_preferences, and managed policy baselines)
 
 ## Customization
 
@@ -126,11 +127,10 @@ chromium_src/chrome/browser/some_file.cc
 
 Edit `initial_preferences` -- this is a standard Chromium [initial preferences file](https://www.chromium.org/administrators/configuring-other-preferences/).
 
-## CI/CD
+## Build verification
 
-The GitHub Actions workflow builds x64, x86, and arm64 binaries on every tag push or manual dispatch. Builds are split across multiple stages due to the 6-hour GitHub Actions timeout limit.
-
-Trigger a manual build: Actions > CI > Run workflow
+The supported release path is a local Windows build. Use `python build.py --ci -j N`
+for an incremental compile followed by packaging; it runs the same deterministic smoke checks against the resulting output without reusing a browser session.
 
 ## Credits
 

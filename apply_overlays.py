@@ -11,7 +11,6 @@ Also installs the custom New Tab Page and applies branding from branding.json.
 """
 
 import json
-import os
 import shutil
 import sys
 from pathlib import Path
@@ -42,6 +41,41 @@ def apply_chromium_src_overlays(root_dir, source_tree):
         print(f'  Overlay: {rel_path}')
 
     return count
+
+
+def apply_policy_theme_overlay(root_dir, source_tree):
+    """Wire the policy theme into Chromium's current policy WebUI bundle."""
+    overlay_css = (root_dir / 'chromium_src' / 'components' / 'policy' /
+                   'resources' / 'webui' / 'vigil_policy_theme.css')
+    webui_dir = source_tree / 'components' / 'policy' / 'resources' / 'webui'
+    html_path = webui_dir / 'policy.html'
+    build_path = webui_dir / 'BUILD.gn'
+    if not overlay_css.exists() or not html_path.exists() or not build_path.exists():
+        print('  Policy WebUI files are missing, skipping theme wiring.')
+        return
+
+    html = html_path.read_text(encoding='utf-8')
+    html_marker = '<!-- Vigil policy theme -->'
+    if html_marker not in html:
+        needle = '<link rel="stylesheet" href="./policy_shared_vars.css">'
+        replacement = (f'{needle}\n{html_marker}\n'
+                       '<link rel="stylesheet" href="./vigil_policy_theme.css">')
+        if needle not in html:
+            print('  Policy WebUI stylesheet insertion point is missing, skipping.')
+            return
+        html_path.write_text(html.replace(needle, replacement, 1), encoding='utf-8')
+
+    build = build_path.read_text(encoding='utf-8')
+    build_marker = '    "vigil_policy_theme.css",'
+    if build_marker not in build:
+        needle = '    "policy_shared_vars.css",\n'
+        if needle not in build:
+            print('  Policy WebUI resource insertion point is missing, skipping.')
+            return
+        build_path.write_text(build.replace(needle, needle + build_marker + '\n', 1),
+                              encoding='utf-8')
+
+    print('  Wired Vigil theme into the chrome://policy WebUI.')
 
 
 def install_ntp(root_dir, source_tree):
@@ -184,6 +218,42 @@ def apply_branding(root_dir, source_tree):
     print(f'  Branding applied: {browser_name} by {company}')
 
 
+def apply_version_toolchain_overlay(root_dir, source_tree):
+    """Expose the pinned Vigil toolchain on chrome://version."""
+    version_page = source_tree / 'components' / 'webui' / 'version' / 'resources' / 'about_version.html'
+    toolchain_file = root_dir / 'toolchain.json'
+    if not version_page.exists() or not toolchain_file.exists():
+        print('  Toolchain metadata or chrome://version page is missing, skipping.')
+        return
+
+    content = version_page.read_text(encoding='utf-8')
+    marker = '<!-- Vigil toolchain details -->'
+    if marker in content:
+        print('  chrome://version already contains Vigil toolchain details.')
+        return
+
+    toolchain = json.loads(toolchain_file.read_text(encoding='utf-8'))
+    details = '; '.join([
+        f"Chromium {toolchain['chromium']}",
+        f"clang {toolchain['clang']}",
+        f"rustc {toolchain['rustc']}",
+        f"GN {toolchain['gn']}",
+        f"Ninja {toolchain['ninja']}",
+    ])
+    row = (
+        f'        {marker}\n'
+        '        <tr><td class="label">Vigil toolchain</td>\n'
+        f'          <td class="version">{details}</td>\n'
+        '        </tr>\n'
+    )
+    needle = '        <tr id="sanitizer-section" hidden>'
+    if needle not in content:
+        print('  chrome://version insertion point is missing, skipping.')
+        return
+    version_page.write_text(content.replace(needle, row + needle, 1), encoding='utf-8')
+    print('  Added pinned toolchain details to chrome://version.')
+
+
 def main():
     root_dir = Path(__file__).resolve().parent
     source_tree = root_dir / 'build' / 'src'
@@ -196,6 +266,9 @@ def main():
     count = apply_chromium_src_overlays(root_dir, source_tree)
     print(f'  Applied {count} overlay file(s).')
 
+    print('Applying chrome://policy theme...')
+    apply_policy_theme_overlay(root_dir, source_tree)
+
     print('Installing custom NTP...')
     install_ntp(root_dir, source_tree)
 
@@ -204,6 +277,9 @@ def main():
 
     print('Applying branding...')
     apply_branding(root_dir, source_tree)
+
+    print('Applying chrome://version toolchain metadata...')
+    apply_version_toolchain_overlay(root_dir, source_tree)
 
     print('Overlay application complete.')
 

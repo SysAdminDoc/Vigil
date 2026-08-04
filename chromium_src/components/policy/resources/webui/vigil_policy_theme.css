@@ -1,0 +1,97 @@
+/*
+ * Vigil theme for the Chromium 145 chrome://policy WebUI.
+ *
+ * The policy table renders inside Web Components, so this file intentionally
+ * sets the shared variables consumed by the component styles and only styles
+ * the outer document directly. Functional policy status colors and layout
+ * remain owned by Chromium.
+ */
+
+html {
+  --vigil-bg: #0c1018;
+  --vigil-surface: #111827;
+  --vigil-surface-alt: #151d2b;
+  --vigil-border: rgba(96, 165, 250, 0.14);
+  --vigil-border-hover: rgba(96, 165, 250, 0.28);
+  --vigil-accent: #60a5fa;
+  --vigil-accent-dim: #3b82f6;
+  --vigil-accent-bg: rgba(96, 165, 250, 0.08);
+  --vigil-text: #d1d5db;
+  --vigil-text-bright: #f3f4f6;
+  --vigil-text-muted: #9ca3af;
+
+  --action-row-button-background: var(--vigil-accent-dim);
+  --action-row-button-border: var(--vigil-accent);
+  --element-hover: var(--vigil-accent-bg);
+  --link-color: var(--vigil-accent);
+  --page-background: var(--vigil-bg);
+  --search-field-container-background: var(--vigil-surface-alt);
+  --search-field-input-text-color: var(--vigil-text-bright);
+  --status-box-background: var(--vigil-surface);
+  --table-border: var(--vigil-border);
+  --table-header: var(--vigil-surface);
+  --table-row-expanded-background: var(--vigil-surface-alt);
+  --text-color: var(--vigil-text);
+  --toast-background: var(--vigil-surface);
+  --toast-text-color: var(--vigil-text-bright);
+}
+
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+body > header {
+  background: var(--vigil-surface);
+  border-bottom: 1px solid var(--vigil-border);
+  box-shadow: none;
+}
+
+#topbar-title {
+  color: var(--vigil-text-bright);
+  font-size: 145%;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+#search-field-container {
+  border: 1px solid var(--vigil-border);
+}
+
+.action-row-button {
+  border-radius: 4px;
+  color: var(--vigil-bg);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.action-row-button:hover {
+  background: var(--vigil-accent);
+  filter: none;
+}
+
+#more-actions-list {
+  border: 1px solid var(--vigil-border);
+  border-radius: 4px;
+}
+
+policy-table {
+  color: var(--vigil-text);
+}
+
+policy-table .header {
+  color: var(--vigil-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (prefers-color-scheme: light) {
+  html {
+    --action-row-button-background: #3b82f6;
+    --action-row-button-border: #2563eb;
+    --link-color: #1d4ed8;
+  }
+}

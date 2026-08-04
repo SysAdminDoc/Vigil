@@ -13,7 +13,6 @@ if sys.version_info.major < 3:
     raise RuntimeError('Python 3 is required for this script.')
 
 import argparse
-import os
 import platform
 import subprocess
 from pathlib import Path
@@ -86,11 +85,21 @@ def main():
         shutil.copyfile(initial_prefs_src, initial_prefs_dst)
         print('Copied initial_preferences to build output')
 
+    # Ship the administrator-facing managed-policy baselines with the
+    # portable archive so deployments do not need a source checkout.
+    policies_src = root_dir / 'policies'
+    policies_dst = build_outputs / 'policies'
+    if policies_src.exists():
+        if policies_dst.exists():
+            shutil.rmtree(policies_dst)
+        shutil.copytree(policies_src, policies_dst)
+        print('Copied managed policy baselines to build output')
+
     # Run extension setup to download and bundle uBlock Origin
     setup_ext = root_dir / 'setup_extensions.py'
     if setup_ext.exists():
         print('Running extension setup...')
-        subprocess.run([sys.executable, str(setup_ext)], cwd=str(root_dir))
+        subprocess.run([sys.executable, str(setup_ext)], cwd=str(root_dir), check=True)
 
     # Install the bundled Vigil NTP extension (roadmap N3).
     # This is the in-tree replacement for the legacy ntp/ html copy.
@@ -100,7 +109,7 @@ def main():
         subprocess.run(
             [sys.executable, str(install_ntp),
              '--build-out', str(build_outputs)],
-            cwd=str(root_dir))
+            cwd=str(root_dir), check=True)
 
     excluded_files = set([
         Path('mini_installer.exe'),
@@ -121,14 +130,15 @@ def main():
         shutil.copytree(ntp_src, ntp_dst)
         print('Copied custom NTP to build output')
 
-    # Collect extra files (initial_preferences, extensions, default_extensions, ntp)
+    # Collect extra files (initial_preferences, policies, extensions,
+    # default_extensions, ntp)
     # These are relative to build_outputs and chained into file_iter to preserve paths.
     # 'ntp' is the legacy copy kept for backwards-compat; the bundled NTP now
     # ships under Extensions/<id>/<version>/ via tools/install_ntp_extension.py.
     def extra_files_generator():
         if initial_prefs_dst.exists():
             yield Path('initial_preferences')
-        for subdir in ('Extensions', 'default_extensions', 'ntp'):
+        for subdir in ('Extensions', 'default_extensions', 'ntp', 'policies'):
             d = build_outputs / subdir
             if d.exists():
                 for f in d.rglob('*'):

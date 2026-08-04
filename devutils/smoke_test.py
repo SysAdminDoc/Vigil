@@ -4,15 +4,12 @@
 """
 Vigil smoke test (roadmap item N14).
 
-Installs / unzips the built artifact in a throwaway profile, launches it with a
-known harness URL, and asserts the post-conditions that the v0.2 defaults work.
+Inspects the built artifact or portable zip and asserts the post-conditions that
+the v0.2 defaults work. The default path is deterministic and does not launch
+Chromium.
 
-Designed to be runnable on:
-
-  - the maintainer's workstation (`python devutils/smoke_test.py --installer ...`)
-  - GitHub Actions windows-2022 runners (the build matrix runs this after each
-    release-candidate build)
-  - a clean Windows VM (Hyper-V image) the maintainer keeps for release sign-off
+Designed to be runnable on the maintainer's workstation or a clean Windows
+release-validation environment.
 
 Tests, in order of cheapest -> most expensive:
 
@@ -23,13 +20,15 @@ Tests, in order of cheapest -> most expensive:
   5. Safe Browsing re-enabled, telemetry off (from initial_preferences inspection)
   6. Privacy Sandbox APIs disabled (from initial_preferences inspection)
   7. Permissions-Policy default-deny content settings (from initial_preferences)
+  7b. Managed policy baselines are packaged for administrator deployment
   8. uBO staged in Extensions/cjpalhdlnbpafiamejdnhcphjbkeiagm/<v>/ + manifest valid
   9. NTP extension declares chrome_url_overrides.newtab
  10. (Optional) Selenium-driven launch: open chrome://settings, confirm the page
      renders and the Vigil-overlay CSS is applied (looks for a known class).
 
-Steps 1-9 do NOT require launching Chrome and are the CI-fast path.
-Step 10 only runs when --selenium is passed AND chromedriver is on PATH.
+Steps 1-9 do NOT require launching Chrome and are the file-only path.
+Step 10 only runs when --selenium is passed AND chromedriver is on PATH. It must
+be run under the repository's invisible visual-isolation procedure.
 
 Exit codes:
    0 - all assertions passed
@@ -38,10 +37,9 @@ Exit codes:
 """
 
 import argparse
+import base64
+import hashlib
 import json
-import os
-import shutil
-import subprocess
 import sys
 import tempfile
 import zipfile
@@ -95,7 +93,7 @@ def assert_files_present(out_dir: Path, r: Result):
     """Step 1: required files are in the build output."""
     print("\n[1] File-presence checks")
     for rel in ["chrome.exe", "initial_preferences",
-                "default_extensions", "Extensions"]:
+                "default_extensions", "Extensions", "policies"]:
         p = out_dir / rel
         if p.exists():
             r.ok(f"present: {rel}")
@@ -196,6 +194,44 @@ def assert_content_settings(prefs, r: Result):
             r.fail(f"{k}", f"expected 2 (block), got {cs.get(k)!r}")
 
 
+def assert_managed_defaults(repo_root: Path, out_dir: Path, r: Result):
+    """Step 7b: the optional enterprise baseline keeps risky APIs blocked."""
+    print("\n[7b] Managed policy baseline (N5)")
+    policy_path = repo_root / "policies" / "vigil-defaults.json"
+    try:
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        r.fail("managed policy baseline missing or invalid", str(e))
+        return
+    for key in (
+        "DefaultWebUsbGuardSetting",
+        "DefaultSerialGuardSetting",
+        "DefaultWebHidGuardSetting",
+        "DefaultWebBluetoothGuardSetting",
+        "DefaultIdleDetectionSetting",
+        "DefaultLocalFontsSetting",
+    ):
+        if policy.get(key) == 2:
+            r.ok(f"{key} = block")
+        else:
+            r.fail(key, f"expected 2 (block), got {policy.get(key)!r}")
+    if policy.get("PaymentMethodQueryEnabled") is False:
+        r.ok("PaymentMethodQueryEnabled = false")
+    else:
+        r.fail("PaymentMethodQueryEnabled", "expected false")
+
+    packaged = out_dir / "policies" / policy_path.name
+    try:
+        packaged_policy = json.loads(packaged.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        r.fail("managed policy baseline not packaged", str(e))
+    else:
+        if packaged_policy == policy:
+            r.ok("managed policy baseline packaged unchanged")
+        else:
+            r.fail("packaged managed policy baseline differs from source")
+
+
 def assert_ubo_bundle(out_dir: Path, r: Result):
     """Step 8: uBO staged under Extensions/<id>/<v>/ and manifest is valid."""
     print("\n[8] uBlock Origin bundled")
@@ -227,12 +263,21 @@ def assert_ubo_bundle(out_dir: Path, r: Result):
         r.fail("external-extensions pointer missing", str(ptr))
 
 
-def assert_ntp_extension(repo_root: Path, r: Result):
-    """Step 9: ntp-extension/ declares chrome_url_overrides.newtab."""
+def extension_id_from_manifest(manifest):
+    """Compute Chromium's stable extension ID from a manifest public key."""
+    key = manifest.get("key")
+    if not key:
+        return None
+    digest = hashlib.sha256(base64.b64decode(key)).hexdigest()[:32]
+    return "".join(chr(ord("a") + int(char, 16)) for char in digest)
+
+
+def assert_ntp_extension(repo_root: Path, out_dir: Path, r: Result):
+    """Step 9: the NTP manifest and staged extension are wired correctly."""
     print("\n[9] NTP extension wiring (N3)")
     manifest = repo_root / "ntp-extension" / "manifest.json"
     if not manifest.exists():
-        r.skip("ntp-extension manifest", "not yet present (N3 scaffold still pending)")
+        r.skip("ntp-extension manifest", "not present in this source checkout")
         return
     try:
         m = json.loads(manifest.read_text(encoding="utf-8"))
@@ -244,6 +289,27 @@ def assert_ntp_extension(repo_root: Path, r: Result):
         r.ok(f"newtab override -> {overrides['newtab']}")
     else:
         r.fail("chrome_url_overrides.newtab missing")
+    ext_id = extension_id_from_manifest(m)
+    if not ext_id:
+        r.fail("ntp-extension manifest has no stable public key")
+        return
+    version = m.get("version")
+    staged = out_dir / "Extensions" / ext_id / version
+    if (staged / "manifest.json").exists():
+        r.ok(f"staged NTP extension: {ext_id}/{version}")
+    else:
+        r.fail("staged NTP extension missing", str(staged))
+    pointer = out_dir / "default_extensions" / f"{ext_id}.json"
+    try:
+        pointer_data = json.loads(pointer.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        r.fail("NTP external-extensions pointer missing or invalid", str(e))
+    else:
+        expected = f"Extensions/{ext_id}/{version}"
+        if pointer_data.get("external_crx") == expected:
+            r.ok("NTP external-extensions pointer valid")
+        else:
+            r.fail("NTP external-extensions pointer target", str(pointer_data))
 
 
 def assert_selenium_launch(out_dir: Path, r: Result):
@@ -307,7 +373,8 @@ def main():
         if not inst.exists():
             print(f"ERROR: installer not found: {inst}", file=sys.stderr)
             return 2
-        tmp = Path(tempfile.mkdtemp(prefix="vigil-smoke-"))
+        installer_tmp = tempfile.TemporaryDirectory(prefix="vigil-smoke-")
+        tmp = Path(installer_tmp.name)
         if inst.suffix.lower() == ".zip":
             with zipfile.ZipFile(inst) as zf:
                 zf.extractall(tmp)
@@ -334,8 +401,9 @@ def main():
     assert_safe_browsing(prefs, r)
     assert_privacy_sandbox(prefs, r)
     assert_content_settings(prefs, r)
+    assert_managed_defaults(repo_root, out_dir, r)
     assert_ubo_bundle(out_dir, r)
-    assert_ntp_extension(repo_root, r)
+    assert_ntp_extension(repo_root, out_dir, r)
 
     if args.selenium:
         assert_selenium_launch(out_dir, r)
