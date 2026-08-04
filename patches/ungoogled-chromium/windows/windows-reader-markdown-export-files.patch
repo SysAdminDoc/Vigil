@@ -1,0 +1,181 @@
+--- /dev/null
++++ b/chrome/browser/resources/side_panel/read_anything/content/markdown_export.ts
+@@ -0,0 +1,132 @@
++// Copyright 2026 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++function escapeInlineText(text: string): string {
++  return text.replace(/\\/g, '\\\\').replace(/([*_`\[\]])/g, '\\$1');
++}
++
++function normalizeText(text: string): string {
++  return escapeInlineText(text.replace(/\s+/g, ' '));
++}
++
++function escapeUrl(url: string): string {
++  return url.replace(/[\\)]/g, '\\$&');
++}
++
++function inlineMarkdown(node: Node): string {
++  if (node.nodeType === Node.TEXT_NODE) {
++    return normalizeText(node.textContent ?? '');
++  }
++  if (node.nodeType !== Node.ELEMENT_NODE) {
++    return '';
++  }
++
++  const element = node as Element;
++  const tag = element.tagName.toLowerCase();
++  const children = Array.from(element.childNodes)
++      .map(child => inlineMarkdown(child))
++      .join('');
++
++  if (tag === 'a' || element.hasAttribute('data-link')) {
++    const url = element.getAttribute('href') ??
++        element.getAttribute('data-link');
++    if (url) {
++      return `[${children.trim()}](${escapeUrl(url)})`;
++    }
++  }
++  if (tag === 'strong' || tag === 'b') {
++    return children.trim() ? `**${children.trim()}**` : '';
++  }
++  if (tag === 'em' || tag === 'i') {
++    return children.trim() ? `*${children.trim()}*` : '';
++  }
++  if (tag === 'code') {
++    return children.trim() ? `\`${children.trim()}\`` : '';
++  }
++  if (tag === 'br') {
++    return '\n';
++  }
++  if (tag === 'img') {
++    const alt = normalizeText(element.getAttribute('alt') ?? '').trim();
++    const src = element.getAttribute('src');
++    return alt && src ? `![${alt}](${escapeUrl(src)})` : '';
++  }
++  if (tag === 'canvas') {
++    const alt = normalizeText(element.getAttribute('alt') ?? '').trim();
++    return alt ? `![${alt}]` : '';
++  }
++  return children;
++}
++
++function renderList(element: Element, depth: number): string {
++  const ordered = element.tagName.toLowerCase() === 'ol';
++  let ordinal = 1;
++  const items = Array.from(element.children)
++      .filter(child => child.tagName.toLowerCase() === 'li');
++  const output = items.map(item => {
++    const content = Array.from(item.childNodes)
++        .filter(child => child.nodeType !== Node.ELEMENT_NODE ||
++            !['ol', 'ul'].includes((child as Element).tagName.toLowerCase()))
++        .map(child => inlineMarkdown(child))
++        .join('')
++        .trim();
++    const marker = ordered ? `${ordinal++}.` : '-';
++    const nested = Array.from(item.children)
++        .filter(child => ['ol', 'ul'].includes(child.tagName.toLowerCase()))
++        .map(child => renderBlock(child, depth + 1))
++        .join('');
++    return `\n${'  '.repeat(depth)}${marker} ${content}${nested}`;
++  }).join('');
++  return `${output}\n\n`;
++}
++
++function renderBlock(node: Node, listDepth = 0): string {
++  if (node.nodeType === Node.TEXT_NODE) {
++    return normalizeText(node.textContent ?? '');
++  }
++  if (node.nodeType !== Node.ELEMENT_NODE) {
++    return '';
++  }
++
++  const element = node as Element;
++  const tag = element.tagName.toLowerCase();
++  if (tag === 'ol' || tag === 'ul') {
++    return renderList(element, listDepth);
++  }
++  if (/^h[1-6]$/.test(tag)) {
++    const level = Number.parseInt(tag.substring(1), 10);
++    return `\n\n${'#'.repeat(level)} ${inlineMarkdown(element).trim()}\n\n`;
++  }
++  if (tag === 'pre') {
++    const text = element.textContent?.trim() ?? '';
++    return text ? `\n\n\\`\\`\\`\n${text}\n\\`\\`\\`\n\n` : '';
++  }
++  if (tag === 'blockquote') {
++    const text = inlineMarkdown(element).trim();
++    return text ? `\n\n${text.split('\n').map(line => `> ${line}`).join('\n')}\n\n` : '';
++  }
++  if (['p', 'dt', 'dd'].includes(tag)) {
++    const text = inlineMarkdown(element).trim();
++    return text ? `\n\n${text}\n\n` : '';
++  }
++  if (['div', 'section', 'article', 'main', 'header', 'footer', 'body']
++          .includes(tag)) {
++    return Array.from(element.childNodes)
++        .map(child => renderBlock(child, listDepth))
++        .join('');
++  }
++  if (tag === 'hr') {
++    return '\n\n---\n\n';
++  }
++  return inlineMarkdown(element);
++}
++
++export function renderMarkdown(root: Element): string {
++  const markdown = Array.from(root.childNodes)
++      .map(child => renderBlock(child))
++      .join('')
++      .replace(/\n{3,}/g, '\n\n')
++      .trim();
++  return markdown ? `${markdown}\n` : '';
++}
+--- /dev/null
++++ b/chrome/test/data/webui/side_panel/read_anything/markdown_export_test.ts
+@@ -0,0 +1,43 @@
++// Copyright 2026 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++import 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
++
++import {renderMarkdown} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
++import {assertEquals} from 'chrome-untrusted://webui-test/chai_assert.js';
++
++suite('MarkdownExport', () => {
++  test('renders article structure and inline formatting', () => {
++    const article = document.createElement('article');
++
++    const heading = document.createElement('h1');
++    heading.textContent = 'Title';
++    article.appendChild(heading);
++
++    const paragraph = document.createElement('p');
++    paragraph.append('Read ');
++    const link = document.createElement('a');
++    link.href = 'https://example.com';
++    link.textContent = 'the docs';
++    paragraph.appendChild(link);
++    paragraph.append('.');
++    article.appendChild(paragraph);
++
++    const list = document.createElement('ul');
++    for (const text of ['First', 'Second']) {
++      const item = document.createElement('li');
++      item.textContent = text;
++      list.appendChild(item);
++    }
++    article.appendChild(list);
++
++    assertEquals(
++        '# Title\n\nRead [the docs](https://example.com).\n\n- First\n- Second\n',
++        renderMarkdown(article));
++  });
++
++  test('returns an empty string for an empty root', () => {
++    assertEquals('', renderMarkdown(document.createElement('article')));
++  });
++});

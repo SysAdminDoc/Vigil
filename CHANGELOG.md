@@ -65,6 +65,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **Split view.** Chromium's two-pane split view is enabled with its toolbar
   button pinned by default and `Ctrl+Shift+\\` bound to create a split. Roadmap
   `X15`.
+- **Reader Mode and Markdown export.** Chromium's desktop Read Anything
+  distiller is enabled with its omnibox entry point; the reader toolbar can
+  download the distilled article as Markdown. Roadmap `X17`.
 - **Optional NTP widgets.** The bundled new-tab page now supports opt-in local
   notes, top sites, and bookmark-folder links, plus city-based Open-Meteo
   weather and up to three HTTPS RSS feeds. All widget settings persist locally

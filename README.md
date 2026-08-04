@@ -45,6 +45,9 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
 - **Split view is ready from the toolbar or keyboard.** Vigil starts Chromium's
   two-pane split view with its toolbar button pinned; `Ctrl+Shift+\\` creates a
   split from the active tab. Multi-pane layouts remain out of scope.
+- **Reader Mode includes Markdown export.** Chromium's built-in Read Anything
+  distiller is available from its desktop entry points, and the reader toolbar
+  downloads the distilled article as `vigil-reading-mode.md`.
 
 ### Manifest V2 Policy
 

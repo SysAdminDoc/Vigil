@@ -1,0 +1,139 @@
+--- a/chrome/browser/resources/side_panel/read_anything/BUILD.gn
++++ b/chrome/browser/resources/side_panel/read_anything/BUILD.gn
+@@ -25,6 +25,7 @@ build_webui("build") {
+     "content/content_controller.ts",
+     "content/line_focus_controller.ts",
+     "content/line_focus_model.ts",
++    "content/markdown_export.ts",
+     "content/node_store.ts",
+     "content/read_anything_types.ts",
+     "content/selection_controller.ts",
+--- a/chrome/browser/resources/side_panel/read_anything/app/app.html.ts
++++ b/chrome/browser/resources/side_panel/read_anything/app/app.html.ts
+@@ -49,4 +49,5 @@ export function getHtml(this: AppElement) {
+         @language-menu-close="${this.onLanguageMenuClose_}"
+         @line-focus-change="${this.onLineFocusChange_}"
++        @markdown-export="${this.onMarkdownExport_}"
+         @close-all-menus="${this.onAllMenusClose_}"
+         id="toolbar">
+--- a/chrome/browser/resources/side_panel/read_anything/app/app.ts
++++ b/chrome/browser/resources/side_panel/read_anything/app/app.ts
+@@ -19,4 +19,5 @@ import {ContentController, ContentType} from '../content/content_controller.js';
+ import type {ContentListener, ContentState} from '../content/content_controller.js';
+ import {LineFocusController, type LineFocusListener} from '../content/line_focus_controller.js';
++import {renderMarkdown} from '../content/markdown_export.js';
+ import {NodeStore} from '../content/node_store.js';
+ import {DEFAULT_SETTINGS, LineFocusType, type SettingsPrefs} from '../content/read_anything_types.js';
+@@ -579,4 +580,21 @@ export class AppElement extends AppElementBase implements SpeechListener,
+   }
+ 
++  protected onMarkdownExport_() {
++    const markdown = renderMarkdown(this.$.container);
++    if (!markdown) {
++      return;
++    }
++
++    const blob = new Blob([markdown], {type: 'text/markdown;charset=utf-8'});
++    const url = URL.createObjectURL(blob);
++    const link = document.createElement('a');
++    link.href = url;
++    link.download = 'vigil-reading-mode.md';
++    document.body.appendChild(link);
++    link.click();
++    link.remove();
++    setTimeout(() => URL.revokeObjectURL(url), 0);
++  }
++
+   protected onResetToolbar_() {
+     this.styleUpdater_.resetToolbar();
+--- a/chrome/browser/resources/side_panel/read_anything/app/read_anything_toolbar.html.ts
++++ b/chrome/browser/resources/side_panel/read_anything/app/read_anything_toolbar.html.ts
+@@ -94,5 +94,15 @@ function renderTextStyleOptions(this: ReadAnythingToolbarElement) {
+     `);
+ }
+ 
++function getMarkdownExportButtonHtml(this: ReadAnythingToolbarElement) {
++  return html`
++<cr-icon-button class="toolbar-button" id="export-markdown" tabindex="-1"
++    aria-label="$i18n{exportMarkdown}"
++    title="$i18n{exportMarkdown}"
++    iron-icon="cr:file-download"
++    @click="${this.onExportMarkdownClick_}">
++</cr-icon-button>`;
++}
++
+ function getToolbarHtml(this: ReadAnythingToolbarElement) {
+   // clang-format off
+@@ -151,4 +161,5 @@ ${this.textStyleToggles_.map((item) => html`
+ `)}
+ 
++${getMarkdownExportButtonHtml.call(this)}
+ ${renderTextStyleOptions.call(this)}
+ <cr-icon-button id="more" tabindex="-1" aria-label="$i18n{moreOptionsLabel}"
+@@ -186,4 +197,5 @@ function getImmersiveToolbarHtml(this: ReadAnythingToolbarElement) {
+ ${getToolbarAudioControlsHtml.call(this)}
+ <hr class="separator" aria-hidden="true">
++${getMarkdownExportButtonHtml.call(this)}
+ ${renderTextStyleOptions.call(this)}
+ <cr-icon-button id="more" tabindex="0" aria-label="$i18n{moreOptionsLabel}"
+--- a/chrome/browser/resources/side_panel/read_anything/app/read_anything_toolbar.ts
++++ b/chrome/browser/resources/side_panel/read_anything/app/read_anything_toolbar.ts
+@@ -494,4 +494,8 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
+   }
+ 
++  protected onExportMarkdownClick_() {
++    this.fire(ToolbarEvent.MARKDOWN_EXPORT);
++  }
++
+   protected onTextStyleMenuButtonClickFromOverflow_(e: Event) {
+     const currentTarget = e.currentTarget as HTMLElement;
+     const index = Number.parseInt(currentTarget.dataset['index']!);
+--- a/chrome/browser/resources/side_panel/read_anything/content/read_anything_types.ts
++++ b/chrome/browser/resources/side_panel/read_anything/content/read_anything_types.ts
+@@ -78,4 +78,5 @@ export enum ToolbarEvent {
+   CLOSE_ALL_MENUS = 'close-all-menus',
+   OPEN_SETTINGS_SUBMENU = 'open-settings-submenu',
+   PRESENTATION_CHANGE = 'presentation-change',
++  MARKDOWN_EXPORT = 'markdown-export',
+ }
+ 
+ // The available menu items in Reading mode
+--- a/chrome/browser/resources/side_panel/read_anything/read_anything.ts
++++ b/chrome/browser/resources/side_panel/read_anything/read_anything.ts
+@@ -16,4 +16,5 @@ export type {ContentListener, ContentState} from './content/content_controller.js';
+ export {ContentController, ContentType, HIGHLIGHTED_LINK_CLASS} from './content/content_controller.js';
+ export {LineFocusController} from './content/line_focus_controller.js';
+ export type {LineFocusListener} from './content/line_focus_controller.js';
++export {renderMarkdown} from './content/markdown_export.js';
+ export {ESTIMATED_WORDS_PER_MS, MIN_MS_TO_READ, NodeStore} from './content/node_store.js';
+ export type {SettingsPrefs} from './content/read_anything_types.js';
+--- a/chrome/browser/ui/webui/side_panel/read_anything/read_anything_untrusted_ui.cc
++++ b/chrome/browser/ui/webui/side_panel/read_anything/read_anything_untrusted_ui.cc
+@@ -124,4 +124,5 @@ ReadAnythingUntrustedUI::ReadAnythingUntrustedUI(content::WebUI* web_ui)
+       {"enableImagesLabel", IDS_READING_MODE_ENABLE_IMAGES_BUTTON_LABEL},
+       {"readingModeToolbarLabel", IDS_READING_MODE_TOOLBAR_LABEL},
++      {"exportMarkdown", IDS_READING_MODE_EXPORT_MARKDOWN},
+       {"readingModeReadAloudToolbarLabel",
+        IDS_READING_MODE_READ_ALOUD_TOOLBAR_LABEL},
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -9675,6 +9675,9 @@
+       <message name="IDS_READING_MODE_TOOLBAR_LABEL" desc="Accessibility label for the text formatting toolbar of the reading mode feature. Spoken by screen readers.">
+         Text formatting
+       </message>
++      <message name="IDS_READING_MODE_EXPORT_MARKDOWN" desc="Accessibility label for exporting reading mode content as Markdown.">
++        Export as Markdown
++      </message>
+       <message name="IDS_READING_MODE_READ_ALOUD_TOOLBAR_LABEL" desc="Accessibility label for the Reading Mode toolbar that has options for text formating and reading aloud text. Spoken by screen readers.">
+         Read Aloud and Text formatting
+       </message>
+--- a/chrome/test/data/webui/side_panel/read_anything/BUILD.gn
++++ b/chrome/test/data/webui/side_panel/read_anything/BUILD.gn
+@@ -30,6 +30,7 @@ build_webui_tests("build") {
+     "line_focus_controller_test.ts",
+     "line_focus_menu_test.ts",
+     "line_spacing_test.ts",
++    "markdown_export_test.ts",
+     "movement_test.ts",
+     "node_store_test.ts",
+     "presentation_menu_test.ts",

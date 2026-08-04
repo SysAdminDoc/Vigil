@@ -1,0 +1,16 @@
+--- a/ui/accessibility/accessibility_features.cc
++++ b/ui/accessibility/accessibility_features.cc
+@@ -379,5 +379,5 @@ bool IsDataCollectionModeForScreen2xEnabled() {
+ }
+ 
+-BASE_FEATURE(kImmersiveReadAnything, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kImmersiveReadAnything, base::FEATURE_ENABLED_BY_DEFAULT);
+ bool IsImmersiveReadAnythingEnabled() {
+   return base::FeatureList::IsEnabled(::features::kImmersiveReadAnything);
+@@ -442,5 +442,5 @@ bool IsReadAnythingReadAloudTSTextSegmentationEnabled() {
+ }
+ 
+-BASE_FEATURE(kReadAnythingOmniboxChip, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kReadAnythingOmniboxChip, base::FEATURE_ENABLED_BY_DEFAULT);
+ bool IsReadAnythingOmniboxChipEnabled() {
+   return base::FeatureList::IsEnabled(::features::kReadAnythingOmniboxChip);

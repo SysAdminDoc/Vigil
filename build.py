@@ -195,6 +195,55 @@ def _verify_split_view_policy(source_tree):
             f'Split-view keyboard shortcut is missing from {accelerator_path}')
 
 
+def _verify_reader_mode_policy(source_tree):
+    """Fail closed if Reader Mode or its Markdown export regresses."""
+    patch_series = _ROOT_DIR / 'patches' / 'series'
+    series = patch_series.read_text(encoding=ENCODING)
+    required_patches = (
+        'ungoogled-chromium/windows/windows-enable-reader-mode.patch',
+        'ungoogled-chromium/windows/windows-reader-markdown-export.patch',
+        'ungoogled-chromium/windows/windows-reader-markdown-export-files.patch',
+    )
+    for patch_name in required_patches:
+        if patch_name not in series.splitlines():
+            raise RuntimeError(
+                f'Reader Mode patch is missing from {patch_series}: {patch_name}')
+
+    feature_path = source_tree / 'ui' / 'accessibility' / \
+        'accessibility_features.cc'
+    feature_source = feature_path.read_text(encoding=ENCODING)
+    for feature in ('kImmersiveReadAnything, '
+                    'base::FEATURE_ENABLED_BY_DEFAULT',
+                    'kReadAnythingOmniboxChip, '
+                    'base::FEATURE_ENABLED_BY_DEFAULT'):
+        if feature not in feature_source:
+            raise RuntimeError(
+                f'Reader Mode feature is not enabled by default in {feature_path}: '
+                f'{feature}')
+
+    exporter_path = source_tree / 'chrome' / 'browser' / 'resources' / \
+        'side_panel' / 'read_anything' / 'content' / 'markdown_export.ts'
+    exporter = exporter_path.read_text(encoding=ENCODING)
+    if 'export function renderMarkdown' not in exporter:
+        raise RuntimeError(
+            f'Reader Mode Markdown exporter is missing from {exporter_path}')
+
+    toolbar_path = source_tree / 'chrome' / 'browser' / 'resources' / \
+        'side_panel' / 'read_anything' / 'app' / \
+        'read_anything_toolbar.html.ts'
+    toolbar = toolbar_path.read_text(encoding=ENCODING)
+    if 'id="export-markdown"' not in toolbar:
+        raise RuntimeError(
+            f'Reader Mode Markdown button is missing from {toolbar_path}')
+
+    ui_path = source_tree / 'chrome' / 'browser' / 'ui' / 'webui' / \
+        'side_panel' / 'read_anything' / 'read_anything_untrusted_ui.cc'
+    ui_source = ui_path.read_text(encoding=ENCODING)
+    if '"exportMarkdown", IDS_READING_MODE_EXPORT_MARKDOWN' not in ui_source:
+        raise RuntimeError(
+            f'Reader Mode Markdown label is missing from {ui_path}')
+
+
 def _get_vcvars_path(name='64'):
     """
     Returns the path to the corresponding vcvars*.bat path
@@ -439,6 +488,7 @@ def main():
     _verify_memory_saver_policy(source_tree)
     _verify_vertical_tabs_policy(source_tree)
     _verify_split_view_policy(source_tree)
+    _verify_reader_mode_policy(source_tree)
 
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32
