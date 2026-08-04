@@ -1,0 +1,20 @@
+--- a/chrome/browser/ui/accelerator_table.cc
++++ b/chrome/browser/ui/accelerator_table.cc
+@@ -311,6 +311,9 @@ void GetAcceleratorList(std::vector<AcceleratorMapping>* accelerators) {
+ #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+     accelerators->emplace_back(AcceleratorMapping(
+         {ui::VKEY_N, ui::EF_SHIFT_DOWN | ui::EF_ALT_DOWN, IDC_NEW_SPLIT_TAB}));
++    accelerators->emplace_back(AcceleratorMapping(
++        {ui::VKEY_OEM_5, ui::EF_CONTROL_DOWN | ui::EF_SHIFT_DOWN,
++         IDC_NEW_SPLIT_TAB}));
+ #elif BUILDFLAG(IS_CHROMEOS)
+     accelerators->emplace_back(
+         AcceleratorMapping({ui::VKEY_N, ui::EF_CONTROL_DOWN | ui::EF_ALT_DOWN,
+--- a/chrome/browser/ui/browser_ui_prefs.cc
++++ b/chrome/browser/ui/browser_ui_prefs.cc
+@@ -121,4 +121,4 @@ void RegisterBrowserUserPrefs(user_prefs::PrefRegistrySyncable* registry) {
+   registry->RegisterBooleanPref(prefs::kPinContextualTaskButton, true,
+                                 pref_registration_flags);
+-  registry->RegisterBooleanPref(prefs::kPinSplitTabButton, false,
++  registry->RegisterBooleanPref(prefs::kPinSplitTabButton, true,
+                                 pref_registration_flags);

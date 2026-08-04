@@ -39,6 +39,12 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
   settings still expose the aggressiveness and per-domain exception controls;
   Vigil starts with inactive tabs eligible for hibernation after the upstream
   120-minute threshold.
+- **Vertical tabs are available from Settings.** The built-in tab-strip position
+  toggle is enabled in Appearance, with Chromium's existing tab restore and
+  tab-search behavior preserved.
+- **Split view is ready from the toolbar or keyboard.** Vigil starts Chromium's
+  two-pane split view with its toolbar button pinned; `Ctrl+Shift+\\` creates a
+  split from the active tab. Multi-pane layouts remain out of scope.
 
 ### Manifest V2 Policy
 

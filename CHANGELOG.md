@@ -59,6 +59,12 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **Memory Saver default.** Chromium's existing performance page now starts
   tab hibernation enabled while retaining its aggressiveness and per-domain
   exception controls. Roadmap `X16`.
+- **Vertical tabs.** Chromium's existing vertical-tab implementation is enabled
+  by default, exposing its built-in tab-strip position toggle in Appearance
+  settings. Roadmap `X14`.
+- **Split view.** Chromium's two-pane split view is enabled with its toolbar
+  button pinned by default and `Ctrl+Shift+\\` bound to create a split. Roadmap
+  `X15`.
 - **Optional NTP widgets.** The bundled new-tab page now supports opt-in local
   notes, top sites, and bookmark-folder links, plus city-based Open-Meteo
   weather and up to three HTTPS RSS feeds. All widget settings persist locally

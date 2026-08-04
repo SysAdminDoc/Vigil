@@ -24,3 +24,5 @@ ungoogled-chromium/windows/windows-restore-google-search-engine.patch
 ungoogled-chromium/windows/windows-enable-client-hints-removal.patch
 ungoogled-chromium/windows/windows-vigil-doh-picker.patch
 ungoogled-chromium/windows/windows-enable-memory-saver.patch
+ungoogled-chromium/windows/windows-enable-vertical-tabs.patch
+ungoogled-chromium/windows/windows-split-view-defaults.patch

@@ -138,6 +138,63 @@ def _verify_memory_saver_policy(source_tree):
             f'Memory Saver is not enabled by default in {prefs_path}')
 
 
+def _verify_vertical_tabs_policy(source_tree):
+    """Fail closed if the built-in vertical-tabs setting is hidden."""
+    patch_series = _ROOT_DIR / 'patches' / 'series'
+    series = patch_series.read_text(encoding=ENCODING)
+    patch_name = 'ungoogled-chromium/windows/windows-enable-vertical-tabs.patch'
+    if patch_name not in series.splitlines():
+        raise RuntimeError(
+            f'Vertical-tabs default patch is missing from {patch_series}')
+
+    feature_path = source_tree / 'chrome' / 'browser' / 'ui' / 'tabs' / \
+        'features.cc'
+    feature_source = feature_path.read_text(encoding=ENCODING)
+    if 'kVerticalTabs, base::FEATURE_ENABLED_BY_DEFAULT' not in feature_source:
+        raise RuntimeError(
+            f'Vertical tabs are not enabled by default in {feature_path}')
+
+    appearance_path = source_tree / 'chrome' / 'browser' / 'resources' / \
+        'settings' / 'appearance_page' / 'appearance_page.html'
+    appearance = appearance_path.read_text(encoding=ENCODING)
+    for marker in ('showVerticalTabsEnabled_', 'prefs.vertical_tabs.enabled'):
+        if marker not in appearance:
+            raise RuntimeError(
+                f'Vertical-tabs settings toggle is missing from {appearance_path}: '
+                f'{marker}')
+
+
+def _verify_split_view_policy(source_tree):
+    """Fail closed if the two-pane split-view entry points regress."""
+    patch_series = _ROOT_DIR / 'patches' / 'series'
+    series = patch_series.read_text(encoding=ENCODING)
+    patch_name = 'ungoogled-chromium/windows/windows-split-view-defaults.patch'
+    if patch_name not in series.splitlines():
+        raise RuntimeError(
+            f'Split-view defaults patch is missing from {patch_series}')
+
+    feature_path = source_tree / 'chrome' / 'browser' / 'ui' / 'ui_features.cc'
+    feature_source = feature_path.read_text(encoding=ENCODING)
+    if 'kSideBySide, base::FEATURE_ENABLED_BY_DEFAULT' not in feature_source:
+        raise RuntimeError(
+            f'Split view is not enabled by default in {feature_path}')
+
+    prefs_path = source_tree / 'chrome' / 'browser' / 'ui' / \
+        'browser_ui_prefs.cc'
+    prefs = prefs_path.read_text(encoding=ENCODING)
+    if 'kPinSplitTabButton, true' not in prefs:
+        raise RuntimeError(
+            f'Split-view toolbar button is not pinned by default in {prefs_path}')
+
+    accelerator_path = source_tree / 'chrome' / 'browser' / 'ui' / \
+        'accelerator_table.cc'
+    accelerators = accelerator_path.read_text(encoding=ENCODING)
+    if ('ui::VKEY_OEM_5, ui::EF_CONTROL_DOWN | ui::EF_SHIFT_DOWN' not in
+            accelerators or 'IDC_NEW_SPLIT_TAB' not in accelerators):
+        raise RuntimeError(
+            f'Split-view keyboard shortcut is missing from {accelerator_path}')
+
+
 def _get_vcvars_path(name='64'):
     """
     Returns the path to the corresponding vcvars*.bat path
@@ -380,6 +437,8 @@ def main():
     _verify_client_hints_policy(source_tree)
     _verify_doh_policy(source_tree)
     _verify_memory_saver_policy(source_tree)
+    _verify_vertical_tabs_policy(source_tree)
+    _verify_split_view_policy(source_tree)
 
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32
