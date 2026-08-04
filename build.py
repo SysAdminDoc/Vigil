@@ -29,6 +29,47 @@ _ROOT_DIR = Path(__file__).resolve().parent
 _PATCH_BIN_RELPATH = Path('third_party/git/usr/bin/patch.exe')
 
 
+def _configure_installer_archive_7z(source_tree, sevenz_path):
+    """Pass an explicit 7-Zip path through to Chromium's archive action.
+
+    Chromium's Windows installer helper historically reads 7zFM.exe from the
+    machine registry, while this build script already accepts an explicit
+    extractor path.  Keep the upstream registry behavior for the default, but
+    make explicit CI paths work for the final mini-installer archive too.
+    """
+    if sevenz_path == USE_REGISTRY:
+        return
+
+    sevenz_exe = shutil.which(sevenz_path)
+    if not sevenz_exe:
+        candidate = Path(sevenz_path)
+        if candidate.is_file():
+            sevenz_exe = str(candidate.resolve())
+    if not sevenz_exe:
+        raise RuntimeError(f'Configured 7-Zip executable was not found: {sevenz_path}')
+
+    archive_script = source_tree / 'chrome' / 'tools' / 'build' / 'win' / \
+        'create_installer_archive.py'
+    if not archive_script.is_file():
+        raise RuntimeError(f'Chromium installer archive script is missing: {archive_script}')
+
+    script = archive_script.read_text(encoding=ENCODING)
+    hook = (
+        "    configured_lzma_exec = os.environ.get('VIGIL_7Z_PATH')\n"
+        "    if configured_lzma_exec:\n"
+        "        return configured_lzma_exec\n"
+    )
+    if hook not in script:
+        marker = 'def GetLZMAExec(build_dir):\n'
+        if marker not in script:
+            raise RuntimeError(
+                f'Unsupported Chromium installer archive script: {archive_script}')
+        archive_script.write_text(
+            script.replace(marker, marker + hook, 1), encoding=ENCODING)
+
+    os.environ['VIGIL_7Z_PATH'] = str(Path(sevenz_exe).resolve())
+
+
 def _verify_mv2_retention(source_tree):
     """Fail closed if the pinned MV2-retention patch stops being applied."""
     patch_series = (_ROOT_DIR / 'ungoogled-chromium' / 'patches' / 'series')
@@ -507,11 +548,16 @@ def main():
             None
         )
 
-        # Apply custom overlays (chromium_src, NTP, branding)
-        apply_overlays = _ROOT_DIR / 'apply_overlays.py'
-        if apply_overlays.exists():
-            get_logger().info('Applying custom overlays...')
-            subprocess.run([sys.executable, str(apply_overlays)], check=True)
+
+    # Reapply custom overlays on incremental builds as well.  The source tree
+    # is intentionally retained between CI runs, so otherwise a changed
+    # chromium_src file would not reach the tree used by Ninja.
+    apply_overlays = _ROOT_DIR / 'apply_overlays.py'
+    if apply_overlays.exists():
+        get_logger().info('Applying custom overlays...')
+        subprocess.run([sys.executable, str(apply_overlays)], check=True)
+
+    _configure_installer_archive_7z(source_tree, args.sevenz_path)
 
     # Do this on incremental builds too: the MV2 policy must not disappear
     # silently when the ungoogled-chromium submodule or Chromium is bumped.
