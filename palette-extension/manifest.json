@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Vigil Command Palette",
+  "short_name": "Vigil Palette",
+  "version": "0.2.0",
+  "version_name": "0.2.0",
+  "description": "A keyboard-first launcher for Vigil settings, tabs, bookmarks, and recent history.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo9GjSzN1aGwvszLzWoDcxgy6QhnYmdpjVc9JSerTUwM5mM42ZtuBEC8vBFHZZD+KSUPpAcJOAZovKj+oiMpJvR27ZIO/uUgGp28EHWDt/v4s5/PwEcXicNuw1b7ET3awEs4gO+ADYVCpVT8y+tpExQasvlP7YkbuU+VEmymqzCGVzEd9c7lV5J/pxEragpi4Kvhx2qTAl7evLoS+EyZteLrOn0huno7SoovOhBitQwaMLZfvZTaKxpGYNd2BV96eu6wgMm9jArMm7O9Gkuk7rmX7r0kL/feEe8m67h4HNwHc+df3iWWspB2RO+u7JYKPsOfGxkyuERZSZBzV7ycFcQIDAQAB",
+  "minimum_chrome_version": "120",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "bookmarks",
+    "history",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "open-palette": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "MacCtrl+Shift+P"
+      },
+      "description": "Open the Vigil command palette"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["palette.html", "palette.js", "palette.css"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'"
+  },
+  "incognito": "split"
+}

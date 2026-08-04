@@ -23,6 +23,7 @@ Tests, in order of cheapest -> most expensive:
   7b. Managed policy baselines are packaged for administrator deployment
   8. uBO staged in Extensions/cjpalhdlnbpafiamejdnhcphjbkeiagm/<v>/ + manifest valid
   9. NTP extension declares chrome_url_overrides.newtab
+  9b. Command palette extension is staged with its stable ID and pointer
  10. (Optional) Selenium-driven launch: open chrome://settings, confirm the page
      renders and the Vigil-overlay CSS is applied (looks for a known class).
 
@@ -312,6 +313,47 @@ def assert_ntp_extension(repo_root: Path, out_dir: Path, r: Result):
             r.fail("NTP external-extensions pointer target", str(pointer_data))
 
 
+def assert_command_palette(repo_root: Path, out_dir: Path, r: Result):
+    """Step 9b: the keyboard command palette is bundled and addressable."""
+    print("\n[9b] Command palette extension (X18)")
+    manifest_path = repo_root / "palette-extension" / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        r.fail("command palette manifest missing or invalid", str(e))
+        return
+    commands = manifest.get("commands", {})
+    shortcut = commands.get("open-palette", {}).get("suggested_key", {}).get("default")
+    if shortcut == "Ctrl+Shift+P":
+        r.ok("Ctrl+Shift+P command declared")
+    else:
+        r.fail("command palette shortcut", f"expected Ctrl+Shift+P, got {shortcut!r}")
+    if set(("tabs", "bookmarks", "history")).issubset(manifest.get("permissions", [])):
+        r.ok("tab, bookmark, and history permissions declared")
+    else:
+        r.fail("command palette data permissions missing")
+
+    ext_id = extension_id_from_manifest(manifest)
+    version = manifest.get("version")
+    staged = out_dir / "Extensions" / ext_id / version
+    for filename in ("manifest.json", "background.js", "content.js", "palette.html"):
+        if (staged / filename).is_file():
+            r.ok(f"staged palette file: {filename}")
+        else:
+            r.fail(f"staged palette file missing: {filename}", str(staged / filename))
+    pointer = out_dir / "default_extensions" / f"{ext_id}.json"
+    try:
+        pointer_data = json.loads(pointer.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        r.fail("command palette pointer missing or invalid", str(e))
+    else:
+        expected = f"Extensions/{ext_id}/{version}"
+        if pointer_data.get("external_crx") == expected:
+            r.ok("command palette external-extensions pointer valid")
+        else:
+            r.fail("command palette pointer target", str(pointer_data))
+
+
 def assert_selenium_launch(out_dir: Path, r: Result):
     """Step 10 (optional): launch the build via Selenium and check overlays."""
     print("\n[10] Selenium launch (optional)")
@@ -404,6 +446,7 @@ def main():
     assert_managed_defaults(repo_root, out_dir, r)
     assert_ubo_bundle(out_dir, r)
     assert_ntp_extension(repo_root, out_dir, r)
+    assert_command_palette(repo_root, out_dir, r)
 
     if args.selenium:
         assert_selenium_launch(out_dir, r)

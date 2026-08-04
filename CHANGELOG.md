@@ -56,6 +56,14 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 
 ### Next-tier scaffolds (T3, T6, T7)
 
+- **Optional NTP widgets.** The bundled new-tab page now supports opt-in local
+  notes, top sites, and bookmark-folder links, plus city-based Open-Meteo
+  weather and up to three HTTPS RSS feeds. All widget settings persist locally
+  and the extension remains under the 320 KB budget. Roadmap `X19`.
+- **Command palette extension.** `Ctrl+Shift+P` opens a keyboard-first palette
+  over normal web pages (or a fallback extension tab on browser-owned pages),
+  searching Vigil settings, open tabs, bookmarks, and seven-day history.
+  Roadmap `X18`.
 - **Sticky Secure DNS defaults.** The existing settings resolver picker now
   includes Quad9, NextDNS, Cloudflare, Mullvad, AdGuard, and Control D, starts
   new profiles on Quad9 with no automatic fallback, and retains hostname

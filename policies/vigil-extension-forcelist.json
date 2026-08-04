@@ -1,6 +1,6 @@
 {
   "_comment": "Vigil-recommended force-install extension policy. Roadmap X3.",
-  "_usage": "Drop this file (or its contents) under Chromium's `policies/managed/` JSON-policy directory on Windows, or load via the ADMX template at admx/vigil.admx. Each entry has format '<extension-id>;<update-url>'. uBlock Origin is the only Vigil default; admins extend this list as needed.",
+  "_usage": "Drop this file (or its contents) under Chromium's `policies/managed/` JSON-policy directory on Windows, or load via the ADMX template at admx/vigil.admx. Each entry has format '<extension-id>;<update-url>'. The bundled Vigil command palette is installed from the product's default_extensions pointer; add it here only when your deployment supplies a trusted CRX update endpoint.",
   "_references": [
     "https://www.chromium.org/administrators/configuring-policy-for-extensions/",
     "https://github.com/gorhill/uBlock/wiki/Deploying-uBlock-Origin",

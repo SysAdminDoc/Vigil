@@ -27,6 +27,14 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
   picker offers Quad9, NextDNS, Cloudflare, Mullvad, AdGuard, and Control D,
   plus a validated custom endpoint. A failed resolver does not silently fall
   back to plaintext DNS; administrators can change the resolver in Settings.
+- **Command palette on `Ctrl+Shift+P`.** The bundled palette searches Vigil
+  settings, open tabs, bookmarks, and the last seven days of history. It opens
+  as an overlay on normal web pages and uses a standalone extension tab for
+  browser-owned pages where content scripts are unavailable.
+- **Optional NTP widgets.** Enable local notes, top sites, bookmark-folder
+  links, city weather, or up to three HTTPS RSS feeds from the new-tab settings
+  panel. They are disabled by default; notes stay local and network widgets
+  only fetch after you enable and configure them.
 
 ### Manifest V2 Policy
 
@@ -44,6 +52,7 @@ weaken extension installation or publisher-trust checks as part of this policy.
 - **`initial_preferences`** -- Single JSON file controlling all first-run defaults (like Brave's `brave_profile_prefs.cc`)
 - **`branding.json`** -- Central configuration for browser name, company, and URLs
 - **`setup_extensions.py`** -- Automated extension bundler that downloads and packages uBlock Origin
+- **`palette-extension/`** -- Bundled MV3 command palette and keyboard shortcut
 - **`apply_overlays.py`** -- Applies chromium_src overlays, custom NTP, and branding at build time
 - **Custom New Tab Page** -- Dark-themed NTP with clock, search bar, and configurable shortcuts
 

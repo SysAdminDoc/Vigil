@@ -171,6 +171,14 @@ def main():
              '--build-out', str(build_outputs)],
             cwd=str(root_dir), check=True)
 
+    install_palette = root_dir / 'tools' / 'install_palette_extension.py'
+    if install_palette.exists() and (root_dir / 'palette-extension').exists():
+        print('Installing Vigil command palette extension...')
+        subprocess.run(
+            [sys.executable, str(install_palette),
+             '--build-out', str(build_outputs)],
+            cwd=str(root_dir), check=True)
+
     excluded_files = set([
         Path('mini_installer.exe'),
         Path('mini_installer_exe_version.rc'),

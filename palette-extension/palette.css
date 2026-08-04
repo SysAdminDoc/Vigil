@@ -1,0 +1,62 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  --bg: #0c1018;
+  --surface: #111827;
+  --surface-alt: #151d2b;
+  --border: rgba(96, 165, 250, 0.18);
+  --accent: #60a5fa;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  align-items: flex-start;
+  background: rgba(4, 7, 12, 0.55);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  padding: 12vh 16px 16px;
+}
+
+#palette {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  max-width: 720px;
+  overflow: hidden;
+  width: min(720px, 100%);
+}
+
+header { padding: 22px 24px 16px; }
+.eyebrow { color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .16em; }
+h1 { font-size: 18px; font-weight: 600; margin: 8px 0 16px; }
+
+#query {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+  padding: 12px 14px;
+  width: 100%;
+}
+#query:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(96, 165, 250, .16); }
+
+#status { color: var(--muted); font-size: 12px; min-height: 18px; padding: 0 24px 8px; }
+#results { list-style: none; margin: 0; max-height: 52vh; overflow-y: auto; padding: 0 8px 8px; }
+.result { border-radius: 4px; cursor: pointer; display: flex; gap: 12px; padding: 10px 16px; }
+.result[aria-selected="true"], .result:hover { background: var(--surface-alt); }
+.result-main { min-width: 0; }
+.result-title { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.result-subtitle { color: var(--muted); font-size: 11px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.result-kind { color: var(--accent); font-size: 10px; margin-left: auto; padding-top: 2px; text-transform: uppercase; }
+
+footer { border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 12px 24px; }
+kbd { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); margin: 0 3px; padding: 2px 5px; }

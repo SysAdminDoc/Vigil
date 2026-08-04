@@ -19,7 +19,7 @@ html, body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  overflow: hidden;
+  overflow: auto;
 }
 
 body {
@@ -28,6 +28,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 40px;
+  min-height: 100%;
+  padding: 40px 0;
   position: relative;
 }
 
@@ -66,6 +68,29 @@ body {
   opacity: 0;
   animation: fadeUp .6s ease .3s forwards;
 }
+
+/* Optional widgets. The grid stays absent when every widget is disabled. */
+#widgets {
+  display: none;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  width: min(760px, 90vw);
+}
+.widget-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 110px;
+  padding: 16px;
+}
+.widget-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.widget-message { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
+.widget-value { font-size: 30px; font-weight: 300; margin-bottom: 4px; }
+.widget-links { display: grid; gap: 8px; }
+.widget-links a { color: var(--accent); font-size: 12px; overflow: hidden; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.widget-links a:hover { text-decoration: underline; }
+.widget-notes { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font: inherit; min-height: 82px; outline: none; padding: 10px; resize: vertical; width: 100%; }
+.widget-notes:focus { border-color: var(--accent); }
 .shortcut {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 16px 8px; border-radius: var(--radius); cursor: pointer;
@@ -108,6 +133,15 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 0; border-bottom: 1px solid var(--border);
 }
+.setting-row-stack { flex-wrap: wrap; gap: 10px; }
+.setting-row-stack > div { flex: 1 1 220px; }
+.setting-row-stack select,
+.setting-row-stack input[type="text"],
+.setting-row-stack textarea {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font: inherit; font-size: 12px; padding: 8px; width: 100%;
+}
+.setting-row-stack textarea { resize: vertical; }
 .setting-row:last-of-type { border: none; }
 .setting-label { font-size: 14px; }
 .setting-desc  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }

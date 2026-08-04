@@ -4,7 +4,7 @@
   "short_name": "Vigil NTP",
   "version": "0.2.0",
   "version_name": "0.2.0",
-  "description": "Vigil's lean, dark new-tab page. Clock, search, configurable shortcuts. Local-only; no network calls beyond the favicon proxy.",
+  "description": "Vigil's lean, dark new-tab page with optional local widgets. Network widgets are opt-in.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqC+pb+JrAWis2w0aaiVm7FOkL4QqKmRdYxmxXkibwA4o84imU+V1NXRCM7/E0vXNtbb65CXSoO7hJOTbiC7oXfK6SCu4/lQSB2iOBr01Zl7xgh14OFaJo8uFV2JEcmBxQQy8bIxydsnTKu0ppkPR6zxWd5hduw4j6x0E/NLjTBdfRqgnbGi7J+4Lp/SnOZ34nCVw6BYPy2yhe1ZwpfC3snlbEC56HFE2BP5JhZrugTU8roXbCbm4rp5YeSpAi33qaa2SBmO4E+zreQhWKvvCz1ojXeOfF0yzm3ofCpZTCRqfjE/RnPV2kHRq9IYNRw6L4QtPHZgOeblfC+CATCOowQIDAQAB",
   "minimum_chrome_version": "120",
   "chrome_url_overrides": {
@@ -17,11 +17,15 @@
     "128": "icons/vigil_128.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "topSites",
+    "bookmarks"
   ],
-  "host_permissions": [],
+  "host_permissions": [
+    "https://*/*"
+  ],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google.com/s2/favicons; connect-src 'none'"
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google.com/s2/favicons; connect-src https:"
   },
   "incognito": "split"
 }
