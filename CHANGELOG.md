@@ -3,9 +3,9 @@
 All notable changes to **Vigil Browser** are documented in this file. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project tracks Chromium's
 stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for example
-`0.2.0-c145.0.7632.159`.
+`0.2.1-c145.0.7632.159`.
 
-## [Unreleased] &mdash; v0.2.0
+## [Unreleased] &mdash; v0.2.1
 
 ### Defaults & first-run (T2, T5)
 

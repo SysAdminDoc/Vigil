@@ -1,6 +1,6 @@
 # Vigil Browser
 
-![License](https://img.shields.io/badge/license-MIT-green) ![Platform](https://img.shields.io/badge/platform-Python-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green) ![Platform](https://img.shields.io/badge/platform-Python-lightgrey) ![Version](https://img.shields.io/badge/version-0.2.1-blue)
 
 <p align="center">
   <img src="branding/icons/vigil_256.png" alt="Vigil Browser" width="128">

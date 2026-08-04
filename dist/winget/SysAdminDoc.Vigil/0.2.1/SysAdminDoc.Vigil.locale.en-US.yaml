@@ -1,5 +1,5 @@
 PackageIdentifier: SysAdminDoc.Vigil
-PackageVersion: 0.2.0
+PackageVersion: 0.2.1
 PackageLocale: en-US
 Publisher: SysAdminDoc
 PublisherUrl: https://github.com/SysAdminDoc
@@ -8,7 +8,7 @@ PackageName: Vigil Browser
 PackageUrl: https://github.com/SysAdminDoc/Vigil
 License: BSD-3-Clause
 LicenseUrl: https://github.com/SysAdminDoc/Vigil/blob/master/LICENSE
-ShortDescription: A lean, privacy-respecting Chromium browser with sensible defaults — like Brave, without the bloat.
+ShortDescription: A lean, privacy-respecting Chromium fork with sensible defaults — like Brave, without the bloat.
 Description: |
   Vigil is a Windows-first Chromium fork built on ungoogled-chromium-windows.
   It ships uBlock Origin pre-installed, HTTPS-First mode enabled by default,
@@ -23,6 +23,6 @@ Tags:
   - ublock
   - sysadmin
   - hardened
-ReleaseNotesUrl: https://github.com/SysAdminDoc/Vigil/releases/tag/v0.2.0
+ReleaseNotesUrl: https://github.com/SysAdminDoc/Vigil/releases/tag/v0.2.1
 ManifestType: defaultLocale
 ManifestVersion: 1.6.0
