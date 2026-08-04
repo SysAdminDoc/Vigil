@@ -56,6 +56,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 
 ### Next-tier scaffolds (T3, T6, T7)
 
+- **Sticky Secure DNS defaults.** The existing settings resolver picker now
+  includes Quad9, NextDNS, Cloudflare, Mullvad, AdGuard, and Control D, starts
+  new profiles on Quad9 with no automatic fallback, and retains hostname
+  validation for custom endpoints. Roadmap `X6`.
 - **WiX MSI packaging is now part of the local release path.** `package.py`
   harvests the same curated runtime files used by the portable archive into a
   per-machine MSI with a Start Menu shortcut, suitable for Group Policy and

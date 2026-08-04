@@ -22,3 +22,4 @@ ungoogled-chromium/windows/windows-fix-remove-unused-preferences-fields.patch
 ungoogled-chromium/windows/windows-fix-missing-includes.patch
 ungoogled-chromium/windows/windows-restore-google-search-engine.patch
 ungoogled-chromium/windows/windows-enable-client-hints-removal.patch
+ungoogled-chromium/windows/windows-vigil-doh-picker.patch

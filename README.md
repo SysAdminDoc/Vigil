@@ -23,6 +23,10 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
   feature suppresses UA-CH and related client-hint headers/metadata. The
   existing `chrome://flags/#remove-client-hints` entry remains available for
   administrators who need to change the default per profile.
+- **Secure DNS starts on Quad9 with no fallback.** The built-in settings
+  picker offers Quad9, NextDNS, Cloudflare, Mullvad, AdGuard, and Control D,
+  plus a validated custom endpoint. A failed resolver does not silently fall
+  back to plaintext DNS; administrators can change the resolver in Settings.
 
 ### Manifest V2 Policy
 

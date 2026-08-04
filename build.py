@@ -89,6 +89,36 @@ def _verify_client_hints_policy(source_tree):
             f'Client-hints removal is not enabled by default in {feature_path}')
 
 
+def _verify_doh_policy(source_tree):
+    """Fail closed if the first-run Secure DNS posture regresses."""
+    patch_series = _ROOT_DIR / 'patches' / 'series'
+    series = patch_series.read_text(encoding=ENCODING)
+    patch_name = 'ungoogled-chromium/windows/windows-vigil-doh-picker.patch'
+    if patch_name not in series.splitlines():
+        raise RuntimeError(f'DoH policy patch is missing from {patch_series}')
+
+    config_path = source_tree / 'chrome' / 'browser' / 'net' / \
+        'default_dns_over_https_config_source.cc'
+    config = config_path.read_text(encoding=ENCODING)
+    required = (
+        'net::SecureDnsMode::kSecure',
+        'https://dns.quad9.net/dns-query',
+        'kDnsOverHttpsAutomaticModeFallbackToDoh, base::Value(false)',
+    )
+    if any(value not in config for value in required):
+        raise RuntimeError(
+            f'Secure DNS is not sticky/no-fallback in {config_path}')
+
+    provider_path = source_tree / 'net' / 'dns' / 'public' / \
+        'doh_provider_entry.cc'
+    providers = provider_path.read_text(encoding=ENCODING)
+    for provider in ('Mullvad DNS', 'AdGuard DNS', 'Control D (Unfiltered)'):
+        if provider not in providers:
+            raise RuntimeError(
+                f'Required Secure DNS provider is missing from {provider_path}: '
+                f'{provider}')
+
+
 def _get_vcvars_path(name='64'):
     """
     Returns the path to the corresponding vcvars*.bat path
@@ -329,6 +359,7 @@ def main():
     # silently when the ungoogled-chromium submodule or Chromium is bumped.
     _verify_mv2_retention(source_tree)
     _verify_client_hints_policy(source_tree)
+    _verify_doh_policy(source_tree)
 
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32
