@@ -12,7 +12,6 @@ import sys
 import time
 import argparse
 import os
-import re
 import shutil
 import subprocess
 import ctypes
@@ -36,10 +35,20 @@ def _get_vcvars_path(name='64'):
 
     As of VS 2017, name can be one of: 32, 64, all, amd64_x86, x86_amd64
     """
-    vswhere_exe = '%ProgramFiles(x86)%\\Microsoft Visual Studio\\Installer\\vswhere.exe'
+    vswhere_candidates = [
+        Path(os.environ.get('ProgramFiles(x86)', '')) /
+        'Microsoft Visual Studio' / 'Installer' / 'vswhere.exe',
+        Path(os.environ.get('ProgramFiles', '')) /
+        'Microsoft Visual Studio' / 'Installer' / 'vswhere.exe',
+        Path(r'C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe'),
+    ]
+    vswhere_exe = next((path for path in vswhere_candidates if path.is_file()), None)
+    if vswhere_exe is None:
+        raise RuntimeError(
+            'Could not find Visual Studio vswhere.exe in the standard installation paths')
     result = subprocess.run(
-        '"{}" -prerelease -latest -property installationPath'.format(vswhere_exe),
-        shell=True,
+        [str(vswhere_exe), '-prerelease', '-products', '*', '-latest',
+         '-property', 'installationPath', '-format', 'value'],
         check=True,
         stdout=subprocess.PIPE,
         universal_newlines=True)
@@ -50,12 +59,20 @@ def _get_vcvars_path(name='64'):
     return vcvars_path
 
 
-def _run_build_process(*args, **kwargs):
+def _run_build_process(*args, pythonpath=None, **kwargs):
     """
     Runs the subprocess with the correct environment variables for building
     """
     # Add call to set VC variables
-    cmd_input = ['call "%s" >nul' % _get_vcvars_path()]
+    vcvars_path = _get_vcvars_path()
+    vs_install_path = vcvars_path.parents[3]
+    cmd_input = [
+        'set "GYP_MSVS_OVERRIDE_PATH=%s"' % vs_install_path,
+        'set "vs2022_install=%s"' % vs_install_path,
+        'call "%s" >nul' % vcvars_path,
+    ]
+    if pythonpath:
+        cmd_input.append(f'set "PYTHONPATH=%CD%\\{pythonpath};%PYTHONPATH%"')
     cmd_input.append('set DEPOT_TOOLS_WIN_TOOLCHAIN=0')
     cmd_input.append(' '.join(map('"{}"'.format, args)))
     cmd_input.append('exit\n')
@@ -71,7 +88,13 @@ def _run_build_process_timeout(*args, timeout):
     Runs the subprocess with the correct environment variables for building
     """
     # Add call to set VC variables
-    cmd_input = ['call "%s" >nul' % _get_vcvars_path()]
+    vcvars_path = _get_vcvars_path()
+    vs_install_path = vcvars_path.parents[3]
+    cmd_input = [
+        'set "GYP_MSVS_OVERRIDE_PATH=%s"' % vs_install_path,
+        'set "vs2022_install=%s"' % vs_install_path,
+        'call "%s" >nul' % vcvars_path,
+    ]
     cmd_input.append('set DEPOT_TOOLS_WIN_TOOLCHAIN=0')
     cmd_input.append(' '.join(map('"{}"'.format, args)))
     cmd_input.append('exit\n')
@@ -89,7 +112,7 @@ def _run_build_process_timeout(*args, timeout):
                 time.sleep(1)
             try:
                 proc.wait(10)
-            except:
+            except (OSError, subprocess.SubprocessError):
                 proc.kill()
             raise KeyboardInterrupt
 
@@ -289,7 +312,13 @@ def main():
         elif args.arm:
             windows_flags = windows_flags.replace('x64', 'arm64')
         if args.tarball:
-            windows_flags += '\nchrome_pgo_phase=0\n'
+            # Instrumented PGO builds must not let resource allowlist ordering
+            # depend on the host. Release (phase 2) builds keep the upstream
+            # default and consume the checked-in profile.
+            windows_flags += (
+                '\nchrome_pgo_phase=0\n'
+                'enable_resource_allowlist_generation=false\n'
+            )
         gn_flags += windows_flags
         (source_tree / 'out/Default/args.gn').write_text(gn_flags, encoding=ENCODING)
 
@@ -309,7 +338,8 @@ def main():
         # Build bindgen
         _run_build_process(
             sys.executable,
-            'tools\\rust\\build_bindgen.py', '--skip-test')
+            'tools\\rust\\build_bindgen.py', '--skip-test',
+            pythonpath='tools\\clang\\scripts')
 
     # Ninja commandline
     ninja_commandline = ['third_party\\ninja\\ninja.exe']
@@ -327,7 +357,7 @@ def main():
         _run_build_process_timeout(*ninja_commandline, timeout=3.5*60*60)
         # package
         os.chdir(_ROOT_DIR)
-        subprocess.run([sys.executable, 'package.py'])
+        subprocess.run([sys.executable, 'package.py'], check=True)
     else:
         _run_build_process(*ninja_commandline)
 

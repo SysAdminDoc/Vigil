@@ -55,20 +55,6 @@ html {
   opacity: 0.6;
 }
 
-.icon-generic {
-  content: -webkit-image-set(
-      url(../../images/default_100_percent/neterror/generic_error.png) 1x,
-      url(../../images/default_200_percent/neterror/generic_error.png) 2x);
-  filter: brightness(0.7) saturate(0.5) hue-rotate(190deg);
-}
-
-.icon-offline {
-  content: -webkit-image-set(
-      url(../../images/default_100_percent/neterror/offline.png) 1x,
-      url(../../images/default_200_percent/neterror/offline.png) 2x);
-  filter: brightness(0.7) saturate(0.5) hue-rotate(190deg);
-}
-
 .interstitial-wrapper {
   box-sizing: border-box;
   margin: 48px auto 0;
