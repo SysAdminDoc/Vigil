@@ -56,6 +56,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 
 ### Next-tier scaffolds (T3, T6, T7)
 
+- **WiX MSI packaging is now part of the local release path.** `package.py`
+  harvests the same curated runtime files used by the portable archive into a
+  per-machine MSI with a Start Menu shortcut, suitable for Group Policy and
+  Intune deployment. Roadmap `X11`.
 - **Client Hints are disabled by default.** Vigil enables ungoogled's
   `RemoveClientHints` feature to reduce UA-CH fingerprinting surface while
   retaining the existing flag for an explicit per-profile override. Roadmap

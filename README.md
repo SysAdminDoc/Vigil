@@ -80,6 +80,7 @@ Google only supports [Windows 10 x64 or newer](https://chromium.googlesource.com
 
 - Python 3.12+
 - 7-Zip or WinRAR (for extracting build dependencies)
+- WiX Toolset 5 (for the MSI installer)
 - ~100 GB free disk space
 - ~16 GB RAM recommended
 
@@ -111,6 +112,7 @@ python package.py
 
 Build artifacts are placed in `build/`:
 - `ungoogled-chromium_*_installer_*.exe` -- Windows installer
+- `vigil_*_installer_*.msi` -- Group Policy / Intune-friendly MSI installer
 - `ungoogled-chromium_*_windows_*.zip` -- Portable zip (includes uBlock Origin, initial_preferences, and managed policy baselines)
 
 ## Customization

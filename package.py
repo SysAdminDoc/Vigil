@@ -13,10 +13,13 @@ if sys.version_info.major < 3:
     raise RuntimeError('Python 3 is required for this script.')
 
 import argparse
+import json
+import os
 import platform
-import subprocess
-from pathlib import Path
 import shutil
+import subprocess
+import tempfile
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'ungoogled-chromium' / 'utils'))
 import filescfg
@@ -31,6 +34,15 @@ def _get_packaging_revision():
     revision_path = Path(__file__).resolve().parent / 'revision.txt'
     return revision_path.read_text(encoding=ENCODING).strip()
 
+
+def _get_vigil_version(root_dir):
+    manifest_path = root_dir / 'dist' / 'scoop' / 'vigil.json'
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    version = manifest.get('version')
+    if not version:
+        raise RuntimeError(f'Missing Vigil version in {manifest_path}')
+    return version
+
 _cached_target_cpu = None
 
 def _get_target_cpu(build_outputs):
@@ -44,6 +56,54 @@ def _get_target_cpu(build_outputs):
                     break
     assert _cached_target_cpu
     return _cached_target_cpu
+
+
+def _get_wix_arch(target_cpu):
+    return {
+        'x64': 'x64',
+        'x86': 'x86',
+        'arm64': 'arm64',
+    }[target_cpu]
+
+
+def _create_msi(root_dir, build_outputs, file_list, version, target_cpu):
+    """Build a per-machine MSI from the same files as the portable archive."""
+    wix = shutil.which('wix')
+    if not wix:
+        raise RuntimeError(
+            'WiX Toolset 5 is required to create the Vigil MSI; '
+            'install wix from https://wixtoolset.org/')
+
+    msi_path = root_dir / 'build' / (
+        f'vigil_{version}_installer_{target_cpu}.msi')
+    wxs_path = root_dir / 'installer' / 'vigil.wxs'
+    if not wxs_path.exists():
+        raise RuntimeError(f'MSI authoring file is missing: {wxs_path}')
+
+    with tempfile.TemporaryDirectory(prefix='vigil-msi-') as stage_name:
+        stage = Path(stage_name)
+        for rel_path in file_list:
+            source = build_outputs / rel_path
+            if not source.is_file():
+                raise RuntimeError(f'MSI source file is missing: {source}')
+            destination = stage / rel_path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                os.link(source, destination)
+            except OSError:
+                shutil.copy2(source, destination)
+
+        subprocess.run([
+            wix, 'build',
+            '-arch', _get_wix_arch(target_cpu),
+            '-d', f'BuildOutput={stage}',
+            '-d', f'ProductVersion={version}',
+            '-d', f'Platform={target_cpu}',
+            str(wxs_path),
+            '-out', str(msi_path),
+        ], cwd=str(root_dir), check=True)
+    print(f'Created MSI: {msi_path}')
+    return msi_path
 
 def main():
     """Entrypoint"""
@@ -146,10 +206,13 @@ def main():
                         yield f.relative_to(build_outputs)
 
     import itertools
-    all_files = itertools.chain(files_generator, extra_files_generator())
+    all_files = list(itertools.chain(files_generator, extra_files_generator()))
 
     filescfg.create_archive(
         all_files, tuple(), build_outputs, output, timestamp)
+    _create_msi(
+        root_dir, build_outputs, all_files, _get_vigil_version(root_dir),
+        _get_target_cpu(build_outputs))
 
 if __name__ == '__main__':
     main()
