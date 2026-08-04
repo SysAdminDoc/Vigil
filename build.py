@@ -244,6 +244,39 @@ def _verify_reader_mode_policy(source_tree):
             f'Reader Mode Markdown label is missing from {ui_path}')
 
 
+def _verify_webrtc_hardening_policy(source_tree):
+    """Fail closed if Chromium's upstream WebRTC hardening regresses."""
+    identity_path = source_tree / 'third_party' / 'webrtc' / 'rtc_base' / \
+        'ssl_identity.h'
+    identity = identity_path.read_text(encoding=ENCODING)
+    if 'kRsaDefaultModSize = 2048' not in identity:
+        raise RuntimeError(
+            f'WebRTC DTLS identities no longer default to RSA-2048 in '
+            f'{identity_path}')
+
+    factory_path = source_tree / 'third_party' / 'webrtc' / 'pc' / \
+        'webrtc_session_description_factory.cc'
+    factory = factory_path.read_text(encoding=ENCODING)
+    if 'GenerateCertificateAsync(key_params, std::nullopt' not in factory:
+        raise RuntimeError(
+            f'WebRTC identities are no longer generated per session factory in '
+            f'{factory_path}')
+
+    stream_path = source_tree / 'third_party' / 'webrtc' / 'rtc_base' / \
+        'openssl_stream_adapter.cc'
+    stream = stream_path.read_text(encoding=ENCODING)
+    if 'ssl_ = SSL_new(ssl_ctx_)' not in stream:
+        raise RuntimeError(
+            f'WebRTC DTLS no longer creates a fresh SSL session in {stream_path}')
+
+    transport_path = source_tree / 'third_party' / 'webrtc' / 'p2p' / \
+        'dtls' / 'dtls_transport.cc'
+    transport = transport_path.read_text(encoding=ENCODING)
+    if 'SetSslGroupIds(ephemeral_key_exchange_cipher_groups_)' not in transport:
+        raise RuntimeError(
+            f'WebRTC DTLS ephemeral group setup is missing from {transport_path}')
+
+
 def _get_vcvars_path(name='64'):
     """
     Returns the path to the corresponding vcvars*.bat path
@@ -489,6 +522,7 @@ def main():
     _verify_vertical_tabs_policy(source_tree)
     _verify_split_view_policy(source_tree)
     _verify_reader_mode_policy(source_tree)
+    _verify_webrtc_hardening_policy(source_tree)
 
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32

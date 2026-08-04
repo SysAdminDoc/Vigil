@@ -68,6 +68,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **Reader Mode and Markdown export.** Chromium's desktop Read Anything
   distiller is enabled with its omnibox entry point; the reader toolbar can
   download the distilled article as Markdown. Roadmap `X17`.
+- **WebRTC hardening retained.** Chromium 145 already generates DTLS
+  identities per session factory, uses RSA-2048 defaults, creates fresh SSL
+  sessions for DTLS streams, and applies ephemeral key-exchange groups. The
+  build now fails closed if those upstream guarantees regress. Roadmap `X5`.
 - **Optional NTP widgets.** The bundled new-tab page now supports opt-in local
   notes, top sites, and bookmark-folder links, plus city-based Open-Meteo
   weather and up to three HTTPS RSS feeds. All widget settings persist locally
