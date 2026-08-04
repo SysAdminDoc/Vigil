@@ -56,6 +56,11 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 
 ### Next-tier scaffolds (T3, T6, T7)
 
+- **Manifest V2 retention is now an enforced build contract.** Vigil documents
+  its MV2 policy and verifies the pinned ungoogled-chromium retention patch,
+  allowed-manifest behavior, and warning-only deprecation stage on every full
+  or incremental build. A missing or ineffective patch fails the build before
+  compilation starts. Roadmap `X1`.
 - **`policies/vigil-extension-forcelist.json`** &mdash; documented
   `ExtensionInstallForcelist` template defaulting to bundled uBO; admins extend.
   Roadmap `X3`.

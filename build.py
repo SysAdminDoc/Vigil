@@ -29,6 +29,48 @@ _ROOT_DIR = Path(__file__).resolve().parent
 _PATCH_BIN_RELPATH = Path('third_party/git/usr/bin/patch.exe')
 
 
+def _verify_mv2_retention(source_tree):
+    """Fail closed if the pinned MV2-retention patch stops being applied."""
+    patch_series = (_ROOT_DIR / 'ungoogled-chromium' / 'patches' / 'series')
+    series = patch_series.read_text(encoding=ENCODING)
+    patch_name = 'core/ungoogled-chromium/extensions-manifestv2.patch'
+    if patch_name not in series.splitlines():
+        raise RuntimeError(
+            f'Manifest V2 retention patch is missing from {patch_series}')
+
+    management_path = source_tree / 'chrome' / 'browser' / 'extensions' / \
+        'extension_management.cc'
+    management = management_path.read_text(encoding=ENCODING)
+    allowed_start = management.index(
+        'bool ExtensionManagement::IsAllowedManifestVersion(\n'
+        '    int manifest_version,')
+    allowed_end = management.index(
+        'bool ExtensionManagement::IsAllowedManifestVersion(const Extension*',
+        allowed_start)
+    if 'return true;' not in management[allowed_start:allowed_end]:
+        raise RuntimeError(
+            'Manifest V2 retention patch did not leave extension manifest '
+            f'versions allowed in {management_path}')
+
+    manager_path = source_tree / 'chrome' / 'browser' / 'extensions' / \
+        'manifest_v2_experiment_manager.cc'
+    manager = manager_path.read_text(encoding=ENCODING)
+    stage_start = manager.index('MV2ExperimentStage CalculateCurrentExperimentStage()')
+    stage_end = manager.index('PrefMap GetExtensionAcknowledgedPrefFor', stage_start)
+    stage_body = manager[stage_start:stage_end]
+    disable_start = manager.index(
+        'bool ShouldDisableLegacyExtensions(MV2ExperimentStage stage)')
+    disable_end = manager.index(
+        '// Returns true if the given `stage`', disable_start)
+    disable_body = manager[disable_start:disable_end]
+    if 'return MV2ExperimentStage::kWarning;' not in stage_body:
+        raise RuntimeError(
+            f'MV2 deprecation stage is no longer warning-only in {manager_path}')
+    if 'return false;' not in disable_body:
+        raise RuntimeError(
+            f'MV2 extensions are no longer retained in {manager_path}')
+
+
 def _get_vcvars_path(name='64'):
     """
     Returns the path to the corresponding vcvars*.bat path
@@ -264,6 +306,10 @@ def main():
         if apply_overlays.exists():
             get_logger().info('Applying custom overlays...')
             subprocess.run([sys.executable, str(apply_overlays)], check=True)
+
+    # Do this on incremental builds too: the MV2 policy must not disappear
+    # silently when the ungoogled-chromium submodule or Chromium is bumped.
+    _verify_mv2_retention(source_tree)
 
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32

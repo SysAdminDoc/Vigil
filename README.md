@@ -20,6 +20,17 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
   with reporting disabled, autofill disabled, translation disabled, network prediction disabled
 - **Skip first-run UI** and default browser prompts
 
+### Manifest V2 Policy
+
+Vigil retains Chromium's Manifest V2 extension support for the long tail of
+privacy and administrator extensions. The pinned ungoogled-chromium patch
+`core/ungoogled-chromium/extensions-manifestv2.patch` keeps MV2 extensions
+allowed and leaves the deprecation manager warning-only. `build.py` verifies
+both the patch-series entry and the patched source behavior on every build,
+including incremental builds, so a Chromium or submodule bump fails closed if
+retention disappears. Manifest V3 remains supported normally; Vigil does not
+weaken extension installation or publisher-trust checks as part of this policy.
+
 ### Architecture (Brave-Inspired)
 - **`chromium_src/` overlay system** -- Drop-in file replacements that mirror the Chromium source tree. Preferred over patches for file-level changes since they don't break on rebase.
 - **`initial_preferences`** -- Single JSON file controlling all first-run defaults (like Brave's `brave_profile_prefs.cc`)
