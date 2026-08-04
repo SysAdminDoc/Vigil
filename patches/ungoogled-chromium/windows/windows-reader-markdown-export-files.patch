@@ -103,7 +103,7 @@
 +  }
 +  if (tag === 'pre') {
 +    const text = element.textContent?.trim() ?? '';
-+    return text ? `\n\n\\`\\`\\`\n${text}\n\\`\\`\\`\n\n` : '';
++    return text ? '\n\n```\n' + text + '\n```\n\n' : '';
 +  }
 +  if (tag === 'blockquote') {
 +    const text = inlineMarkdown(element).trim();
