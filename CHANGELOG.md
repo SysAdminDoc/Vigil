@@ -56,6 +56,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 
 ### Next-tier scaffolds (T3, T6, T7)
 
+- **Client Hints are disabled by default.** Vigil enables ungoogled's
+  `RemoveClientHints` feature to reduce UA-CH fingerprinting surface while
+  retaining the existing flag for an explicit per-profile override. Roadmap
+  `X7`.
 - **Manifest V2 retention is now an enforced build contract.** Vigil documents
   its MV2 policy and verifies the pinned ungoogled-chromium retention patch,
   allowed-manifest behavior, and warning-only deprecation stage on every full

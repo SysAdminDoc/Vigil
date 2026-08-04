@@ -19,6 +19,10 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
 - **Privacy-focused defaults**: Do Not Track enabled, Safe Browsing protection on
   with reporting disabled, autofill disabled, translation disabled, network prediction disabled
 - **Skip first-run UI** and default browser prompts
+- **Client Hints removed by default.** The ungoogled `RemoveClientHints`
+  feature suppresses UA-CH and related client-hint headers/metadata. The
+  existing `chrome://flags/#remove-client-hints` entry remains available for
+  administrators who need to change the default per profile.
 
 ### Manifest V2 Policy
 

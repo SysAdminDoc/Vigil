@@ -1,0 +1,10 @@
+--- a/third_party/blink/common/features.cc
++++ b/third_party/blink/common/features.cc
+@@ -21,7 +21,7 @@ namespace blink::features {
+ BASE_FEATURE(kDisableLinkDrag, "DisableLinkDrag", base::FEATURE_DISABLED_BY_DEFAULT);
+ BASE_FEATURE(kReducedSystemInfo, "ReducedSystemInfo", base::FEATURE_DISABLED_BY_DEFAULT);
+-BASE_FEATURE(kRemoveClientHints, "RemoveClientHints", base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kRemoveClientHints, "RemoveClientHints", base::FEATURE_ENABLED_BY_DEFAULT);
+ BASE_FEATURE(kSpoofWebGLInfo, "SpoofWebGLInfo", base::FEATURE_DISABLED_BY_DEFAULT);
+ const char kSpoofWebGLRenderer[] = "renderer";
+ const char kSpoofWebGLVendor[] = "vendor";

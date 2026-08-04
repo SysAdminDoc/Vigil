@@ -71,6 +71,24 @@ def _verify_mv2_retention(source_tree):
             f'MV2 extensions are no longer retained in {manager_path}')
 
 
+def _verify_client_hints_policy(source_tree):
+    """Fail closed if client-hint removal stops being the default."""
+    patch_series = (_ROOT_DIR / 'patches' / 'series')
+    series = patch_series.read_text(encoding=ENCODING)
+    patch_name = 'ungoogled-chromium/windows/windows-enable-client-hints-removal.patch'
+    if patch_name not in series.splitlines():
+        raise RuntimeError(
+            f'Client-hints default patch is missing from {patch_series}')
+
+    feature_path = source_tree / 'third_party' / 'blink' / 'common' / 'features.cc'
+    feature_source = feature_path.read_text(encoding=ENCODING)
+    expected = ('BASE_FEATURE(kRemoveClientHints, "RemoveClientHints", '
+                'base::FEATURE_ENABLED_BY_DEFAULT);')
+    if expected not in feature_source:
+        raise RuntimeError(
+            f'Client-hints removal is not enabled by default in {feature_path}')
+
+
 def _get_vcvars_path(name='64'):
     """
     Returns the path to the corresponding vcvars*.bat path
@@ -310,6 +328,7 @@ def main():
     # Do this on incremental builds too: the MV2 policy must not disappear
     # silently when the ungoogled-chromium submodule or Chromium is bumped.
     _verify_mv2_retention(source_tree)
+    _verify_client_hints_policy(source_tree)
 
     # Check if rust-toolchain folder has been populated
     HOST_CPU_IS_64BIT = sys.maxsize > 2**32
