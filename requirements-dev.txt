@@ -1,0 +1,4 @@
+# Development-only tooling for the repository's Windows quality workflow.
+# Both projects are permissively licensed and pinned for reproducible checks.
+pytest==9.1.1
+ruff==0.15.22

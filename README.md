@@ -202,6 +202,12 @@ closed. For an emergency security patch, record the upstream advisory or
 commit, apply the smallest reviewed patch, run the normal build checks, refresh
 the metadata, and pass the gate; there is no stale-release override.
 
+The repository’s GitHub workflows are intentionally limited to read-only
+quality checks, manual release validation, and reviewable artifact uploads.
+They do not clone personal forks, force-push package repositories, or require
+a publication PAT. External package-manager submissions remain a maintainer
+review step using the generated release receipt and hashes.
+
 ## Credits
 
 - [ungoogled-chromium](https://github.com/Eloston/ungoogled-chromium) by Eloston

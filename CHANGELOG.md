@@ -17,6 +17,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   committed release URL and SHA-256 digest, resolved from the verified build
   cache first, and extracted only after ZIP path/size/version validation. The
   bundled extension policy no longer points at the Chrome Web Store.
+- **Auditable GitHub workflows.** Replaced the old personal-fork/PAT Winget
+  action and dead staged build action with immutable-SHA quality and manual
+  release-validation workflows. They use least-privilege read access and
+  upload reviewable receipts/artifacts without force-pushing external repos.
 
 ### Defaults & first-run (T2, T5)
 
