@@ -36,6 +36,7 @@ def test_readme_documents_the_executable_release_contract():
         "python package.py --offline",
         "python -m pytest -q",
         "python -m ruff check .",
+        "python devutils/privacy_probe.py",
         "python devutils/smoke_test.py --build-out build/src/out/Default",
     ):
         assert command in readme

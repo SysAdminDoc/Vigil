@@ -23,14 +23,13 @@
   ],
   "host_permissions": [
     "https://geocoding-api.open-meteo.com/*",
-    "https://api.open-meteo.com/*",
-    "https://www.google.com/s2/favicons/*"
+    "https://api.open-meteo.com/*"
   ],
   "optional_host_permissions": [
     "https://*/*"
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google.com/s2/favicons; connect-src https:"
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https:"
   },
   "incognito": "split"
 }

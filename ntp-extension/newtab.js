@@ -215,14 +215,13 @@
   }
 
   // ---- shortcuts ----
-  function faviconUrl(url) {
+  function shortcutMark(shortcut) {
+    const name = textValue(shortcut.name, MAX_SHORTCUT_NAME);
+    if (name) return name.slice(0, 1).toUpperCase();
     try {
-      const u = new URL(url);
-      if (!isWebUrl(url)) return "";
-      return "https://www.google.com/s2/favicons?domain="
-        + encodeURIComponent(u.hostname) + "&sz=64";
+      return new URL(shortcut.url).hostname.slice(0, 1).toUpperCase() || "•";
     } catch (e) {
-      return "";
+      return "•";
     }
   }
 
@@ -239,10 +238,8 @@
       a.href = s.url;
       const icon = document.createElement("div");
       icon.className = "shortcut-icon";
-      const img = document.createElement("img");
-      img.alt = "";
-      img.src = faviconUrl(s.url);
-      icon.appendChild(img);
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = shortcutMark(s);
       const label = document.createElement("div");
       label.className = "shortcut-label";
       label.textContent = s.name; // textContent escapes

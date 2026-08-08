@@ -37,10 +37,11 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
 - **Optional NTP widgets.** Enable local notes, top sites, bookmark-folder
   links, city weather, or up to three HTTPS RSS feeds from the new-tab settings
   panel. They are disabled by default; notes stay local and network widgets
-  only fetch after you enable and configure them. Weather is restricted to the
-  two Open-Meteo APIs; RSS requests require per-origin optional permission and
-  enforce HTTPS, timeouts, redirect rejection, content-type checks, and body
-  limits.
+  only fetch after you enable and configure them. Shortcut icons are local
+  initial-letter marks, so a fresh NTP never fetches remote favicons. Weather is
+  restricted to the two Open-Meteo APIs; RSS requests require per-origin
+  optional permission and enforce HTTPS, timeouts, redirect rejection,
+  content-type checks, and body limits.
 - **Memory Saver is enabled by default.** Chromium's built-in performance
   settings still expose the aggressiveness and per-domain exception controls;
   Vigil starts with inactive tabs eligible for hibernation after the upstream
@@ -66,10 +67,25 @@ including incremental builds, so a Chromium or submodule bump fails closed if
 retention disappears. Manifest V3 remains supported normally; Vigil does not
 weaken extension installation or publisher-trust checks as part of this policy.
 
+### First-run network contract
+
+A fresh profile makes no NTP network request before a user explicitly enables a
+network widget. Notes, top sites, bookmarks, weather, and RSS start disabled;
+the page uses local shortcut marks and the disabled-widget path performs no
+fetch. Weather has two fixed API origins, while RSS requires a separate
+permission grant for the exact HTTPS feed origins saved by the user.
+
+Search suggestions are intentionally enabled. Typing a query is the explicit
+user action that permits a suggestion request, and the only configured endpoint
+is DuckDuckGo's `https://duckduckgo.com/ac/` service. Safe Browsing remains
+enabled, its reporting uploads remain disabled, and no telemetry endpoint is
+configured. The offline `devutils/privacy_probe.py` checks this source-level
+fresh-profile contract without launching Chromium or contacting a service.
+
 ### Extension permission boundaries
 
-The bundled NTP declares only its fixed weather and favicon origins. RSS is
-opt-in and uses Chrome optional host permissions for the exact HTTPS feed
+The bundled NTP declares only its fixed weather origins. RSS is opt-in and uses
+Chrome optional host permissions for the exact HTTPS feed
 origins saved by the user; it never fetches a feed while RSS is disabled or
 permission is absent. The command palette declares `activeTab` and `scripting`
 instead of an all-site content script, injects only after its keyboard command,
@@ -225,6 +241,7 @@ The repository checks can be run without a browser session:
 ```bash
 python -m pytest -q
 python -m ruff check .
+python devutils/privacy_probe.py
 python devutils/smoke_test.py --build-out build/src/out/Default
 node --check ntp-extension/newtab.js
 node --check palette-extension/background.js

@@ -17,12 +17,11 @@ def test_ntp_network_permissions_are_fixed_or_user_managed():
     assert manifest["host_permissions"] == [
         "https://geocoding-api.open-meteo.com/*",
         "https://api.open-meteo.com/*",
-        "https://www.google.com/s2/favicons/*",
     ]
     assert manifest["optional_host_permissions"] == ["https://*/*"]
-    assert "https://www.google.com/s2/favicons" in manifest["content_security_policy"][
-        "extension_pages"
-    ]
+    assert "https://www.google.com/s2/favicons" not in manifest[
+        "content_security_policy"
+    ]["extension_pages"]
 
 
 def test_palette_has_no_automatic_all_site_injection():
@@ -63,6 +62,7 @@ def test_extension_sources_reject_wildcard_messaging_and_dangerous_code():
     assert "innerHTML" not in (ROOT / "ntp-extension" / "newtab.js").read_text(
         encoding="utf-8"
     )
+    assert "www.google.com/s2/favicons" not in source
 
 
 def test_ntp_widget_requests_are_bounded_and_allowlisted():

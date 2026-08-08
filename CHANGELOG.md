@@ -44,6 +44,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **Release documentation reconciled.** README now names the authoritative
   version/toolchain sources and executable output contract; a documentation
   contract test checks version alignment, required workflows, and local links.
+- **First-run egress contract.** NTP shortcut marks are local instead of
+  fetching Google favicons, default widget paths remain network-free, and an
+  offline privacy probe verifies suggestion, Safe Browsing, telemetry, and
+  extension egress boundaries.
 
 ### Defaults & first-run (T2, T5)
 
