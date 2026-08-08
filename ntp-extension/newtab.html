@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vigil &mdash; New Tab</title>
+<title data-i18n="pageTitle">Vigil — New Tab</title>
 <link rel="stylesheet" href="newtab.css">
 </head>
 <body>
@@ -17,14 +17,15 @@
   <svg id="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
     <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
   </svg>
-  <input id="search" type="text" placeholder="Search or type a URL" autocomplete="off" autofocus aria-label="Search">
+  <input id="search" type="text" autocomplete="off" autofocus
+         data-i18n-placeholder="searchPlaceholder" data-i18n-aria-label="searchLabel">
 </div>
 
-<div id="shortcuts" aria-label="Pinned shortcuts"></div>
+<div id="shortcuts" data-i18n-aria-label="pinnedShortcuts"></div>
 
-<div id="widgets" aria-label="Optional widgets"></div>
+<div id="widgets" data-i18n-aria-label="optionalWidgets"></div>
 
-<button id="settings-btn" title="Vigil NTP settings" aria-label="Open new-tab settings">
+<button id="settings-btn" data-i18n-title="settingsButtonTitle" data-i18n-aria-label="openSettings">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
     <circle cx="12" cy="12" r="3"/>
     <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
@@ -33,89 +34,92 @@
 
 <div id="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
   <div id="settings-inner">
-    <h2 id="settings-title">Vigil New Tab</h2>
+    <h2 id="settings-title" data-i18n="settingsTitle">Vigil New Tab</h2>
 
     <div class="setting-row">
       <div>
-        <div class="setting-label">Show clock</div>
-        <div class="setting-desc">Display time on the new-tab page</div>
+        <div class="setting-label" data-i18n="showClock">Show clock</div>
+        <div class="setting-desc" data-i18n="showClockDesc">Display time on the new-tab page</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-clock"><span class="toggle-slider"></span></label>
     </div>
 
     <div class="setting-row">
       <div>
-        <div class="setting-label">24-hour time</div>
-        <div class="setting-desc">Use 24-hour format instead of 12-hour</div>
+        <div class="setting-label" data-i18n="time24">24-hour time</div>
+        <div class="setting-desc" data-i18n="time24Desc">Use 24-hour format instead of 12-hour</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-24h"><span class="toggle-slider"></span></label>
     </div>
 
     <div class="setting-row">
       <div>
-        <div class="setting-label">Show shortcuts</div>
-        <div class="setting-desc">Display the quick-access shortcut grid</div>
+        <div class="setting-label" data-i18n="showShortcuts">Show shortcuts</div>
+        <div class="setting-desc" data-i18n="showShortcutsDesc">Display the quick-access shortcut grid</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-shortcuts"><span class="toggle-slider"></span></label>
     </div>
 
     <div class="setting-row">
       <div>
-        <div class="setting-label">Show search bar</div>
-        <div class="setting-desc">Display the search input</div>
+        <div class="setting-label" data-i18n="showSearch">Show search bar</div>
+        <div class="setting-desc" data-i18n="showSearchDesc">Display the search input</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-search"><span class="toggle-slider"></span></label>
     </div>
 
-    <h2 class="subhead">Widgets</h2>
+    <h2 class="subhead" data-i18n="widgetsHeading">Widgets</h2>
     <div class="setting-row">
       <div>
-        <div class="setting-label">Notes</div>
-        <div class="setting-desc">A local-only scratchpad</div>
+        <div class="setting-label" data-i18n="notes">Notes</div>
+        <div class="setting-desc" data-i18n="notesDesc">A local-only scratchpad</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-widget-notes"><span class="toggle-slider"></span></label>
     </div>
     <div class="setting-row">
       <div>
-        <div class="setting-label">Top sites</div>
-        <div class="setting-desc">Show your most visited sites</div>
+        <div class="setting-label" data-i18n="topSites">Top sites</div>
+        <div class="setting-desc" data-i18n="topSitesDesc">Show your most visited sites</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-widget-top-sites"><span class="toggle-slider"></span></label>
     </div>
     <div class="setting-row setting-row-stack">
       <div>
-        <div class="setting-label">Bookmark folder</div>
-        <div class="setting-desc">Show links from one local folder</div>
+        <div class="setting-label" data-i18n="bookmarkFolder">Bookmark folder</div>
+        <div class="setting-desc" data-i18n="bookmarkFolderDesc">Show links from one local folder</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-widget-bookmarks"><span class="toggle-slider"></span></label>
-      <select id="widget-bookmark-folder" aria-label="Bookmark folder"></select>
+      <select id="widget-bookmark-folder" data-i18n-aria-label="bookmarkFolder"></select>
     </div>
     <div class="setting-row setting-row-stack">
       <div>
-        <div class="setting-label">Weather</div>
-        <div class="setting-desc">Open-Meteo forecast for a city you choose</div>
+        <div class="setting-label" data-i18n="weather">Weather</div>
+        <div class="setting-desc" data-i18n="weatherDesc">Open-Meteo forecast for a city you choose</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-widget-weather"><span class="toggle-slider"></span></label>
-      <input id="widget-weather-city" type="text" placeholder="City, e.g. Boston" aria-label="Weather city">
+      <input id="widget-weather-city" type="text" data-i18n-placeholder="weatherCityPlaceholder"
+             data-i18n-aria-label="weatherCityLabel">
     </div>
     <div class="setting-row setting-row-stack">
       <div>
-        <div class="setting-label">RSS quick-feed</div>
-        <div class="setting-desc">Up to three HTTPS feeds, one per line</div>
+        <div class="setting-label" data-i18n="rss">RSS quick-feed</div>
+        <div class="setting-desc" data-i18n="rssDesc">Up to three HTTPS feeds, one per line</div>
       </div>
       <label class="toggle"><input type="checkbox" id="opt-widget-rss"><span class="toggle-slider"></span></label>
-      <textarea id="widget-rss-feeds" rows="3" placeholder="https://example.com/feed.xml" aria-label="RSS feed URLs"></textarea>
+      <textarea id="widget-rss-feeds" rows="3" data-i18n-placeholder="rssFeedsPlaceholder"
+                data-i18n-aria-label="rssFeedsLabel"></textarea>
       <p id="widget-rss-status" class="setting-desc" role="status" aria-live="polite"></p>
     </div>
 
-    <h2 class="subhead">Shortcuts</h2>
+    <h2 class="subhead" data-i18n="shortcutsHeading">Shortcuts</h2>
     <div id="shortcut-editor"></div>
-    <button class="btn-add" id="add-shortcut">+ Add shortcut</button>
+    <button class="btn-add" id="add-shortcut" data-i18n="addShortcut">+ Add shortcut</button>
 
-    <button class="btn-close" id="close-settings">Close</button>
+    <button class="btn-close" id="close-settings" data-i18n="close">Close</button>
   </div>
 </div>
 
+<script src="i18n.js"></script>
 <script src="newtab.js"></script>
 </body>
 </html>

@@ -16,14 +16,14 @@ def test_every_widget_is_opt_in_and_has_a_local_empty_or_error_state():
     for widget in ("notes", "topSites", "bookmarks", "weather", "rss"):
         assert re.search(rf"\b{re.escape(widget)}:\s*false\b", source)
         assert f"if (enabled.{widget})" in source
-    for message in (
-        "No top sites yet.",
-        "Choose a bookmark folder in NTP settings.",
-        "Choose a city in NTP settings to load weather.",
-        "Weather is unavailable right now.",
-        "Feeds are unavailable or not permitted.",
+    for key in (
+        "noTopSites",
+        "chooseBookmarkFolder",
+        "chooseCity",
+        "weatherUnavailable",
+        "feedsUnavailable",
     ):
-        assert message in source
+        assert f't("{key}")' in source
     assert "widgetsEl.style.display = \"none\"" in source
 
 

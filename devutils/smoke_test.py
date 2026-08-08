@@ -334,6 +334,19 @@ def assert_ntp_extension(repo_root: Path, out_dir: Path, r: Result):
             r.ok("NTP external-extensions pointer valid")
         else:
             r.fail("NTP external-extensions pointer target", str(pointer_data))
+    locale_path = staged / "_locales" / "en" / "messages.json"
+    if m.get("default_locale") != "en" or not locale_path.is_file():
+        r.fail("NTP English locale missing", str(locale_path))
+    else:
+        try:
+            locale = json.loads(locale_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            r.fail("NTP English locale invalid", str(e))
+        else:
+            if locale and all(entry.get("message") for entry in locale.values()):
+                r.ok("NTP English locale packaged")
+            else:
+                r.fail("NTP English locale is empty or malformed")
 
 
 def assert_command_palette(repo_root: Path, out_dir: Path, r: Result):
@@ -359,11 +372,22 @@ def assert_command_palette(repo_root: Path, out_dir: Path, r: Result):
     ext_id = extension_id_from_manifest(manifest)
     version = manifest.get("version")
     staged = out_dir / "Extensions" / ext_id / version
-    for filename in ("manifest.json", "background.js", "content.js", "palette.html"):
+    for filename in (
+        "manifest.json",
+        "background.js",
+        "content.js",
+        "palette.html",
+        "i18n.js",
+        "_locales/en/messages.json",
+    ):
         if (staged / filename).is_file():
             r.ok(f"staged palette file: {filename}")
         else:
             r.fail(f"staged palette file missing: {filename}", str(staged / filename))
+    if manifest.get("default_locale") == "en":
+        r.ok("palette English locale declared")
+    else:
+        r.fail("palette English locale missing")
     pointer = out_dir / "default_extensions" / f"{ext_id}.json"
     try:
         pointer_data = json.loads(pointer.read_text(encoding="utf-8"))

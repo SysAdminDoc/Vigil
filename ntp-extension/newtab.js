@@ -22,13 +22,15 @@
     "https://api.open-meteo.com"
   ]);
 
+  const t = (key, substitutions) => globalThis.vigilI18n?.getMessage(key, substitutions) || key;
+
   const DEFAULT_SHORTCUTS = [
-    { name: "DuckDuckGo", url: "https://duckduckgo.com" },
-    { name: "YouTube",    url: "https://www.youtube.com" },
-    { name: "Reddit",     url: "https://www.reddit.com" },
-    { name: "GitHub",     url: "https://github.com" },
-    { name: "Wikipedia",  url: "https://www.wikipedia.org" },
-    { name: "Mojeek",     url: "https://www.mojeek.com" }
+    { name: t("shortcutDuckDuckGo"), url: "https://duckduckgo.com" },
+    { name: t("shortcutYouTube"),    url: "https://www.youtube.com" },
+    { name: t("shortcutReddit"),     url: "https://www.reddit.com" },
+    { name: t("shortcutGitHub"),     url: "https://github.com" },
+    { name: t("shortcutWikipedia"),  url: "https://www.wikipedia.org" },
+    { name: t("shortcutMojeek"),     url: "https://www.mojeek.com" }
   ];
 
   const DEFAULTS = {
@@ -364,7 +366,7 @@
     (nodes || []).forEach((node) => {
       if (!node.children) return;
       if (node.id !== "0") {
-        result.push({id: node.id, title: "  ".repeat(depth) + (node.title || "Folder")});
+        result.push({id: node.id, title: "  ".repeat(depth) + (node.title || t("folderFallback"))});
       }
       collectBookmarkFolders(node.children, result, depth + 1);
     });
@@ -379,7 +381,7 @@
       select.replaceChildren();
       const automatic = document.createElement("option");
       automatic.value = "";
-      automatic.textContent = "First bookmark folder";
+      automatic.textContent = t("automaticBookmarkFolder");
       select.appendChild(automatic);
       folders.forEach((folder) => {
         const option = document.createElement("option");
@@ -442,7 +444,7 @@
   function renderNotes(card, settings) {
     const notes = document.createElement("textarea");
     notes.className = "widget-notes";
-    notes.placeholder = "Private notes stay in this browser profile";
+    notes.placeholder = t("privateNotesPlaceholder");
     notes.value = settings.widgetNotes || "";
     notes.addEventListener("input", () => {
       settings.widgetNotes = notes.value;
@@ -453,27 +455,27 @@
 
   function renderTopSites(card) {
     if (!window.chrome || !chrome.topSites || !chrome.topSites.get) {
-      appendMessage(card, "Top sites are only available in the installed extension.");
+      appendMessage(card, t("topSitesUnavailable"));
       return;
     }
     chrome.topSites.get((sites) => {
-      renderLinkList(card, (sites || []).slice(0, 6), "No top sites yet.");
+      renderLinkList(card, (sites || []).slice(0, 6), t("noTopSites"));
     });
   }
 
   function renderBookmarks(card, settings) {
     bookmarkItems(settings).then((items) => {
-      renderLinkList(card, items, "Choose a bookmark folder in NTP settings.");
+      renderLinkList(card, items, t("chooseBookmarkFolder"));
     });
   }
 
   function renderWeather(card, settings) {
     const city = (settings.weatherCity || "").trim();
     if (!city) {
-      appendMessage(card, "Choose a city in NTP settings to load weather.");
+      appendMessage(card, t("chooseCity"));
       return;
     }
-    appendMessage(card, "Loading weather…");
+    appendMessage(card, t("loadingWeather"));
     const geocodeUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
     geocodeUrl.search = new URLSearchParams({
       name: city,
@@ -523,7 +525,7 @@
       })
       .catch(() => {
         const message = card.querySelector(".widget-message");
-        if (message) message.textContent = "Weather is unavailable right now.";
+        if (message) message.textContent = t("weatherUnavailable");
       });
   }
 
@@ -544,13 +546,13 @@
   function renderRss(card, settings) {
     const feeds = (settings.rssFeeds || []).filter(isHttpsUrl).slice(0, 3);
     if (!feeds.length) {
-      appendMessage(card, "Add up to three HTTPS feeds in NTP settings.");
+      appendMessage(card, t("addRss"));
       return;
     }
     const allowedOrigins = new Set(feeds.map((feed) => new URL(feed).origin));
-    appendMessage(card, "Loading feeds…");
+    appendMessage(card, t("loadingFeeds"));
     hasRssPermissions(feeds).then((granted) => {
-      if (!granted) throw new Error("RSS permission not granted");
+      if (!granted) throw new Error(t("rssPermissionNotGranted"));
       return Promise.all(feeds.map((url) => fetchBounded(url, {
         allowedOrigins,
         contentTypes: [
@@ -567,11 +569,11 @@
       .then((items) => {
         const message = card.querySelector(".widget-message");
         if (message) message.remove();
-        renderLinkList(card, items, "No recent feed entries.");
+        renderLinkList(card, items, t("noRecentFeed"));
       })
       .catch(() => {
         const message = card.querySelector(".widget-message");
-        if (message) message.textContent = "Feeds are unavailable or not permitted.";
+        if (message) message.textContent = t("feedsUnavailable");
       });
   }
 
@@ -585,27 +587,27 @@
     widgetsEl.style.display = "grid";
     const add = (card) => widgetsEl.appendChild(card);
     if (enabled.notes) {
-      const card = widgetCard("Notes", "widget-notes-card");
+      const card = widgetCard(t("notes"), "widget-notes-card");
       renderNotes(card, settings);
       add(card);
     }
     if (enabled.topSites) {
-      const card = widgetCard("Top sites", "widget-top-sites-card");
+      const card = widgetCard(t("topSites"), "widget-top-sites-card");
       renderTopSites(card);
       add(card);
     }
     if (enabled.bookmarks) {
-      const card = widgetCard("Bookmarks", "widget-bookmarks-card");
+      const card = widgetCard(t("bookmarkFolder"), "widget-bookmarks-card");
       renderBookmarks(card, settings);
       add(card);
     }
     if (enabled.weather) {
-      const card = widgetCard("Weather", "widget-weather-card");
+      const card = widgetCard(t("weather"), "widget-weather-card");
       renderWeather(card, settings);
       add(card);
     }
     if (enabled.rss) {
-      const card = widgetCard("RSS", "widget-rss-card");
+      const card = widgetCard(t("rss"), "widget-rss-card");
       renderRss(card, settings);
       add(card);
     }
@@ -619,7 +621,7 @@
 
       const nameInput = document.createElement("input");
       nameInput.type = "text";
-      nameInput.placeholder = "Name";
+      nameInput.placeholder = t("namePlaceholder");
       nameInput.value = s.name;
       nameInput.addEventListener("input", () => {
         settings.shortcuts[i].name = nameInput.value;
@@ -629,7 +631,7 @@
 
       const urlInput = document.createElement("input");
       urlInput.type = "text";
-      urlInput.placeholder = "URL";
+      urlInput.placeholder = t("urlPlaceholder");
       urlInput.value = s.url;
       urlInput.addEventListener("input", () => {
         settings.shortcuts[i].url = urlInput.value;
@@ -639,7 +641,7 @@
 
       const rm = document.createElement("button");
       rm.className = "btn-remove";
-      rm.title = "Remove";
+      rm.title = t("removeShortcut");
       rm.textContent = "×";
       rm.addEventListener("click", () => {
         settings.shortcuts.splice(i, 1);
@@ -686,7 +688,7 @@
     if (settings.widgets.rss && !(await hasRssPermissions(settings.rssFeeds))) {
       settings.widgets.rss = false;
       save(settings);
-      setRssStatus("RSS access is not granted for the saved feeds.");
+      setRssStatus(t("savedRssPermissionMissing"));
     }
     updateClock(settings);
     setInterval(() => updateClock(settings), 1000);
@@ -752,7 +754,7 @@
         e.target.checked = false;
         settings.widgets.rss = false;
         save(settings);
-        setRssStatus("Add at least one HTTPS feed before enabling RSS.");
+        setRssStatus(t("addHttpsFeed"));
         renderWidgets(settings);
         return;
       }
@@ -760,14 +762,14 @@
         e.target.checked = false;
         settings.widgets.rss = false;
         save(settings);
-        setRssStatus("RSS permission was not granted; no feed was contacted.");
+        setRssStatus(t("rssPermissionDenied"));
         renderWidgets(settings);
         return;
       }
       settings.rssFeeds = feeds;
       settings.widgets.rss = true;
       save(settings);
-      setRssStatus("RSS access is limited to the saved HTTPS feed origins.");
+      setRssStatus(t("rssLimited"));
       renderWidgets(settings);
     });
     $("widget-bookmark-folder").addEventListener("change", (e) => {
@@ -791,19 +793,19 @@
       requestRssPermissions(feeds).then((granted) => {
         if (!granted) {
           syncToggles(settings);
-          setRssStatus("RSS permission was not granted; saved feeds were unchanged.");
+          setRssStatus(t("savedFeedsUnchanged"));
           return;
         }
         settings.rssFeeds = feeds;
         save(settings);
         syncToggles(settings);
-        setRssStatus("RSS access is limited to the saved HTTPS feed origins.");
+        setRssStatus(t("rssLimited"));
         renderWidgets(settings);
       });
     });
     $("add-shortcut").addEventListener("click", () => {
       if (settings.shortcuts.length >= MAX_SHORTCUTS) return;
-      settings.shortcuts.push({ name: "New site", url: "https://example.com" });
+      settings.shortcuts.push({ name: t("newSite"), url: "https://example.com" });
       save(settings);
       renderEditor(settings);
       renderShortcuts(settings);

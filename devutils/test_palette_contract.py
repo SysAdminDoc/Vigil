@@ -44,7 +44,7 @@ def test_palette_latest_query_wins_and_errors_are_retryable():
     assert source.count("if (sequence !== searchSequence) return;") == 1
     assert "if (sequence === searchSequence)" in source
     assert "clearTimeout(searchTimer)" in source
-    assert "Palette data is unavailable. Press Enter to retry." in source
+    assert "t('searchUnavailable')" in source
     assert "event.key === 'Enter' && searchError" in source
     assert "queryInput.removeAttribute('aria-busy')" in source
 

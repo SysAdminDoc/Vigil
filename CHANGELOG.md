@@ -48,6 +48,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   fetching Google favicons, default widget paths remain network-free, and an
   offline privacy probe verifies suggestion, Safe Browsing, telemetry, and
   extension egress boundaries.
+- **Owned-extension localization contract.** The NTP and command palette now
+  ship an English locale baseline, local fallback lookup, localized manifest
+  metadata, and static coverage for dynamic, accessibility, and service-worker
+  strings without adding a translation network dependency.
 
 ### Defaults & first-run (T2, T5)
 

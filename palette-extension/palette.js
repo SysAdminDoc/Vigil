@@ -1,4 +1,5 @@
 const params = new URLSearchParams(location.search);
+const t = (key, substitutions) => globalThis.vigilI18n?.getMessage(key, substitutions) || key;
 const embedded = params.get('embedded') === '1';
 const fallbackTabId = Number(params.get('tabId'));
 const parentOrigin = (() => {
@@ -28,7 +29,13 @@ function closePalette() {
 }
 
 function kindLabel(kind) {
-  return ({page: 'page', tab: 'tab', bookmark: 'bookmark', history: 'history'})[kind] || kind;
+  const labels = {
+    page: t('kindPage'),
+    tab: t('kindTab'),
+    bookmark: t('kindBookmark'),
+    history: t('kindHistory'),
+  };
+  return labels[kind] || kind;
 }
 
 function render() {
@@ -40,13 +47,15 @@ function render() {
     return;
   }
   if (!results.length) {
-    status.textContent = 'No matching commands or saved pages.';
+    status.textContent = t('noMatches');
     queryInput.removeAttribute('aria-activedescendant');
     queryInput.setAttribute('aria-expanded', 'false');
     return;
   }
   queryInput.setAttribute('aria-expanded', 'true');
-  status.textContent = `${results.length} result${results.length === 1 ? '' : 's'}`;
+  status.textContent = results.length === 1
+    ? t('oneResult')
+    : t('manyResults', [String(results.length)]);
   results.forEach((item, index) => {
     const row = document.createElement('li');
     row.id = `palette-result-${index}`;
@@ -83,7 +92,7 @@ async function search() {
   const sequence = ++searchSequence;
   searchError = "";
   queryInput.setAttribute('aria-busy', 'true');
-  status.textContent = 'Searching…';
+  status.textContent = t('searching');
   try {
     const response = await chrome.runtime.sendMessage({
       type: 'palette-search',
@@ -93,7 +102,7 @@ async function search() {
     if (sequence !== searchSequence) return;
     if (!response?.ok) {
       results = [];
-      searchError = 'Palette data is unavailable. Press Enter to retry.';
+      searchError = t('searchUnavailable');
     } else {
       results = response.items || [];
       selectedIndex = 0;
@@ -102,7 +111,7 @@ async function search() {
   } catch {
     if (sequence === searchSequence) {
       results = [];
-      searchError = 'Palette data is unavailable. Press Enter to retry.';
+      searchError = t('searchUnavailable');
     }
   } finally {
     if (sequence === searchSequence) {
@@ -120,12 +129,12 @@ async function openResult(item) {
       tabId: Number.isInteger(fallbackTabId) && fallbackTabId > 0 ? fallbackTabId : undefined,
     });
     if (!response?.ok) {
-      status.textContent = response?.error || 'Could not open that target.';
+      status.textContent = response?.error || t('openTargetError');
       return;
     }
     closePalette();
   } catch {
-    status.textContent = 'Could not open that target. Retry.';
+    status.textContent = t('openTargetRetry');
   }
 }
 

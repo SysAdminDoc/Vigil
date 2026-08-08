@@ -3,23 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vigil Command Palette</title>
+  <title data-i18n="pageTitle">Vigil Command Palette</title>
   <link rel="stylesheet" href="palette.css">
 </head>
 <body>
   <main id="palette" role="dialog" aria-modal="true" aria-labelledby="palette-title">
   <header>
-      <div class="eyebrow">VIGIL COMMAND PALETTE</div>
-      <h1 id="palette-title">What do you want to open?</h1>
+      <div class="eyebrow" data-i18n="eyebrow">VIGIL COMMAND PALETTE</div>
+      <h1 id="palette-title" data-i18n="heading">What do you want to open?</h1>
     <input id="query" type="search" autocomplete="off" spellcheck="false"
-             placeholder="Search settings, tabs, bookmarks, or history"
-             aria-label="Search commands" role="combobox" aria-controls="results"
+             data-i18n-placeholder="queryPlaceholder" data-i18n-aria-label="queryLabel"
+             role="combobox" aria-controls="results"
              aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox">
     </header>
     <div id="status" role="status" aria-live="polite"></div>
-    <ul id="results" role="listbox" aria-label="Palette results"></ul>
-    <footer><kbd>↑</kbd><kbd>↓</kbd> navigate <kbd>Enter</kbd> open <kbd>Esc</kbd> close</footer>
+    <ul id="results" role="listbox" data-i18n-aria-label="resultsLabel"></ul>
+    <footer><kbd>↑</kbd><kbd>↓</kbd> <span data-i18n="navigateHint">navigate</span>
+      <kbd>Enter</kbd> <span data-i18n="openHint">open</span>
+      <kbd>Esc</kbd> <span data-i18n="closeHint">close</span></footer>
   </main>
+  <script src="i18n.js"></script>
   <script src="palette.js"></script>
 </body>
 </html>

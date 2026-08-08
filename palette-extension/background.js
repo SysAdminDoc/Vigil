@@ -1,15 +1,19 @@
+importScripts('i18n.js');
+
+const t = (key, substitutions) => globalThis.vigilI18n?.getMessage(key, substitutions) || key;
+
 const COMMAND_PAGES = [
-  {title: 'Settings', subtitle: 'chrome://settings', url: 'chrome://settings/'},
-  {title: 'Extensions', subtitle: 'chrome://extensions', url: 'chrome://extensions/'},
-  {title: 'Downloads', subtitle: 'chrome://downloads', url: 'chrome://downloads/'},
-  {title: 'Bookmarks', subtitle: 'chrome://bookmarks', url: 'chrome://bookmarks/'},
-  {title: 'History', subtitle: 'chrome://history', url: 'chrome://history/'},
-  {title: 'Flags', subtitle: 'chrome://flags', url: 'chrome://flags/'},
-  {title: 'Policy', subtitle: 'chrome://policy', url: 'chrome://policy/'},
-  {title: 'Discards', subtitle: 'chrome://discards', url: 'chrome://discards/'},
-  {title: 'Network internals', subtitle: 'chrome://net-internals', url: 'chrome://net-internals/'},
-  {title: 'WebRTC internals', subtitle: 'chrome://webrtc-internals', url: 'chrome://webrtc-internals/'},
-  {title: 'Version', subtitle: 'chrome://version', url: 'chrome://version/'},
+  {title: t('commandSettings'), subtitle: t('urlSettings'), url: 'chrome://settings/'},
+  {title: t('commandExtensions'), subtitle: t('urlExtensions'), url: 'chrome://extensions/'},
+  {title: t('commandDownloads'), subtitle: t('urlDownloads'), url: 'chrome://downloads/'},
+  {title: t('commandBookmarks'), subtitle: t('urlBookmarks'), url: 'chrome://bookmarks/'},
+  {title: t('commandHistory'), subtitle: t('urlHistory'), url: 'chrome://history/'},
+  {title: t('commandFlags'), subtitle: t('urlFlags'), url: 'chrome://flags/'},
+  {title: t('commandPolicy'), subtitle: t('urlPolicy'), url: 'chrome://policy/'},
+  {title: t('commandDiscards'), subtitle: t('urlDiscards'), url: 'chrome://discards/'},
+  {title: t('commandNetworkInternals'), subtitle: t('urlNetworkInternals'), url: 'chrome://net-internals/'},
+  {title: t('commandWebRtcInternals'), subtitle: t('urlWebRtcInternals'), url: 'chrome://webrtc-internals/'},
+  {title: t('commandVersion'), subtitle: t('urlVersion'), url: 'chrome://version/'},
 ];
 
 function isUsableUrl(url) {
@@ -35,7 +39,7 @@ function flattenBookmarks(nodes, result) {
       result.push({
         kind: 'bookmark',
         title: node.title || node.url,
-        subtitle: 'Bookmark',
+        subtitle: t('bookmarkSubtitle'),
         url: node.url,
       });
     }
@@ -67,13 +71,13 @@ async function searchPalette(query) {
   for (const tab of tabs) {
     if (tab.url && isUsableUrl(tab.url) && matches({
       title: tab.title || tab.url,
-      subtitle: 'Open tab',
+      subtitle: t('openTabSubtitle'),
       url: tab.url,
     }, normalized)) {
       items.push({
         kind: 'tab',
         title: tab.title || tab.url,
-        subtitle: 'Open tab',
+        subtitle: t('openTabSubtitle'),
         url: tab.url,
         tabId: tab.id,
       });
@@ -93,7 +97,7 @@ async function searchPalette(query) {
       items.push({
         kind: 'bookmark',
         title: node.title || node.url,
-        subtitle: 'Bookmark',
+        subtitle: t('bookmarkSubtitle'),
         url: node.url,
       });
     }
@@ -102,13 +106,13 @@ async function searchPalette(query) {
   for (const item of historyItems) {
     if (item.url && isUsableUrl(item.url) && matches({
       title: item.title || item.url,
-      subtitle: 'History · last 7 days',
+      subtitle: t('historySubtitle'),
       url: item.url,
     }, normalized)) {
       items.push({
         kind: 'history',
         title: item.title || item.url,
-        subtitle: 'History · last 7 days',
+        subtitle: t('historySubtitle'),
         url: item.url,
       });
     }
@@ -125,9 +129,9 @@ async function searchPalette(query) {
 
 async function openTarget(message, sender) {
   if (!message || typeof message !== 'object') {
-    return {ok: false, error: 'Invalid target'};
+    return {ok: false, error: t('invalidTarget')};
   }
-  if (!isUsableUrl(message.url)) return {ok: false, error: 'Unsupported target'};
+  if (!isUsableUrl(message.url)) return {ok: false, error: t('unsupportedTarget')};
   const senderTabId = sender.tab && sender.tab.id;
   const tabId = Number.isInteger(message.tabId) ? message.tabId : senderTabId;
   if (Number.isInteger(tabId)) {

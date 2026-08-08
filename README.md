@@ -100,6 +100,14 @@ its search sources; `activeTab` grants the user-invoked overlay access and
 `scripting` loads that overlay only after the command. No extension requests
 identity, cookies, web requests, native messaging, or file access.
 
+### Owned-extension localization
+
+The NTP and command palette ship an English `_locales/en/messages.json` baseline
+with a local English fallback for plain-file development and future translated
+packs. Static labels, accessibility attributes, manifest names, service-worker
+results, and runtime error states all use the offline i18n lookup; no translation
+service or runtime network request is involved.
+
 ### Architecture (Brave-Inspired)
 - **`chromium_src/` overlay system** -- Drop-in file replacements that mirror the Chromium source tree. Preferred over patches for file-level changes since they don't break on rebase.
 - **`initial_preferences`** -- Single JSON file controlling all first-run defaults (like Brave's `brave_profile_prefs.cc`)
