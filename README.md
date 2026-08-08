@@ -222,6 +222,25 @@ node --check palette-extension/content.js
 node --check palette-extension/palette.js
 ```
 
+### Kiosk mode
+
+The kiosk launcher accepts one absolute HTTPS URL (or `about:blank`) and reads
+`VigilKioskUrl` from the machine policy when no argument is supplied. It does
+not accept extra Chromium arguments:
+
+```powershell
+.\kiosk\vigil-kiosk.cmd https://clinic.example.org/portal
+pwsh -File .\kiosk\install-watchdog.ps1 -KioskUrl https://clinic.example.org/portal
+pwsh -File .\kiosk\install-watchdog.ps1 -Uninstall
+```
+
+Deploy `policies/vigil-kiosk.json` with the managed policy baseline to keep
+autoplay policy-controlled; the launcher never overrides autoplay on its
+command line. The watchdog logs bounded exit-code messages only, backs off up
+to 60 seconds, and stops after five failures in 15 minutes. Uninstall removes
+the task, owned wrapper/config/state files, and an event-log source or policy
+value only when the installer still owns it and it has not been changed.
+
 Packaging can also emit `build/release-receipt.json` with the actual artifact
 hashes and source/toolchain inputs:
 

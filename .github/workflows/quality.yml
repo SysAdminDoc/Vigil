@@ -58,6 +58,7 @@ jobs:
             'extension_sources.json',
             'policies/vigil-defaults.json',
             'policies/vigil-extension-forcelist.json',
+            'policies/vigil-kiosk.json',
             'ntp-extension/manifest.json',
             'palette-extension/manifest.json'
           )

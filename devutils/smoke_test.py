@@ -21,6 +21,7 @@ Tests, in order of cheapest -> most expensive:
   6. Privacy Sandbox APIs disabled (from initial_preferences inspection)
   7. Permissions-Policy default-deny content settings (from initial_preferences)
   7b. Managed policy baselines are packaged for administrator deployment
+  7c. Kiosk autoplay remains a managed policy decision
   8. uBO staged in Extensions/cjpalhdlnbpafiamejdnhcphjbkeiagm/<v>/ + manifest valid
   9. NTP extension declares chrome_url_overrides.newtab
   9b. Command palette extension is staged with its stable ID and pointer
@@ -231,6 +232,28 @@ def assert_managed_defaults(repo_root: Path, out_dir: Path, r: Result):
             r.ok("managed policy baseline packaged unchanged")
         else:
             r.fail("packaged managed policy baseline differs from source")
+
+
+def assert_kiosk_policy(repo_root: Path, out_dir: Path, r: Result):
+    """Step 7c: kiosk autoplay is packaged as policy, not a CLI override."""
+    print("\n[7c] Kiosk autoplay policy")
+    policy_path = repo_root / "policies" / "vigil-kiosk.json"
+    try:
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        packaged = json.loads(
+            (out_dir / "policies" / policy_path.name).read_text(encoding="utf-8")
+        )
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        r.fail("kiosk policy missing, invalid, or not packaged", str(e))
+        return
+    if policy.get("AutoplayAllowed") is False:
+        r.ok("AutoplayAllowed = false")
+    else:
+        r.fail("AutoplayAllowed", "expected false")
+    if packaged == policy:
+        r.ok("kiosk policy packaged unchanged")
+    else:
+        r.fail("packaged kiosk policy differs from source")
 
 
 def assert_ubo_bundle(out_dir: Path, r: Result):
@@ -444,6 +467,7 @@ def main():
     assert_privacy_sandbox(prefs, r)
     assert_content_settings(prefs, r)
     assert_managed_defaults(repo_root, out_dir, r)
+    assert_kiosk_policy(repo_root, out_dir, r)
     assert_ubo_bundle(out_dir, r)
     assert_ntp_extension(repo_root, out_dir, r)
     assert_command_palette(repo_root, out_dir, r)

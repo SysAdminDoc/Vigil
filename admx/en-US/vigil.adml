@@ -45,7 +45,7 @@
       <string id="URLAllowlist_Explain">Setting this policy allows the listed URLs to bypass URLBlocklist matches.</string>
 
       <string id="VigilKioskUrl">Vigil kiosk mode: pinned URL</string>
-      <string id="VigilKioskUrl_Explain">When set, Vigil boots directly to this URL with the chrome UI hidden, suitable for kiosk and clinic deployments. Pairs with the VigilKiosk launcher and Windows Task Scheduler watchdog. Leave unset for normal browser behavior.</string>
+      <string id="VigilKioskUrl_Explain">When set, Vigil boots directly to one absolute HTTPS URL with the chrome UI hidden, suitable for kiosk and clinic deployments. The Vigil-Kiosk launcher rejects other schemes and extra arguments; pair it with the watchdog and managed autoplay policy. Leave unset for normal browser behavior.</string>
 
       <string id="VigilPanicHotkeyEnabled">Enable Panic hotkey (Ctrl+Alt+Shift+P)</string>
       <string id="VigilPanicHotkeyEnabled_Explain">When enabled, Ctrl+Alt+Shift+P immediately closes all windows, wipes the session, and returns to the Windows lock screen. Designed for clinic / shared-kiosk scenarios where a user must rapidly leave the device.</string>

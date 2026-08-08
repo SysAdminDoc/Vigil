@@ -1,0 +1,4 @@
+{
+  "_comment": "Managed policy baseline for the Vigil kiosk launcher. Deploy with the other Vigil policies; the launcher deliberately does not override autoplay on its command line.",
+  "AutoplayAllowed": false
+}

@@ -36,6 +36,11 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   requests, and the command palette uses on-demand `activeTab` injection with
   exact iframe source/origin checks. Static permission, sink, and syntax checks
   now run in CI.
+- **Kiosk recovery hardened.** The launcher now accepts only one validated HTTPS
+  URL or `about:blank`, leaves autoplay to managed policy, and passes no caller
+  arguments through to Chromium. The watchdog uses a non-interpolated config,
+  bounded exponential backoff, a circuit breaker, bounded event messages, and
+  ownership-aware uninstall cleanup.
 
 ### Defaults & first-run (T2, T5)
 
