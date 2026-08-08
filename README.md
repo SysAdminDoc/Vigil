@@ -14,7 +14,9 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
 - **DuckDuckGo as default search engine** with Brave Search, Startpage, Kagi,
   Mojeek, and Google available as built-in alternates
 - **Bookmark bar always visible**
-- **uBlock Origin pre-installed** (downloaded from GitHub releases at build time)
+- **uBlock Origin pre-installed** from a pinned, SHA-256-verified GitHub release
+  archive. The build cache supports offline packaging; no Chrome Web Store update
+  URL is required for the bundled copy.
 - **Chrome Web Store access restored** for easy extension management
 - **Privacy-focused defaults**: Do Not Track enabled, Safe Browsing protection on
   with reporting disabled, autofill disabled, translation disabled, network prediction disabled
@@ -120,8 +122,11 @@ cd Vigil
 # Build (downloads sources, applies patches + overlays, compiles)
 python build.py
 
-# Package (bundles uBlock Origin, creates installer + zip)
+# Package (bundles pinned uBlock Origin, creates installer + zip)
 python package.py
+
+# Package without network access after seeding build/download_cache/
+python package.py --offline
 ```
 
 #### Build Options
@@ -174,6 +179,8 @@ Edit `initial_preferences` -- this is a standard Chromium [initial preferences f
 
 The supported release path is a local Windows build. Use `python build.py --ci -j N`
 for an incremental compile followed by packaging; it runs the same deterministic smoke checks against the resulting output without reusing a browser session.
+Pass `--offline` to the CI build after the pinned extension archive is present in
+`build/download_cache/`.
 
 ### Release refresh gate
 

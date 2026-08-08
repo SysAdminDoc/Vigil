@@ -456,6 +456,10 @@ def main():
         '--tarball',
         action='store_true'
     )
+    parser.add_argument(
+        '--offline',
+        action='store_true',
+        help='Refuse network access while staging pinned extension assets.')
     args = parser.parse_args()
 
     # Set common variables
@@ -662,7 +666,10 @@ def main():
         _run_build_process_timeout(*ninja_commandline, timeout=3.5*60*60)
         # package
         os.chdir(_ROOT_DIR)
-        subprocess.run([sys.executable, 'package.py'], check=True)
+        package_command = [sys.executable, 'package.py']
+        if args.offline:
+            package_command.append('--offline')
+        subprocess.run(package_command, check=True)
     else:
         _run_build_process(*ninja_commandline)
 

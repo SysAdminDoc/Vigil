@@ -117,6 +117,10 @@ def main():
         help=('Filter build outputs by a target CPU. '
               'This is the same as the "arch" key in FILES.cfg. '
               'Default (from platform.architecture()): %(default)s'))
+    parser.add_argument(
+        '--offline',
+        action='store_true',
+        help='Refuse network access while staging pinned extension assets.')
     args = parser.parse_args()
 
     build_outputs = Path('build/src/out/Default')
@@ -159,7 +163,10 @@ def main():
     setup_ext = root_dir / 'setup_extensions.py'
     if setup_ext.exists():
         print('Running extension setup...')
-        subprocess.run([sys.executable, str(setup_ext)], cwd=str(root_dir), check=True)
+        setup_args = [sys.executable, str(setup_ext)]
+        if args.offline:
+            setup_args.append('--offline')
+        subprocess.run(setup_args, cwd=str(root_dir), check=True)
 
     # Install the bundled Vigil NTP extension (roadmap N3).
     # This is the in-tree replacement for the legacy ntp/ html copy.

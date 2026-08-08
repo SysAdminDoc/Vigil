@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "ublock_origin": {
+    "extension_id": "cjpalhdlnbpafiamejdnhcphjbkeiagm",
+    "version": "1.72.2",
+    "asset": "uBlock0_1.72.2.chromium.zip",
+    "url": "https://github.com/gorhill/uBlock/releases/download/1.72.2/uBlock0_1.72.2.chromium.zip",
+    "sha256": "D104CAC4E1F48D76B1C3FF88AEDE2EAA8269814AE06CC9C850D27AFB5274E533"
+  }
+}

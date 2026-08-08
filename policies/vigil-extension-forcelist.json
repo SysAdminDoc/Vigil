@@ -1,15 +1,13 @@
 {
   "_comment": "Vigil-recommended force-install extension policy. Roadmap X3.",
-  "_usage": "Drop this file (or its contents) under Chromium's `policies/managed/` JSON-policy directory on Windows, or load via the ADMX template at admx/vigil.admx. Each entry has format '<extension-id>;<update-url>'. The bundled Vigil command palette is installed from the product's default_extensions pointer; add it here only when your deployment supplies a trusted CRX update endpoint.",
+  "_usage": "Drop this file (or its contents) under Chromium's `policies/managed/` JSON-policy directory on Windows, or load via the ADMX template at admx/vigil.admx. The bundled uBlock Origin, NTP, and command palette extensions are staged from verified local archives/pointers; this policy does not depend on a Chrome Web Store update URL.",
   "_references": [
     "https://www.chromium.org/administrators/configuring-policy-for-extensions/",
     "https://github.com/gorhill/uBlock/wiki/Deploying-uBlock-Origin",
     "https://chromeenterprise.google/policies/#ExtensionInstallForcelist"
   ],
 
-  "ExtensionInstallForcelist": [
-    "cjpalhdlnbpafiamejdnhcphjbkeiagm;https://clients2.google.com/service/update2/crx"
-  ],
+  "ExtensionInstallForcelist": [],
 
   "_optional_clinic_addons_commented_out": {
     "_doc": "Common additions sysadmins enable in clinic/enterprise deployments. Uncomment in your local copy.",
@@ -30,9 +28,8 @@
       "blocked_install_message": "Extension installs are restricted by your Vigil deployment policy. Contact your administrator if you need an exception."
     },
     "cjpalhdlnbpafiamejdnhcphjbkeiagm": {
-      "installation_mode": "force_installed",
-      "update_url": "https://clients2.google.com/service/update2/crx",
-      "_comment": "uBlock Origin - bundled by Vigil, force-installed via this policy"
+      "installation_mode": "allowed",
+      "_comment": "uBlock Origin is installed from the verified default_extensions pointer; deployments needing managed force-install should provide a separately reviewed internal CRX/update endpoint. Vigil never points this policy at the Chrome Web Store."
     }
   }
 }

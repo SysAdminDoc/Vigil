@@ -13,6 +13,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   release gate with a committed 14-day security-age and one-major-release lag
   policy. It reports the Chromium, ungoogled, and Vigil revisions from the
   repository plus the signed-off upstream metadata used for the release.
+- **Pinned offline uBlock delivery.** uBlock Origin 1.72.2 is now described by a
+  committed release URL and SHA-256 digest, resolved from the verified build
+  cache first, and extracted only after ZIP path/size/version validation. The
+  bundled extension policy no longer points at the Chrome Web Store.
 
 ### Defaults & first-run (T2, T5)
 
