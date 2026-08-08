@@ -151,6 +151,15 @@ python package.py
 python package.py --offline
 ```
 
+### Release source of truth
+
+`dist/scoop/vigil.json` is the authoritative Vigil version consumed by
+`package.py`; `toolchain.json` is authoritative for the Chromium and pinned
+toolchain identifiers (currently Chromium `145.0.7632.159`). The README badge, extension manifests, changelog
+heading, and package-manager metadata are checked against those sources. The
+build/package commands above and the output names in the Output section are
+the supported release contract.
+
 #### Build Options
 
 | Flag | Description |
@@ -216,6 +225,7 @@ The repository checks can be run without a browser session:
 ```bash
 python -m pytest -q
 python -m ruff check .
+python devutils/smoke_test.py --build-out build/src/out/Default
 node --check ntp-extension/newtab.js
 node --check palette-extension/background.js
 node --check palette-extension/content.js

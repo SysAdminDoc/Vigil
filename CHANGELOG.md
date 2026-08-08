@@ -41,6 +41,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   arguments through to Chromium. The watchdog uses a non-interpolated config,
   bounded exponential backoff, a circuit breaker, bounded event messages, and
   ownership-aware uninstall cleanup.
+- **Release documentation reconciled.** README now names the authoritative
+  version/toolchain sources and executable output contract; a documentation
+  contract test checks version alignment, required workflows, and local links.
 
 ### Defaults & first-run (T2, T5)
 
