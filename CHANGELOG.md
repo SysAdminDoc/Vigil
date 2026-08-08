@@ -28,6 +28,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **Explicit architecture contract.** Packaging now normalizes x64/x86/arm64
   names against Chromium’s legacy `FILES.cfg` tags and the GN target, rejecting
   mismatches before creating a portable archive or MSI.
+- **MSI component ownership corrected.** The per-machine Start Menu component
+  now uses an HKLM key path, and a silent lifecycle harness covers administrative
+  extraction plus optional install/repair/uninstall validation.
 
 ### Defaults & first-run (T2, T5)
 

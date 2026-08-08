@@ -42,7 +42,7 @@
           Target="[INSTALLFOLDER]chrome.exe"
           WorkingDirectory="INSTALLFOLDER" />
       <RegistryValue
-          Root="HKCU"
+          Root="HKLM"
           Key="Software\SysAdminDoc\Vigil"
           Name="Installed"
           Type="integer"

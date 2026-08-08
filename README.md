@@ -144,6 +144,13 @@ python package.py --offline
 Build artifacts are placed in `build/`:
 - `ungoogled-chromium_*_installer_*.exe` -- Windows installer
 - `vigil_*_installer_*.msi` -- Group Policy / Intune-friendly MSI installer
+
+The MSI is authored as per-machine and uses a machine-owned registry key path
+for component health, so repair/upgrade/uninstall do not depend on whichever
+user happens to build or install it. Validate an artifact without changing the
+host with `python devutils/msi_lifecycle.py --msi build/vigil_*.msi`; an
+elevated disposable validation host may add `--system-lifecycle` to exercise
+silent install, repair, and uninstall.
 - `ungoogled-chromium_*_windows_*.zip` -- Portable zip (includes uBlock Origin, initial_preferences, and managed policy baselines)
 
 ## Customization
