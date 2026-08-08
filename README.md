@@ -191,7 +191,9 @@ python package.py --receipt
 
 Release validation adds `--strict-manifests --update-manifests`; it fails when
 any advertised package-manager artifact is missing or still has a placeholder
-hash. Receipts state explicitly that artifacts are unsigned.
+hash, or when one of the declared x64/x86/arm64 release architectures is
+missing both its installer and portable archive. Receipts state explicitly
+that artifacts are unsigned.
 
 ### Release refresh gate
 

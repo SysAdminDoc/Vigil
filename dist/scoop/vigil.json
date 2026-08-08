@@ -64,5 +64,5 @@
       "url": "$baseurl/SHA256SUMS"
     }
   },
-  "_comment": "Roadmap X21. Publish to a Scoop bucket repo (e.g. SysAdminDoc/scoop-bucket) on every tag release. The hash fields are placeholder zeros; CI fills them from the GitHub Releases SHA256SUMS artifact."
+  "_comment": "Release validation fills hash fields from present artifacts with devutils/release_receipt.py. Strict validation fails until x64, x86, and arm64 archives exist. External bucket publication remains a maintainer review step."
 }

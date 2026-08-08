@@ -69,6 +69,7 @@ def _git_value(repo_root: Path, *args: str) -> str | None:
 def _repository_inputs(repo_root: Path) -> dict[str, Any]:
     toolchain = _read_json(repo_root / "toolchain.json")
     vigil_manifest = _read_json(repo_root / "dist" / "scoop" / "vigil.json")
+    release_policy = _read_json(repo_root / "release_policy.json")
     try:
         chromium = str(toolchain["chromium"])
         ungoogled_revision = (repo_root / "ungoogled-chromium" / "revision.txt").read_text(
@@ -80,11 +81,17 @@ def _repository_inputs(repo_root: Path) -> dict[str, Any]:
         raise ReceiptError(f"release input is missing: {exc}") from exc
     if not all((chromium, ungoogled_revision, vigil_revision, vigil_version)):
         raise ReceiptError("release input revisions and version must not be empty")
+    required_architectures = release_policy.get("release_architectures", [])
+    if not isinstance(required_architectures, list) or any(
+        architecture not in ARCHITECTURES for architecture in required_architectures
+    ):
+        raise ReceiptError("release_policy.json contains invalid release_architectures")
     return {
         "chromium": chromium,
         "ungoogled_revision": ungoogled_revision,
         "vigil_revision": vigil_revision,
         "vigil_version": vigil_version,
+        "release_architectures": required_architectures,
         "git_revision": _git_value(repo_root, "rev-parse", "HEAD"),
         "git_dirty": bool(_git_value(repo_root, "status", "--porcelain", "--untracked-files=no")),
         "toolchain": toolchain,
@@ -274,9 +281,19 @@ def generate_receipt(
         update_manifests(repo_root, records)
     manifest_checks = inspect_manifests(repo_root)
     manifests_passed = all(check["passed"] for check in manifest_checks)
+    installer_architectures = set(_artifact_map(records, "installer"))
+    archive_architectures = set(_artifact_map(records, "archive"))
+    required_architectures = set(inputs["release_architectures"])
+    missing_architectures = sorted(
+        (required_architectures - installer_architectures)
+        | (required_architectures - archive_architectures)
+    )
+    artifact_contract_passed = not missing_architectures
     report = {
         "schema_version": RECEIPT_SCHEMA_VERSION,
-        "status": "pass" if (not strict_manifests or manifests_passed) else "fail",
+        "status": "pass" if (
+            not strict_manifests or (manifests_passed and artifact_contract_passed)
+        ) else "fail",
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "signing": {"status": "unsigned", "required": False},
         "environment": {
@@ -287,6 +304,13 @@ def generate_receipt(
         "extensions": _extension_inputs(repo_root),
         "release_base_url": release_base_url,
         "artifacts": records,
+        "artifact_contract": {
+            "required_architectures": sorted(required_architectures),
+            "installer_architectures": sorted(installer_architectures),
+            "archive_architectures": sorted(archive_architectures),
+            "missing_architectures": missing_architectures,
+            "passed": artifact_contract_passed,
+        },
         "package_manifest_check": {
             "strict": strict_manifests,
             "passed": manifests_passed,

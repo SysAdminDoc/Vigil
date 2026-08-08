@@ -15,7 +15,6 @@ if sys.version_info.major < 3:
 import argparse
 import json
 import os
-import platform
 import shutil
 import subprocess
 import tempfile
@@ -45,6 +44,20 @@ def _get_vigil_version(root_dir):
 
 _cached_target_cpu = None
 
+_CPU_ALIASES = {
+    '64bit': 'x64',
+    '32bit': 'x86',
+    'arm': 'arm64',
+    'x64': 'x64',
+    'x86': 'x86',
+    'arm64': 'arm64',
+}
+_FILESCFG_ARCH = {
+    'x64': '64bit',
+    'x86': '32bit',
+    'arm64': 'arm',
+}
+
 def _get_target_cpu(build_outputs):
     global _cached_target_cpu
     if not _cached_target_cpu:
@@ -64,6 +77,29 @@ def _get_wix_arch(target_cpu):
         'x86': 'x86',
         'arm64': 'arm64',
     }[target_cpu]
+
+
+def _normalize_cpu_arch(requested, target_cpu):
+    """Normalize CLI aliases and reject packaging a different GN target."""
+    if requested == 'auto':
+        return target_cpu
+    try:
+        normalized = _CPU_ALIASES[requested]
+    except KeyError as exc:
+        raise RuntimeError(f'Unsupported CPU architecture: {requested}') from exc
+    if normalized != target_cpu:
+        raise RuntimeError(
+            f'Package target mismatch: --cpu-arch {requested} selects {normalized}, '
+            f'but args.gn selects {target_cpu}')
+    return normalized
+
+
+def _filescfg_cpu_arch(target_cpu):
+    """Map a Chromium target name to the legacy FILES.cfg architecture tag."""
+    try:
+        return _FILESCFG_ARCH[target_cpu]
+    except KeyError as exc:
+        raise RuntimeError(f'No FILES.cfg mapping for CPU architecture: {target_cpu}') from exc
 
 
 def _create_msi(root_dir, build_outputs, file_list, version, target_cpu):
@@ -112,11 +148,11 @@ def main():
     parser.add_argument(
         '--cpu-arch',
         metavar='ARCH',
-        default=platform.architecture()[0],
-        choices=('64bit', '32bit'),
+        default='auto',
+        choices=('auto', 'x64', 'x86', 'arm64', '64bit', '32bit', 'arm'),
         help=('Filter build outputs by a target CPU. '
-              'This is the same as the "arch" key in FILES.cfg. '
-              'Default (from platform.architecture()): %(default)s'))
+              'Use x64, x86, or arm64; 64bit/32bit/arm remain compatibility aliases. '
+              'Default: infer from args.gn.'))
     parser.add_argument(
         '--offline',
         action='store_true',
@@ -128,6 +164,8 @@ def main():
     args = parser.parse_args()
 
     build_outputs = Path('build/src/out/Default')
+    target_cpu = _get_target_cpu(build_outputs)
+    normalized_cpu = _normalize_cpu_arch(args.cpu_arch, target_cpu)
 
     shutil.copyfile('build/src/out/Default/mini_installer.exe',
         'build/ungoogled-chromium_{}-{}.{}_installer_{}.exe'.format(
@@ -198,7 +236,7 @@ def main():
     ])
     files_generator = filescfg.filescfg_generator(
         Path('build/src/chrome/tools/build/win/FILES.cfg'),
-        build_outputs, args.cpu_arch, excluded_files)
+        build_outputs, _filescfg_cpu_arch(normalized_cpu), excluded_files)
 
     # Copy custom NTP to build output
     ntp_src = root_dir / 'ntp'
@@ -231,7 +269,7 @@ def main():
         all_files, tuple(), build_outputs, output, timestamp)
     _create_msi(
         root_dir, build_outputs, all_files, _get_vigil_version(root_dir),
-        _get_target_cpu(build_outputs))
+        target_cpu)
     if args.receipt:
         from devutils.release_receipt import generate_receipt
 

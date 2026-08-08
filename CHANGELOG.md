@@ -25,6 +25,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   with SHA-256 hashes, source/toolchain/uBlock inputs, and explicit unsigned
   status. Strict release validation updates package-manager manifests only from
   present artifacts and fails on missing architectures or placeholder hashes.
+- **Explicit architecture contract.** Packaging now normalizes x64/x86/arm64
+  names against Chromium’s legacy `FILES.cfg` tags and the GN target, rejecting
+  mismatches before creating a portable archive or MSI.
 
 ### Defaults & first-run (T2, T5)
 

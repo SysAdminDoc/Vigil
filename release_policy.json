@@ -2,6 +2,7 @@
   "schema_version": 1,
   "max_security_age_days": 14,
   "max_major_lag": 1,
+  "release_architectures": ["x64", "x86", "arm64"],
   "upstream_metadata_schema_version": 1,
   "sources": {
     "stable_releases": "https://chromereleases.googleblog.com/",

@@ -12,8 +12,8 @@ $packageArgs = @{
   fileType       = 'EXE'
   url            = "$urlBase/ungoogled-chromium_145.0.7632.159-$artifactRevision`_installer_x86.exe"
   url64bit       = "$urlBase/ungoogled-chromium_145.0.7632.159-$artifactRevision`_installer_x64.exe"
-  # Hashes are filled in by CI before `choco push`. Treat the literal zeros as
-  # placeholder; if you see them in the published package, file a release bug.
+  # Hashes are filled by devutils/release_receipt.py after matching artifacts
+  # exist. Strict release validation rejects the literal-zero placeholders.
   checksum       = '0000000000000000000000000000000000000000000000000000000000000000'
   checksum64     = '0000000000000000000000000000000000000000000000000000000000000000'
   checksumType   = 'sha256'

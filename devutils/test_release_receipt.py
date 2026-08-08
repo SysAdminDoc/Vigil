@@ -11,6 +11,10 @@ def write_json(path, value):
 
 def seed_repo(tmp_path, architectures=("x64",)):
     write_json(tmp_path / "toolchain.json", {"chromium": "149.0.1.2", "clang": "test"})
+    write_json(
+        tmp_path / "release_policy.json",
+        {"release_architectures": ["x64", "x86", "arm64"]},
+    )
     (tmp_path / "revision.txt").write_text("7\n", encoding="utf-8")
     (tmp_path / "ungoogled-chromium").mkdir()
     (tmp_path / "ungoogled-chromium" / "revision.txt").write_text("3\n", encoding="utf-8")
@@ -124,3 +128,12 @@ def test_strict_receipt_fails_placeholders_then_updates_all_manifests(tmp_path):
     assert "0" * 64 not in (
         tmp_path / "dist" / "chocolatey" / "vigil" / "tools" / "chocolateyInstall.ps1"
     ).read_text(encoding="utf-8")
+
+
+def test_strict_receipt_reports_missing_architecture(tmp_path):
+    build = seed_repo(tmp_path, architectures=("x64",))
+
+    report = generate_receipt(tmp_path, artifact_dir=build, strict_manifests=True)
+
+    assert report["status"] == "fail"
+    assert report["artifact_contract"]["missing_architectures"] == ["arm64", "x86"]

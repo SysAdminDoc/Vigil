@@ -8,9 +8,8 @@ InstallerSwitches:
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.1/ungoogled-chromium_145.0.7632.159-1.1_installer_x64.exe
-    # InstallerSha256 must be filled in by `devutils/release_helper.py` after
-    # the tag's release artifacts are published. Until then the manifest fails
-    # CI in winget-pkgs.
+    # InstallerSha256 is filled by `devutils/release_receipt.py` only after the
+    # matching release artifact exists. Until then strict release validation fails.
     InstallerSha256: TODO_FILL_BEFORE_PR
   - Architecture: x86
     InstallerUrl: https://github.com/SysAdminDoc/Vigil/releases/download/v0.2.1/ungoogled-chromium_145.0.7632.159-1.1_installer_x86.exe
