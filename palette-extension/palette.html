@@ -13,7 +13,8 @@
       <h1 id="palette-title">What do you want to open?</h1>
     <input id="query" type="search" autocomplete="off" spellcheck="false"
              placeholder="Search settings, tabs, bookmarks, or history"
-             aria-label="Search commands" aria-controls="results" aria-autocomplete="list">
+             aria-label="Search commands" role="combobox" aria-controls="results"
+             aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox">
     </header>
     <div id="status" role="status" aria-live="polite"></div>
     <ul id="results" role="listbox" aria-label="Palette results"></ul>

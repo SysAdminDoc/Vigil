@@ -36,13 +36,16 @@ function render() {
   if (searchError) {
     status.textContent = searchError;
     queryInput.removeAttribute('aria-activedescendant');
+    queryInput.setAttribute('aria-expanded', 'false');
     return;
   }
   if (!results.length) {
     status.textContent = 'No matching commands or saved pages.';
     queryInput.removeAttribute('aria-activedescendant');
+    queryInput.setAttribute('aria-expanded', 'false');
     return;
   }
+  queryInput.setAttribute('aria-expanded', 'true');
   status.textContent = `${results.length} result${results.length === 1 ? '' : 's'}`;
   results.forEach((item, index) => {
     const row = document.createElement('li');

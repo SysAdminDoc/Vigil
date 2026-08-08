@@ -120,7 +120,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   and the extension remains under the 320 KB budget. Roadmap `X19`.
 - **Command palette extension.** `Ctrl+Shift+P` opens a keyboard-first palette
   over normal web pages (or a fallback extension tab on browser-owned pages),
-  searching Vigil settings, open tabs, bookmarks, and seven-day history.
+  searching Vigil settings, open tabs, bookmarks, and seven-day history. Its
+  combobox/listbox semantics, retryable errors, latest-query sequencing, and
+  focus restoration are covered by static contract tests.
   Roadmap `X18`.
 - **Sticky Secure DNS defaults.** The existing settings resolver picker now
   includes Quad9, NextDNS, Cloudflare, Mullvad, AdGuard, and Control D, starts
