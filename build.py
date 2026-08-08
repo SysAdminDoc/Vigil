@@ -669,6 +669,7 @@ def main():
         package_command = [sys.executable, 'package.py']
         if args.offline:
             package_command.append('--offline')
+        package_command.append('--receipt')
         subprocess.run(package_command, check=True)
     else:
         _run_build_process(*ninja_commandline)

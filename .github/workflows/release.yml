@@ -107,6 +107,14 @@ jobs:
       - name: Run packaged smoke test
         run: python devutils/smoke_test.py --build-out build/src/out/Default
 
+      - name: Enforce package-manager hashes and write strict receipt
+        run: >-
+          python devutils/release_receipt.py
+          --artifact-dir build
+          --output build/strict-release-receipt.json
+          --strict-manifests
+          --update-manifests
+
       - name: Upload reviewable build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -115,5 +123,6 @@ jobs:
             build/*.exe
             build/*.msi
             build/*.zip
+            build/*receipt.json
           if-no-files-found: error
           retention-days: 14

@@ -182,6 +182,17 @@ for an incremental compile followed by packaging; it runs the same deterministic
 Pass `--offline` to the CI build after the pinned extension archive is present in
 `build/download_cache/`.
 
+Packaging can also emit `build/release-receipt.json` with the actual artifact
+hashes and source/toolchain inputs:
+
+```bash
+python package.py --receipt
+```
+
+Release validation adds `--strict-manifests --update-manifests`; it fails when
+any advertised package-manager artifact is missing or still has a placeholder
+hash. Receipts state explicitly that artifacts are unsigned.
+
 ### Release refresh gate
 
 Release jobs must run the dependency-free refresh gate before publishing. It

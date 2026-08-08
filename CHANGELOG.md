@@ -21,6 +21,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   action and dead staged build action with immutable-SHA quality and manual
   release-validation workflows. They use least-privilege read access and
   upload reviewable receipts/artifacts without force-pushing external repos.
+- **Unsigned release receipt and hash gate.** Packaging can emit a JSON receipt
+  with SHA-256 hashes, source/toolchain/uBlock inputs, and explicit unsigned
+  status. Strict release validation updates package-manager manifests only from
+  present artifacts and fails on missing architectures or placeholder hashes.
 
 ### Defaults & first-run (T2, T5)
 

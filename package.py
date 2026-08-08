@@ -121,6 +121,10 @@ def main():
         '--offline',
         action='store_true',
         help='Refuse network access while staging pinned extension assets.')
+    parser.add_argument(
+        '--receipt',
+        action='store_true',
+        help='Write build/release-receipt.json after packaging.')
     args = parser.parse_args()
 
     build_outputs = Path('build/src/out/Default')
@@ -228,6 +232,16 @@ def main():
     _create_msi(
         root_dir, build_outputs, all_files, _get_vigil_version(root_dir),
         _get_target_cpu(build_outputs))
+    if args.receipt:
+        from devutils.release_receipt import generate_receipt
+
+        receipt_path = root_dir / 'build' / 'release-receipt.json'
+        generate_receipt(
+            root_dir,
+            artifact_dir=root_dir / 'build',
+            output=receipt_path,
+        )
+        print(f'Created release receipt: {receipt_path}')
 
 if __name__ == '__main__':
     main()
