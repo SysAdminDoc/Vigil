@@ -31,12 +31,16 @@ A lean, privacy-respecting Chromium browser with sensible defaults -- like Brave
   back to plaintext DNS; administrators can change the resolver in Settings.
 - **Command palette on `Ctrl+Shift+P`.** The bundled palette searches Vigil
   settings, open tabs, bookmarks, and the last seven days of history. It opens
-  as an overlay on normal web pages and uses a standalone extension tab for
-  browser-owned pages where content scripts are unavailable.
+  as an overlay on normal web pages using on-demand `activeTab` injection; it
+  has no automatic all-site content script. Browser-owned pages use a standalone
+  extension tab where content scripts are unavailable.
 - **Optional NTP widgets.** Enable local notes, top sites, bookmark-folder
   links, city weather, or up to three HTTPS RSS feeds from the new-tab settings
   panel. They are disabled by default; notes stay local and network widgets
-  only fetch after you enable and configure them.
+  only fetch after you enable and configure them. Weather is restricted to the
+  two Open-Meteo APIs; RSS requests require per-origin optional permission and
+  enforce HTTPS, timeouts, redirect rejection, content-type checks, and body
+  limits.
 - **Memory Saver is enabled by default.** Chromium's built-in performance
   settings still expose the aggressiveness and per-domain exception controls;
   Vigil starts with inactive tabs eligible for hibernation after the upstream
@@ -61,6 +65,24 @@ both the patch-series entry and the patched source behavior on every build,
 including incremental builds, so a Chromium or submodule bump fails closed if
 retention disappears. Manifest V3 remains supported normally; Vigil does not
 weaken extension installation or publisher-trust checks as part of this policy.
+
+### Extension permission boundaries
+
+The bundled NTP declares only its fixed weather and favicon origins. RSS is
+opt-in and uses Chrome optional host permissions for the exact HTTPS feed
+origins saved by the user; it never fetches a feed while RSS is disabled or
+permission is absent. The command palette declares `activeTab` and `scripting`
+instead of an all-site content script, injects only after its keyboard command,
+and validates the iframe bridge with exact source and origin checks. These
+contracts are covered by `devutils/test_extension_boundaries.py` and the CI
+JavaScript syntax check.
+
+The permission audit is intentionally explicit: NTP `storage` holds its local
+settings, `topSites` supplies the local top-sites widget, and `bookmarks` reads
+the selected local folder. Palette `bookmarks`, `history`, and `tabs` provide
+its search sources; `activeTab` grants the user-invoked overlay access and
+`scripting` loads that overlay only after the command. No extension requests
+identity, cookies, web requests, native messaging, or file access.
 
 ### Architecture (Brave-Inspired)
 - **`chromium_src/` overlay system** -- Drop-in file replacements that mirror the Chromium source tree. Preferred over patches for file-level changes since they don't break on rebase.
@@ -188,6 +210,17 @@ The supported release path is a local Windows build. Use `python build.py --ci -
 for an incremental compile followed by packaging; it runs the same deterministic smoke checks against the resulting output without reusing a browser session.
 Pass `--offline` to the CI build after the pinned extension archive is present in
 `build/download_cache/`.
+
+The repository checks can be run without a browser session:
+
+```bash
+python -m pytest -q
+python -m ruff check .
+node --check ntp-extension/newtab.js
+node --check palette-extension/background.js
+node --check palette-extension/content.js
+node --check palette-extension/palette.js
+```
 
 Packaging can also emit `build/release-receipt.json` with the actual artifact
 hashes and source/toolchain inputs:

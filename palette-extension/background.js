@@ -13,10 +13,11 @@ const COMMAND_PAGES = [
 ];
 
 function isUsableUrl(url) {
-  if (!url) return false;
+  if (typeof url !== 'string' || url.length > 2048) return false;
   try {
     const parsed = new URL(url);
-    return ['http:', 'https:', 'chrome:', 'file:'].includes(parsed.protocol);
+    return ['http:', 'https:', 'chrome:'].includes(parsed.protocol)
+      && !parsed.username && !parsed.password;
   } catch {
     return false;
   }
@@ -123,6 +124,9 @@ async function searchPalette(query) {
 }
 
 async function openTarget(message, sender) {
+  if (!message || typeof message !== 'object') {
+    return {ok: false, error: 'Invalid target'};
+  }
   if (!isUsableUrl(message.url)) return {ok: false, error: 'Unsupported target'};
   const senderTabId = sender.tab && sender.tab.id;
   const tabId = Number.isInteger(message.tabId) ? message.tabId : senderTabId;
@@ -145,13 +149,24 @@ async function openPaletteTab(tabId) {
   });
 }
 
+async function openInjectedPalette(tabId) {
+  try {
+    await chrome.tabs.sendMessage(tabId, {type: 'open-palette'});
+    return;
+  } catch {
+    // The activeTab grant is used to inject only after the user invokes the command.
+  }
+  await chrome.scripting.executeScript({target: {tabId}, files: ['content.js']});
+  await chrome.tabs.sendMessage(tabId, {type: 'open-palette'});
+}
+
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== 'open-palette') return;
   const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
   if (!tab || !Number.isInteger(tab.id)) return;
   if (tab.url && /^https?:/i.test(tab.url)) {
     try {
-      await chrome.tabs.sendMessage(tab.id, {type: 'open-palette'});
+      await openInjectedPalette(tab.id);
       return;
     } catch {
       // Content scripts cannot run on every browser-owned page.
@@ -161,13 +176,14 @@ chrome.commands.onCommand.addListener(async (command) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'palette-search') {
-    searchPalette(message.query || '')
-        .then((items) => sendResponse({ok: true, items}))
-        .catch((error) => sendResponse({ok: false, error: String(error)}));
+  if (message?.type === 'palette-search') {
+    const query = typeof message.query === 'string' ? message.query.slice(0, 200) : '';
+    searchPalette(query)
+        .then((items) => sendResponse({ok: true, items, requestId: message.requestId}))
+        .catch((error) => sendResponse({ok: false, error: String(error), requestId: message.requestId}));
     return true;
   }
-  if (message.type === 'palette-open') {
+  if (message?.type === 'palette-open') {
     openTarget(message, sender)
         .then(sendResponse)
         .catch((error) => sendResponse({ok: false, error: String(error)}));

@@ -22,6 +22,11 @@
     "bookmarks"
   ],
   "host_permissions": [
+    "https://geocoding-api.open-meteo.com/*",
+    "https://api.open-meteo.com/*",
+    "https://www.google.com/s2/favicons/*"
+  ],
+  "optional_host_permissions": [
     "https://*/*"
   ],
   "content_security_policy": {

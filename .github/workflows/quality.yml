@@ -41,6 +41,12 @@ jobs:
       - name: Run linter
         run: python -m ruff check .
 
+      - name: Check extension JavaScript
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path ntp-extension,palette-extension -Filter *.js -File |
+            ForEach-Object { node --check $_.FullName }
+
       - name: Validate checked-in JSON
         shell: pwsh
         run: |

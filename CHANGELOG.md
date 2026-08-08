@@ -31,6 +31,11 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **MSI component ownership corrected.** The per-machine Start Menu component
   now uses an HKLM key path, and a silent lifecycle harness covers administrative
   extraction plus optional install/repair/uninstall validation.
+- **Extension permission and messaging boundaries tightened.** NTP weather uses
+  fixed API origins, RSS uses user-granted per-origin optional access with bounded
+  requests, and the command palette uses on-demand `activeTab` injection with
+  exact iframe source/origin checks. Static permission, sink, and syntax checks
+  now run in CI.
 
 ### Defaults & first-run (T2, T5)
 

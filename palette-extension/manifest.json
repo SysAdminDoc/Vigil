@@ -13,21 +13,9 @@
   "permissions": [
     "bookmarks",
     "history",
-    "tabs"
-  ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
+    "tabs",
+    "activeTab",
+    "scripting"
   ],
   "commands": {
     "open-palette": {

@@ -1,17 +1,28 @@
 const params = new URLSearchParams(location.search);
 const embedded = params.get('embedded') === '1';
 const fallbackTabId = Number(params.get('tabId'));
+const parentOrigin = (() => {
+  if (!embedded) return '';
+  try {
+    const origin = new URL(params.get('parentOrigin') || '').origin;
+    return /^https?:$/.test(new URL(origin).protocol) ? origin : '';
+  } catch {
+    return '';
+  }
+})();
 const queryInput = document.getElementById('query');
 const resultsList = document.getElementById('results');
 const status = document.getElementById('status');
 let results = [];
 let selectedIndex = 0;
 let searchTimer = null;
+let searchSequence = 0;
+let searchError = "";
 
 function closePalette() {
-  if (embedded) {
-    window.parent.postMessage({source: 'vigil-palette', type: 'close'}, '*');
-  } else {
+  if (embedded && parentOrigin) {
+    window.parent.postMessage({source: 'vigil-palette', type: 'close'}, parentOrigin);
+  } else if (!embedded) {
     window.close();
   }
 }
@@ -22,14 +33,22 @@ function kindLabel(kind) {
 
 function render() {
   resultsList.replaceChildren();
+  if (searchError) {
+    status.textContent = searchError;
+    queryInput.removeAttribute('aria-activedescendant');
+    return;
+  }
   if (!results.length) {
     status.textContent = 'No matching commands or saved pages.';
+    queryInput.removeAttribute('aria-activedescendant');
     return;
   }
   status.textContent = `${results.length} result${results.length === 1 ? '' : 's'}`;
   results.forEach((item, index) => {
     const row = document.createElement('li');
+    row.id = `palette-result-${index}`;
     row.className = 'result';
+    row.tabIndex = -1;
     row.setAttribute('role', 'option');
     row.setAttribute('aria-selected', String(index === selectedIndex));
     row.addEventListener('mouseenter', () => {
@@ -54,33 +73,61 @@ function render() {
     row.append(main, kind);
     resultsList.append(row);
   });
+  queryInput.setAttribute('aria-activedescendant', `palette-result-${selectedIndex}`);
 }
 
 async function search() {
-  const response = await chrome.runtime.sendMessage({
-    type: 'palette-search',
-    query: queryInput.value,
-  });
-  if (!response?.ok) {
-    results = [];
-    status.textContent = 'Palette data is unavailable in this profile.';
-  } else {
-    results = response.items || [];
-    selectedIndex = Math.min(selectedIndex, Math.max(results.length - 1, 0));
+  const sequence = ++searchSequence;
+  searchError = "";
+  queryInput.setAttribute('aria-busy', 'true');
+  status.textContent = 'Searching…';
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'palette-search',
+      query: queryInput.value.slice(0, 200),
+      requestId: sequence,
+    });
+    if (sequence !== searchSequence) return;
+    if (!response?.ok) {
+      results = [];
+      searchError = 'Palette data is unavailable. Press Enter to retry.';
+    } else {
+      results = response.items || [];
+      selectedIndex = 0;
+      searchError = "";
+    }
+  } catch {
+    if (sequence === searchSequence) {
+      results = [];
+      searchError = 'Palette data is unavailable. Press Enter to retry.';
+    }
+  } finally {
+    if (sequence === searchSequence) {
+      queryInput.removeAttribute('aria-busy');
+      render();
+    }
   }
-  render();
 }
 
 async function openResult(item) {
-  await chrome.runtime.sendMessage({
-    type: 'palette-open',
-    url: item.url,
-    tabId: Number.isInteger(fallbackTabId) && fallbackTabId > 0 ? fallbackTabId : undefined,
-  });
-  closePalette();
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'palette-open',
+      url: item.url,
+      tabId: Number.isInteger(fallbackTabId) && fallbackTabId > 0 ? fallbackTabId : undefined,
+    });
+    if (!response?.ok) {
+      status.textContent = response?.error || 'Could not open that target.';
+      return;
+    }
+    closePalette();
+  } catch {
+    status.textContent = 'Could not open that target. Retry.';
+  }
 }
 
 queryInput.addEventListener('input', () => {
+  searchError = "";
   clearTimeout(searchTimer);
   searchTimer = setTimeout(search, 80);
 });
@@ -100,13 +147,23 @@ queryInput.addEventListener('keydown', (event) => {
   } else if (event.key === 'Enter' && results[selectedIndex]) {
     event.preventDefault();
     openResult(results[selectedIndex]);
+  } else if (event.key === 'Enter' && searchError) {
+    event.preventDefault();
+    search();
+  } else if (event.key === 'Tab') {
+    event.preventDefault();
+    queryInput.focus();
   }
 });
 
 window.addEventListener('message', (event) => {
-  if (event.data?.source !== 'vigil-palette' || event.data.type !== 'focus') return;
-  queryInput.focus();
-  queryInput.select();
+  if (!embedded || !parentOrigin || event.source !== window.parent || event.origin !== parentOrigin) {
+    return;
+  }
+  if (event.data?.source === 'vigil-palette' && event.data.type === 'focus') {
+    queryInput.focus();
+    queryInput.select();
+  }
 });
 
 queryInput.focus();

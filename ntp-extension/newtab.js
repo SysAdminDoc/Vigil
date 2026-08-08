@@ -6,6 +6,22 @@
 "use strict";
 
 (function () {
+  const SETTINGS_SCHEMA_VERSION = 1;
+  const MAX_SHORTCUTS = 12;
+  const MAX_SHORTCUT_NAME = 80;
+  const MAX_URL_LENGTH = 2048;
+  const MAX_NOTES_LENGTH = 10000;
+  const MAX_CITY_LENGTH = 100;
+  const MAX_RSS_FEEDS = 3;
+  const MAX_RSS_FEED_LENGTH = 2048;
+  const FETCH_TIMEOUT_MS = 8000;
+  const MAX_JSON_BYTES = 256 * 1024;
+  const MAX_RSS_BYTES = 512 * 1024;
+  const OPEN_METEO_ORIGINS = new Set([
+    "https://geocoding-api.open-meteo.com",
+    "https://api.open-meteo.com"
+  ]);
+
   const DEFAULT_SHORTCUTS = [
     { name: "DuckDuckGo", url: "https://duckduckgo.com" },
     { name: "YouTube",    url: "https://www.youtube.com" },
@@ -16,6 +32,7 @@
   ];
 
   const DEFAULTS = {
+    schemaVersion: SETTINGS_SCHEMA_VERSION,
     showClock: true,
     use24h: false,
     showShortcuts: true,
@@ -38,40 +55,113 @@
 
   // ---- storage abstraction (chrome.storage when packaged, localStorage when not) ----
   const useChromeStorage = typeof chrome !== "undefined"
-                        && chrome.storage
-                        && chrome.storage.local;
+                        && Boolean(chrome.storage && chrome.storage.local);
+
+  function cloneDefaults() {
+    return {
+      ...DEFAULTS,
+      shortcuts: DEFAULT_SHORTCUTS.map((shortcut) => ({...shortcut})),
+      widgets: {...DEFAULTS.widgets},
+      rssFeeds: []
+    };
+  }
+
+  function isRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function textValue(value, maxLength, trim = true) {
+    if (typeof value !== "string") return "";
+    const text = trim ? value.trim() : value;
+    return text.slice(0, maxLength);
+  }
+
+  function isWebUrl(value) {
+    try {
+      const parsed = new URL(value);
+      return ["http:", "https:"].includes(parsed.protocol)
+        && !parsed.username && !parsed.password;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function isHttpsUrl(value) {
+    return isWebUrl(value) && new URL(value).protocol === "https:";
+  }
+
+  function normalizeSettings(value) {
+    const stored = isRecord(value) ? value : {};
+    const storedVersion = Number(stored.schemaVersion || 0);
+    const source = storedVersion > SETTINGS_SCHEMA_VERSION ? {} : stored;
+    const shortcuts = Array.isArray(source.shortcuts)
+      ? source.shortcuts.map((shortcut) => {
+        if (!isRecord(shortcut)) return null;
+        const url = textValue(shortcut.url, MAX_URL_LENGTH);
+        if (!isWebUrl(url)) return null;
+        return {
+          name: textValue(shortcut.name, MAX_SHORTCUT_NAME) || url,
+          url
+        };
+      }).filter(Boolean).slice(0, MAX_SHORTCUTS)
+      : cloneDefaults().shortcuts;
+    const rssFeeds = Array.isArray(source.rssFeeds)
+      ? Array.from(new Set(source.rssFeeds
+        .map((url) => textValue(url, MAX_RSS_FEED_LENGTH))
+        .filter(isHttpsUrl))).slice(0, MAX_RSS_FEEDS)
+      : [];
+    return {
+      schemaVersion: SETTINGS_SCHEMA_VERSION,
+      showClock: Boolean(source.showClock ?? DEFAULTS.showClock),
+      use24h: Boolean(source.use24h ?? DEFAULTS.use24h),
+      showShortcuts: Boolean(source.showShortcuts ?? DEFAULTS.showShortcuts),
+      showSearch: Boolean(source.showSearch ?? DEFAULTS.showSearch),
+      shortcuts,
+      widgets: {
+        notes: Boolean(source.widgets?.notes),
+        topSites: Boolean(source.widgets?.topSites),
+        bookmarks: Boolean(source.widgets?.bookmarks),
+        weather: Boolean(source.widgets?.weather),
+        rss: Boolean(source.widgets?.rss) && rssFeeds.length > 0
+      },
+      widgetNotes: textValue(source.widgetNotes, MAX_NOTES_LENGTH, false),
+      bookmarkFolderId: textValue(source.bookmarkFolderId, 128),
+      weatherCity: textValue(source.weatherCity, MAX_CITY_LENGTH),
+      rssFeeds
+    };
+  }
 
   function load() {
     return new Promise((resolve) => {
       if (useChromeStorage) {
         chrome.storage.local.get([STORAGE_KEY], (res) => {
           const stored = res[STORAGE_KEY] || {};
-          resolve(Object.assign({}, DEFAULTS, stored, {
-            widgets: Object.assign({}, DEFAULTS.widgets, stored.widgets || {})
-          }));
+          resolve(normalizeSettings(stored));
         });
       } else {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
           const stored = raw ? JSON.parse(raw) : {};
-          resolve(Object.assign({}, DEFAULTS, stored, {
-            widgets: Object.assign({}, DEFAULTS.widgets, stored.widgets || {})
-          }));
+          resolve(normalizeSettings(stored));
         } catch (e) {
-          resolve(Object.assign({}, DEFAULTS, {
-            widgets: Object.assign({}, DEFAULTS.widgets)
-          }));
+          resolve(cloneDefaults());
         }
       }
     });
   }
 
   function save(s) {
+    const normalized = normalizeSettings(s);
+    Object.keys(s).forEach((key) => delete s[key]);
+    Object.assign(s, normalized);
     if (useChromeStorage) {
-      chrome.storage.local.set({ [STORAGE_KEY]: s });
+      chrome.storage.local.set({ [STORAGE_KEY]: normalized });
     } else {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* ignore */ }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      } catch (e) { /* ignore */ }
     }
+    return normalized;
   }
 
   // ---- DOM helpers ----
@@ -128,14 +218,16 @@
   function faviconUrl(url) {
     try {
       const u = new URL(url);
-      return "https://www.google.com/s2/favicons?domain=" + u.hostname + "&sz=64";
+      if (!isWebUrl(url)) return "";
+      return "https://www.google.com/s2/favicons?domain="
+        + encodeURIComponent(u.hostname) + "&sz=64";
     } catch (e) {
       return "";
     }
   }
 
   function renderShortcuts(settings) {
-    shortcutsEl.innerHTML = "";
+    shortcutsEl.replaceChildren();
     if (!settings.showShortcuts) {
       shortcutsEl.style.display = "none";
       return;
@@ -175,14 +267,90 @@
     text.className = "widget-message";
     text.textContent = message;
     card.appendChild(text);
+    return text;
   }
 
-  function isHttpsUrl(value) {
-    try {
-      return new URL(value).protocol === "https:";
-    } catch (e) {
-      return false;
+  async function readBoundedResponse(response, maxBytes, contentTypes) {
+    if (!response.ok) throw new Error("request failed");
+    const contentType = (response.headers.get("content-type") || "")
+      .split(";", 1)[0].trim().toLowerCase();
+    if (!contentTypes.includes(contentType)) throw new Error("unexpected content type");
+    const declaredLength = Number(response.headers.get("content-length"));
+    if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+      throw new Error("response too large");
     }
+    if (!response.body || !response.body.getReader) {
+      const text = await response.text();
+      if (new TextEncoder().encode(text).byteLength > maxBytes) {
+        throw new Error("response too large");
+      }
+      return text;
+    }
+    const reader = response.body.getReader();
+    const chunks = [];
+    let total = 0;
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error("response too large");
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    chunks.forEach((chunk) => {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    });
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function fetchBounded(url, {allowedOrigins, contentTypes, maxBytes}) {
+    const parsed = new URL(url);
+    if (!allowedOrigins.has(parsed.origin)) throw new Error("origin not allowed");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(parsed.href, {
+        signal: controller.signal,
+        redirect: "error",
+        credentials: "omit",
+        cache: "no-store"
+      });
+      return await readBoundedResponse(response, maxBytes, contentTypes);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function rssPermissionOrigins(feeds) {
+    return Array.from(new Set(feeds.map((feed) => `${new URL(feed).origin}/*`)));
+  }
+
+  function checkRssPermissions(feeds, request) {
+    const origins = rssPermissionOrigins(feeds);
+    if (!origins.length) return Promise.resolve(false);
+    if (!window.chrome || !chrome.permissions || !chrome.permissions[request]) {
+      return Promise.resolve(!useChromeStorage);
+    }
+    return new Promise((resolve) => {
+      try {
+        chrome.permissions[request]({origins}, (granted) => resolve(Boolean(granted)));
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
+
+  function hasRssPermissions(feeds) {
+    return checkRssPermissions(feeds, "contains");
+  }
+
+  function requestRssPermissions(feeds) {
+    return checkRssPermissions(feeds, "request");
   }
 
   function chromeBookmarksTree() {
@@ -211,7 +379,7 @@
     return chromeBookmarksTree().then((tree) => {
       const folders = [];
       collectBookmarkFolders(tree, folders, 0);
-      select.innerHTML = "";
+      select.replaceChildren();
       const automatic = document.createElement("option");
       automatic.value = "";
       automatic.textContent = "First bookmark folder";
@@ -257,13 +425,14 @@
   }
 
   function renderLinkList(card, items, emptyMessage) {
-    if (!items.length) {
+    const safeItems = items.filter((item) => item && isWebUrl(item.url));
+    if (!safeItems.length) {
       appendMessage(card, emptyMessage);
       return;
     }
     const list = document.createElement("div");
     list.className = "widget-links";
-    items.forEach((item) => {
+    safeItems.forEach((item) => {
       const link = document.createElement("a");
       link.href = item.url;
       link.textContent = item.title || item.name || item.url;
@@ -308,20 +477,43 @@
       return;
     }
     appendMessage(card, "Loading weather…");
-    fetch("https://geocoding-api.open-meteo.com/v1/search?name=" +
-      encodeURIComponent(city) + "&count=1&language=en&format=json")
-      .then((response) => response.json())
+    const geocodeUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+    geocodeUrl.search = new URLSearchParams({
+      name: city,
+      count: "1",
+      language: "en",
+      format: "json"
+    });
+    fetchBounded(geocodeUrl.href, {
+      allowedOrigins: OPEN_METEO_ORIGINS,
+      contentTypes: ["application/json"],
+      maxBytes: MAX_JSON_BYTES
+    })
+      .then((text) => JSON.parse(text))
       .then((locations) => {
         const location = locations.results && locations.results[0];
         if (!location) throw new Error("city not found");
-        return fetch("https://api.open-meteo.com/v1/forecast?latitude=" +
-          location.latitude + "&longitude=" + location.longitude +
-          "&current=temperature_2m,weather_code&temperature_unit=fahrenheit")
-          .then((response) => response.json())
-          .then((weather) => ({location, weather}));
+        const latitude = Number(location.latitude);
+        const longitude = Number(location.longitude);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          throw new Error("invalid coordinates");
+        }
+        const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
+        forecastUrl.search = new URLSearchParams({
+          latitude: String(latitude),
+          longitude: String(longitude),
+          current: "temperature_2m,weather_code",
+          temperature_unit: "fahrenheit"
+        });
+        return fetchBounded(forecastUrl.href, {
+          allowedOrigins: OPEN_METEO_ORIGINS,
+          contentTypes: ["application/json"],
+          maxBytes: MAX_JSON_BYTES
+        })
+          .then((text) => ({location, weather: JSON.parse(text)}));
       })
       .then(({location, weather}) => {
-        card.querySelector(".widget-message").remove();
+        card.querySelector(".widget-message")?.remove();
         const value = weather.current && weather.current.temperature_2m;
         const unit = weather.current_units && weather.current_units.temperature_2m || "°F";
         const current = document.createElement("p");
@@ -343,10 +535,11 @@
     if (documentNode.querySelector("parsererror")) return [];
     return Array.from(documentNode.querySelectorAll("item, entry")).slice(0, 3)
       .map((item) => {
-        const title = item.querySelector("title")?.textContent?.trim();
+        const rawTitle = item.querySelector("title")?.textContent;
+        const title = textValue(rawTitle, MAX_SHORTCUT_NAME);
         const linkNode = item.querySelector("link");
         const href = linkNode?.getAttribute("href") || linkNode?.textContent?.trim();
-        return {title, url: href};
+        return {title, url: textValue(href, MAX_RSS_FEED_LENGTH)};
       })
       .filter((item) => item.title && isHttpsUrl(item.url));
   }
@@ -357,8 +550,22 @@
       appendMessage(card, "Add up to three HTTPS feeds in NTP settings.");
       return;
     }
+    const allowedOrigins = new Set(feeds.map((feed) => new URL(feed).origin));
     appendMessage(card, "Loading feeds…");
-    Promise.all(feeds.map((url) => fetch(url).then((response) => response.text())))
+    hasRssPermissions(feeds).then((granted) => {
+      if (!granted) throw new Error("RSS permission not granted");
+      return Promise.all(feeds.map((url) => fetchBounded(url, {
+        allowedOrigins,
+        contentTypes: [
+          "application/atom+xml",
+          "application/rss+xml",
+          "application/xml",
+          "text/plain",
+          "text/xml"
+        ],
+        maxBytes: MAX_RSS_BYTES
+      })));
+    })
       .then((documents) => documents.flatMap(parseFeed).slice(0, 3))
       .then((items) => {
         const message = card.querySelector(".widget-message");
@@ -367,13 +574,13 @@
       })
       .catch(() => {
         const message = card.querySelector(".widget-message");
-        if (message) message.textContent = "Feeds are unavailable right now.";
+        if (message) message.textContent = "Feeds are unavailable or not permitted.";
       });
   }
 
   function renderWidgets(settings) {
     const enabled = settings.widgets || {};
-    widgetsEl.innerHTML = "";
+    widgetsEl.replaceChildren();
     if (!Object.values(enabled).some(Boolean)) {
       widgetsEl.style.display = "none";
       return;
@@ -408,7 +615,7 @@
   }
 
   function renderEditor(settings) {
-    editorEl.innerHTML = "";
+    editorEl.replaceChildren();
     settings.shortcuts.forEach((s, i) => {
       const row = document.createElement("div");
       row.className = "shortcut-edit-row";
@@ -452,6 +659,17 @@
   }
 
   // ---- settings panel ----
+  function setRssStatus(message) {
+    const statusEl = $("widget-rss-status");
+    if (statusEl) statusEl.textContent = message;
+  }
+
+  function parseRssFeeds(value) {
+    return Array.from(new Set(String(value || "").split(/\r?\n/)
+      .map((url) => textValue(url, MAX_RSS_FEED_LENGTH))
+      .filter(isHttpsUrl))).slice(0, MAX_RSS_FEEDS);
+  }
+
   function syncToggles(settings) {
     $("opt-clock").checked = settings.showClock;
     $("opt-24h").checked = settings.use24h;
@@ -467,7 +685,12 @@
   }
 
   // ---- bootstrap ----
-  load().then((settings) => {
+  load().then(async (settings) => {
+    if (settings.widgets.rss && !(await hasRssPermissions(settings.rssFeeds))) {
+      settings.widgets.rss = false;
+      save(settings);
+      setRssStatus("RSS access is not granted for the saved feeds.");
+    }
     updateClock(settings);
     setInterval(() => updateClock(settings), 1000);
     renderShortcuts(settings);
@@ -511,14 +734,44 @@
       ["opt-widget-notes", "notes"],
       ["opt-widget-top-sites", "topSites"],
       ["opt-widget-bookmarks", "bookmarks"],
-      ["opt-widget-weather", "weather"],
-      ["opt-widget-rss", "rss"]
+      ["opt-widget-weather", "weather"]
     ].forEach(([id, key]) => {
       $(id).addEventListener("change", (e) => {
         settings.widgets[key] = e.target.checked;
         save(settings);
         renderWidgets(settings);
       });
+    });
+    $("opt-widget-rss").addEventListener("change", async (e) => {
+      if (!e.target.checked) {
+        settings.widgets.rss = false;
+        save(settings);
+        setRssStatus("");
+        renderWidgets(settings);
+        return;
+      }
+      const feeds = parseRssFeeds($("widget-rss-feeds").value);
+      if (!feeds.length) {
+        e.target.checked = false;
+        settings.widgets.rss = false;
+        save(settings);
+        setRssStatus("Add at least one HTTPS feed before enabling RSS.");
+        renderWidgets(settings);
+        return;
+      }
+      if (!(await requestRssPermissions(feeds))) {
+        e.target.checked = false;
+        settings.widgets.rss = false;
+        save(settings);
+        setRssStatus("RSS permission was not granted; no feed was contacted.");
+        renderWidgets(settings);
+        return;
+      }
+      settings.rssFeeds = feeds;
+      settings.widgets.rss = true;
+      save(settings);
+      setRssStatus("RSS access is limited to the saved HTTPS feed origins.");
+      renderWidgets(settings);
     });
     $("widget-bookmark-folder").addEventListener("change", (e) => {
       settings.bookmarkFolderId = e.target.value;
@@ -531,14 +784,29 @@
       renderWidgets(settings);
     });
     $("widget-rss-feeds").addEventListener("change", (e) => {
-      settings.rssFeeds = e.target.value.split(/\r?\n/)
-        .map((url) => url.trim()).filter(isHttpsUrl).slice(0, 3);
-      save(settings);
-      syncToggles(settings);
-      renderWidgets(settings);
+      const feeds = parseRssFeeds(e.target.value);
+      if (!settings.widgets.rss) {
+        settings.rssFeeds = feeds;
+        save(settings);
+        syncToggles(settings);
+        return;
+      }
+      requestRssPermissions(feeds).then((granted) => {
+        if (!granted) {
+          syncToggles(settings);
+          setRssStatus("RSS permission was not granted; saved feeds were unchanged.");
+          return;
+        }
+        settings.rssFeeds = feeds;
+        save(settings);
+        syncToggles(settings);
+        setRssStatus("RSS access is limited to the saved HTTPS feed origins.");
+        renderWidgets(settings);
+      });
     });
     $("add-shortcut").addEventListener("click", () => {
-      settings.shortcuts.push({ name: "New site", url: "https://" });
+      if (settings.shortcuts.length >= MAX_SHORTCUTS) return;
+      settings.shortcuts.push({ name: "New site", url: "https://example.com" });
       save(settings);
       renderEditor(settings);
       renderShortcuts(settings);
