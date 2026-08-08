@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "max_security_age_days": 14,
+  "max_major_lag": 1,
+  "upstream_metadata_schema_version": 1,
+  "sources": {
+    "stable_releases": "https://chromereleases.googleblog.com/",
+    "security_updates": "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/security/updates.md"
+  },
+  "emergency_patch_path": [
+    "Identify the upstream security fix and record its source advisory or commit.",
+    "Apply and review the smallest source or patch-series change that contains the fix.",
+    "Run the normal build verification guards and targeted regression tests.",
+    "Refresh upstream metadata and pass this gate before publishing an artifact.",
+    "Do not use SSL bypass, missing metadata, or a stale override to release."
+  ]
+}

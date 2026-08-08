@@ -7,6 +7,13 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 
 ## [Unreleased] &mdash; v0.2.1
 
+### Build & release pipeline (T4)
+
+- **Chromium security-refresh gate.** Added a dependency-free, fail-closed
+  release gate with a committed 14-day security-age and one-major-release lag
+  policy. It reports the Chromium, ungoogled, and Vigil revisions from the
+  repository plus the signed-off upstream metadata used for the release.
+
 ### Defaults & first-run (T2, T5)
 
 - **Default search engine: DuckDuckGo.** Replaces Google with `suggest_url` keystroke

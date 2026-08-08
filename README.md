@@ -175,6 +175,26 @@ Edit `initial_preferences` -- this is a standard Chromium [initial preferences f
 The supported release path is a local Windows build. Use `python build.py --ci -j N`
 for an incremental compile followed by packaging; it runs the same deterministic smoke checks against the resulting output without reusing a browser session.
 
+### Release refresh gate
+
+Release jobs must run the dependency-free refresh gate before publishing. It
+consumes a reviewable upstream metadata JSON rather than silently querying the
+network during a build:
+
+```bash
+python devutils/release_gate.py \
+  --metadata path/to/upstream-release.json \
+  --format json \
+  --output build/release-gate.json
+```
+
+`release_policy.json` currently requires the Chromium line to be no more than
+one major release behind upstream and the latest stable/security refresh to be
+no more than 14 days old. Missing, future, stale, or insecure metadata fails
+closed. For an emergency security patch, record the upstream advisory or
+commit, apply the smallest reviewed patch, run the normal build checks, refresh
+the metadata, and pass the gate; there is no stale-release override.
+
 ## Credits
 
 - [ungoogled-chromium](https://github.com/Eloston/ungoogled-chromium) by Eloston
