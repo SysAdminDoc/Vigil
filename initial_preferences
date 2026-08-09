@@ -55,6 +55,7 @@
     "allowed_on_next_startup": false
   },
   "enable_do_not_track": true,
+  "vigil.global_privacy_control_enabled": false,
   "privacy_sandbox": {
     "apis_enabled_v2": false,
     "m1": {

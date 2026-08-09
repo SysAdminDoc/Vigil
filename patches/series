@@ -29,3 +29,4 @@ ungoogled-chromium/windows/windows-split-view-defaults.patch
 ungoogled-chromium/windows/windows-enable-reader-mode.patch
 ungoogled-chromium/windows/windows-reader-markdown-export.patch
 ungoogled-chromium/windows/windows-reader-markdown-export-files.patch
+ungoogled-chromium/windows/windows-global-privacy-control.patch

@@ -1,0 +1,483 @@
+--- a/chrome/common/pref_names.h
++++ b/chrome/common/pref_names.h
+@@ -1549,6 +1549,10 @@ inline constexpr char kEnableReferrers[] = "enable_referrers";
+ // Whether to send the DNT header.
+ inline constexpr char kEnableDoNotTrack[] = "enable_do_not_track";
+ 
++// Whether to advertise Global Privacy Control.
++inline constexpr char kVigilGlobalPrivacyControlEnabled[] =
++    "vigil.global_privacy_control_enabled";
++
+ // Whether to allow the use of Encrypted Media Extensions (EME), except for the
+ // use of Clear Key key sytems, which is always allowed as required by the
+ // spec.
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -1425,4 +1425,6 @@ void ChromeContentBrowserClient::RegisterProfilePrefs(
+     user_prefs::PrefRegistrySyncable* registry) {
++  registry->RegisterBooleanPref(prefs::kVigilGlobalPrivacyControlEnabled,
++                                false);
+   registry->RegisterBooleanPref(prefs::kDisable3DAPIs, false);
+   registry->RegisterBooleanPref(prefs::kEnableHyperlinkAuditing, false);
+   // Register user prefs for mapping SitePerProcess and IsolateOrigins in
+@@ -4468,6 +4469,8 @@ void ChromeContentBrowserClient::OverrideWebPreferences(
+   Profile* profile =
+       Profile::FromBrowserContext(web_contents->GetBrowserContext());
+   PrefService* prefs = profile->GetPrefs();
++  web_prefs->global_privacy_control_enabled =
++      prefs->GetBoolean(prefs::kVigilGlobalPrivacyControlEnabled);
+ 
+ // Fill font preferences. These are not registered on Android unless we're built
+ // with extensions (the chrome.fontSettings API can change these).
+@@ -6613,6 +6617,13 @@ void ChromeContentBrowserClient::ConfigureNetworkContextParams(
+     network_context_params->user_agent = GetUserAgent();
+     network_context_params->accept_language = GetApplicationLocale();
+   }
++
++  Profile* profile = Profile::FromBrowserContext(context);
++  if (profile) {
++    network_context_params->global_privacy_control_enabled =
++        profile->GetPrefs()->GetBoolean(
++            prefs::kVigilGlobalPrivacyControlEnabled);
++  }
+ }
+ 
+ std::vector<base::FilePath>
+--- a/third_party/blink/public/web/web_settings.h
++++ b/third_party/blink/public/web/web_settings.h
+@@ -114,6 +114,7 @@ class WebSettings {
+   virtual void SetCaretBrowsingEnabled(bool) = 0;
+   virtual void SetClobberUserAgentInitialScaleQuirk(bool) = 0;
+   virtual void SetCookieEnabled(bool) = 0;
++  virtual void SetGlobalPrivacyControlEnabled(bool) = 0;
+   virtual void SetCursiveFontFamily(const WebString&,
+                                     UScriptCode = USCRIPT_COMMON) = 0;
+   virtual void SetDNSPrefetchingEnabled(bool) = 0;
+--- a/third_party/blink/renderer/core/exported/web_settings_impl.h
++++ b/third_party/blink/renderer/core/exported/web_settings_impl.h
+@@ -70,6 +70,7 @@ class CORE_EXPORT WebSettingsImpl final : public WebSettings {
+   void SetAutoZoomFocusedEditableToLegibleScale(bool) override;
+   void SetClobberUserAgentInitialScaleQuirk(bool) override;
+   void SetCookieEnabled(bool) override;
++  void SetGlobalPrivacyControlEnabled(bool) override;
+   void SetCaretBrowsingEnabled(bool) override;
+   void SetCursiveFontFamily(const WebString&,
+                             UScriptCode = USCRIPT_COMMON) override;
+--- a/third_party/blink/renderer/core/exported/web_settings_impl.cc
++++ b/third_party/blink/renderer/core/exported/web_settings_impl.cc
+@@ -666,6 +666,10 @@ void WebSettingsImpl::SetCookieEnabled(bool enabled) {
+   dev_tools_emulator_->SetCookieEnabled(enabled);
+ }
+ 
++void WebSettingsImpl::SetGlobalPrivacyControlEnabled(bool enabled) {
++  settings_->SetGlobalPrivacyControlEnabled(enabled);
++}
++
+ void WebSettingsImpl::SetAllowCustomScrollbarInMainFrame(bool enabled) {
+   settings_->SetAllowCustomScrollbarInMainFrame(enabled);
+ }
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -391,5 +391,7 @@ void RegisterPrefsForSettingsPrivate(
+   (*s_allowlist)[::prefs::kBlockAll3pcToggleEnabled] =
+       settings_api::PrefType::kBoolean;
+   (*s_allowlist)[::prefs::kEnableDoNotTrack] = settings_api::PrefType::kBoolean;
++  (*s_allowlist)[::prefs::kVigilGlobalPrivacyControlEnabled] =
++      settings_api::PrefType::kBoolean;
+ 
+   // Sync and personalization page.
+--- a/chrome/browser/ui/prefs/pref_watcher.cc
++++ b/chrome/browser/ui/prefs/pref_watcher.cc
+@@ -24,6 +24,8 @@
+ #include "components/prefs/pref_change_registrar.h"
+ #include "content/public/browser/browser_context.h"
++#include "content/public/browser/storage_partition.h"
+ #include "mojo/public/cpp/bindings/pending_remote.h"
+ #include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
+ #include "third_party/blink/public/mojom/renderer_preference_watcher.mojom.h"
++#include "services/network/public/mojom/network_context.mojom.h"
+ #include "ui/native_theme/native_theme.h"
+@@ -81,3 +83,4 @@ const char* const kWebPrefsToObserve[] = {
+ #endif
+     prefs::kPageColorsBlockList,
++    prefs::kVigilGlobalPrivacyControlEnabled,
+ };
+@@ -198,7 +201,15 @@ void PrefWatcher::UpdateRendererPreferences() {
+ }
+ 
+ void PrefWatcher::OnWebPrefChanged(const std::string& pref_name) {
++  if (pref_name == prefs::kVigilGlobalPrivacyControlEnabled) {
++    profile_->GetDefaultStoragePartition()
++        ->GetNetworkContext()
++        ->SetGlobalPrivacyControlEnabled(
++            profile_->GetPrefs()->GetBoolean(
++                prefs::kVigilGlobalPrivacyControlEnabled));
++  }
++
+   for (PrefsTabHelper* helper : tab_helpers_) {
+     helper->OnWebPrefChanged(pref_name);
+   }
+ }
+--- a/chrome/browser/chrome_do_not_track_browsertest.cc
++++ b/chrome/browser/chrome_do_not_track_browsertest.cc
+@@ -29,6 +29,11 @@ class ChromeDoNotTrackTest : public InProcessBrowserTest {
+     prefs->SetBoolean(prefs::kEnableDoNotTrack, enabled);
+   }
+ 
++  void SetGlobalPrivacyControl(bool enabled) {
++    browser()->profile()->GetPrefs()->SetBoolean(
++        prefs::kVigilGlobalPrivacyControlEnabled, enabled);
++  }
++
+   void ExpectPageTextEq(const std::string& expected_content) {
+     EXPECT_EQ(expected_content,
+               EvalJs(browser()->tab_strip_model()->GetActiveWebContents(),
+@@ -52,6 +57,37 @@ IN_PROC_BROWSER_TEST_F(ChromeDoNotTrackTest, Enabled) {
+   ExpectPageTextEq("1");
+ }
+ 
++IN_PROC_BROWSER_TEST_F(ChromeDoNotTrackTest, GlobalPrivacyControlDisabled) {
++  ASSERT_TRUE(embedded_test_server()->Start());
++  SetGlobalPrivacyControl(false /* enabled */);
++
++  ASSERT_TRUE(ui_test_utils::NavigateToURL(
++      browser(), embedded_test_server()->GetURL("/echoheader?Sec-GPC")));
++  EXPECT_EQ(false, EvalJs(GetWebContents(),
++                          "navigator.globalPrivacyControl"));
++  ExpectPageTextEq("None");
++}
++
++IN_PROC_BROWSER_TEST_F(ChromeDoNotTrackTest, GlobalPrivacyControlEnabled) {
++  ASSERT_TRUE(embedded_test_server()->Start());
++  SetGlobalPrivacyControl(true /* enabled */);
++
++  ASSERT_TRUE(ui_test_utils::NavigateToURL(
++      browser(), embedded_test_server()->GetURL("/echoheader?Sec-GPC")));
++  EXPECT_EQ(true, EvalJs(GetWebContents(),
++                         "navigator.globalPrivacyControl"));
++  ExpectPageTextEq("1");
++
++  // Preference changes update both existing renderer settings and the
++  // profile network context without requiring a restart.
++  SetGlobalPrivacyControl(false /* enabled */);
++  EXPECT_EQ(false, EvalJs(GetWebContents(),
++                          "navigator.globalPrivacyControl"));
++  EXPECT_EQ("None", EvalJs(GetWebContents(),
++                           "fetch('/echoheader?Sec-GPC').then(response => "
++                           "response.text());"));
++}
++
+ // Checks that the DNT header is preserved when fetching from a dedicated
+ // worker.
+ IN_PROC_BROWSER_TEST_F(ChromeDoNotTrackTest, FetchFromWorker) {
+--- a/third_party/blink/public/common/web_preferences/web_preferences.h
++++ b/third_party/blink/public/common/web_preferences/web_preferences.h
+@@ -196,6 +196,9 @@ struct BLINK_COMMON_EXPORT WebPreferences {
+   // without raising a DOM security exception.
+   bool cookie_enabled = true;
+ 
++  // Whether navigator.globalPrivacyControl reports the user's opt-in.
++  bool global_privacy_control_enabled = false;
++
+   // This flag indicates whether H/W accelerated video decode is enabled.
+   // Defaults to false.
+   bool accelerated_video_decode_enabled = false;
+--- a/third_party/blink/public/mojom/webpreferences/web_preferences.mojom
++++ b/third_party/blink/public/mojom/webpreferences/web_preferences.mojom
+@@ -232,6 +232,8 @@ struct WebPreferences {
+   // without raising a DOM security exception.
+   bool cookie_enabled;
+ 
++  bool global_privacy_control_enabled;
++
+   // This flag indicates whether H/W accelerated video decode is enabled.
+   // Defaults to false.
+   bool accelerated_video_decode_enabled;
+--- a/third_party/blink/public/common/web_preferences/web_preferences_mojom_traits.h
++++ b/third_party/blink/public/common/web_preferences/web_preferences_mojom_traits.h
+@@ -448,6 +448,11 @@ struct StructTraits<blink::mojom::WebPreferencesDataView,
+     return r.cookie_enabled;
+   }
+ 
++  static bool global_privacy_control_enabled(
++      const blink::web_pref::WebPreferences& r) {
++    return r.global_privacy_control_enabled;
++  }
++
+   static bool accelerated_video_decode_enabled(
+       const blink::web_pref::WebPreferences& r) {
+     return r.accelerated_video_decode_enabled;
+--- a/third_party/blink/common/web_preferences/web_preferences_mojom_traits.cc
++++ b/third_party/blink/common/web_preferences/web_preferences_mojom_traits.cc
+@@ -154,5 +154,7 @@ bool StructTraits<blink::mojom::WebPreferencesDataView,
+   out->stylus_handwriting_enabled = data.stylus_handwriting_enabled();
+   out->cookie_enabled = data.cookie_enabled();
++  out->global_privacy_control_enabled =
++      data.global_privacy_control_enabled();
+   out->accelerated_video_decode_enabled =
+       data.accelerated_video_decode_enabled();
+   out->user_gesture_required_for_presentation =
+--- a/third_party/blink/renderer/core/frame/settings.json5
++++ b/third_party/blink/renderer/core/frame/settings.json5
+@@ -331,6 +331,10 @@
+       name: "cookieEnabled",
+       initial: true,
+     },
++    {
++      name: "globalPrivacyControlEnabled",
++      initial: false,
++    },
+     {
+       name: "navigateOnDragDrop",
+       initial: true,
+--- a/third_party/blink/renderer/core/exported/web_view_impl.cc
++++ b/third_party/blink/renderer/core/exported/web_view_impl.cc
+@@ -1660,1 +1660,3 @@
+  settings->SetCookieEnabled(prefs.cookie_enabled);
++  settings->SetGlobalPrivacyControlEnabled(
++      prefs.global_privacy_control_enabled);
+--- /dev/null
++++ b/third_party/blink/renderer/core/frame/navigator_global_privacy_control.idl
+@@ -0,0 +1,8 @@
++// Copyright 2026 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++// https://www.w3.org/TR/gpc/
++interface mixin NavigatorGlobalPrivacyControl {
++  readonly attribute boolean globalPrivacyControl;
++};
+--- a/third_party/blink/renderer/core/frame/navigator.idl
++++ b/third_party/blink/renderer/core/frame/navigator.idl
+@@ -27,4 +27,5 @@ Navigator includes NavigatorConcurrentHardware;
+ Navigator includes NavigatorCookies;
++Navigator includes NavigatorGlobalPrivacyControl;
+ Navigator includes NavigatorDeviceMemory;
+ Navigator includes NavigatorID;
+ Navigator includes NavigatorLanguage;
+--- a/third_party/blink/renderer/core/workers/worker_navigator.idl
++++ b/third_party/blink/renderer/core/workers/worker_navigator.idl
+@@ -32,6 +32,7 @@ interface WorkerNavigator {
+ };
+ 
+ WorkerNavigator includes NavigatorConcurrentHardware;
++WorkerNavigator includes NavigatorGlobalPrivacyControl;
+ WorkerNavigator includes NavigatorDeviceMemory;
+ WorkerNavigator includes NavigatorID;
+ WorkerNavigator includes NavigatorLanguage;
+--- a/third_party/blink/renderer/bindings/idl_in_core.gni
++++ b/third_party/blink/renderer/bindings/idl_in_core.gni
+@@ -319,5 +319,6 @@ static_idl_files_in_core = [
+   "//third_party/blink/renderer/core/frame/navigator_automation_information.idl",
+   "//third_party/blink/renderer/core/frame/navigator_concurrent_hardware.idl",
+   "//third_party/blink/renderer/core/frame/navigator_cookies.idl",
++  "//third_party/blink/renderer/core/frame/navigator_global_privacy_control.idl",
+   "//third_party/blink/renderer/core/frame/navigator_cpu_performance.idl",
+   "//third_party/blink/renderer/core/frame/navigator_device_memory.idl",
+--- a/third_party/blink/renderer/core/frame/navigator.h
++++ b/third_party/blink/renderer/core/frame/navigator.h
+@@ -37,5 +37,8 @@ class CORE_EXPORT Navigator final : public NavigatorBase,
+   // NavigatorCookies
+   bool cookieEnabled() const;
+ 
++  // NavigatorGlobalPrivacyControl
++  bool globalPrivacyControl() const;
++
+   bool webdriver() const;
+   String productSub() const;
+--- a/third_party/blink/renderer/core/frame/navigator.cc
++++ b/third_party/blink/renderer/core/frame/navigator.cc
+@@ -98,6 +98,14 @@ bool Navigator::cookieEnabled() const {
+  return cookie_enabled;
+ }
+ 
++bool Navigator::globalPrivacyControl() const {
++  if (!DomWindow()) {
++    return false;
++  }
++  Settings* settings = DomWindow()->GetFrame()->GetSettings();
++  return settings && settings->GetGlobalPrivacyControlEnabled();
++}
++
+ bool Navigator::webdriver() const {
+   if (RuntimeEnabledFeatures::AutomationControlledEnabled())
+     return true;
+--- a/third_party/blink/renderer/core/workers/worker_navigator.h
++++ b/third_party/blink/renderer/core/workers/worker_navigator.h
+@@ -43,4 +43,7 @@ class CORE_EXPORT WorkerNavigator final : public NavigatorBase,
+   ~WorkerNavigator() override;
+ 
++  // NavigatorGlobalPrivacyControl
++  bool globalPrivacyControl() const;
++
+   // NavigatorLanguage override
+   String GetAcceptLanguages() override;
+--- a/third_party/blink/renderer/core/workers/worker_navigator.cc
++++ b/third_party/blink/renderer/core/workers/worker_navigator.cc
+@@ -31,4 +31,5 @@
+ #include "third_party/blink/renderer/core/workers/worker_global_scope.h"
+ #include "third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.h"
++#include "third_party/blink/renderer/core/workers/worker_settings.h"
+ #include "third_party/blink/renderer/core/workers/worker_thread.h"
+ #include "third_party/blink/renderer/platform/loader/fetch/resource_fetcher.h"
+@@ -39,6 +40,15 @@ WorkerNavigator::WorkerNavigator(ExecutionContext* context)
+ 
+ WorkerNavigator::~WorkerNavigator() = default;
+ 
++bool WorkerNavigator::globalPrivacyControl() const {
++  auto* global_scope = DynamicTo<WorkerGlobalScope>(GetExecutionContext());
++  if (!global_scope || !global_scope->GetWorkerSettings()) {
++    return false;
++  }
++  return global_scope->GetWorkerSettings()
++      ->GetGlobalPrivacyControlEnabled();
++}
++
+ String WorkerNavigator::GetAcceptLanguages() {
+   auto* global_scope =
+       To<WorkerOrWorkletGlobalScope>(GetExecutionContext());
+--- a/third_party/blink/renderer/core/workers/worker_settings.h
++++ b/third_party/blink/renderer/core/workers/worker_settings.h
+@@ -39,5 +39,8 @@ class CORE_EXPORT WorkerSettings {
+   bool GetStrictlyBlockBlockableMixedContent() const {
+     return strictly_block_blockable_mixed_content_;
+   }
++  bool GetGlobalPrivacyControlEnabled() const {
++    return global_privacy_control_enabled_;
++  }
+ 
+   const GenericFontFamilySettings& GetGenericFontFamilySettings() const {
+@@ -57,4 +60,5 @@ class CORE_EXPORT WorkerSettings {
+   bool allow_running_of_insecure_content_ = false;
+   bool strictly_block_blockable_mixed_content_ = false;
++  bool global_privacy_control_enabled_ = false;
+ 
+   GenericFontFamilySettings generic_font_family_settings_;
+--- a/third_party/blink/renderer/core/workers/worker_settings.cc
++++ b/third_party/blink/renderer/core/workers/worker_settings.cc
+@@ -38,5 +38,7 @@ WorkerSettings::Copy(WorkerSettings* old_settings) {
+       old_settings->allow_running_of_insecure_content_;
+   new_settings->strictly_block_blockable_mixed_content_ =
+       old_settings->strictly_block_blockable_mixed_content_;
++  new_settings->global_privacy_control_enabled_ =
++      old_settings->global_privacy_control_enabled_;
+   new_settings->generic_font_family_settings_ =
+       old_settings->generic_font_family_settings_;
+@@ -51,5 +53,7 @@ void WorkerSettings::CopyFlagValuesFromSettings(Settings* settings) {
+       settings->GetAllowRunningOfInsecureContent();
+  strictly_block_blockable_mixed_content_ =
+       settings->GetStrictlyBlockBlockableMixedContent();
++  global_privacy_control_enabled_ =
++      settings->GetGlobalPrivacyControlEnabled();
+   generic_font_family_settings_ = settings->GetGenericFontFamilySettings();
+ }
+--- a/services/network/public/mojom/network_context.mojom
++++ b/services/network/public/mojom/network_context.mojom
+@@ -504,6 +504,9 @@ struct NetworkContextParams {
+   // network::url_request.cors_exempt_headers.
+   array<string> cors_exempt_header_list;
+ 
++  // Whether URLLoader requests should advertise the profile's GPC choice.
++  bool global_privacy_control_enabled = false;
++
+   // List of single-label hostnames that are exempted from the HSTS upgrade
+   // policy.
+   array<string> hsts_policy_bypass_list;
+@@ -1802,5 +1805,8 @@ interface NetworkContext {
+   // Request that the network service prioritizes QUIC connections to the given
+   // origins.
+   AddQuicHints(array<url.mojom.SchemeHostPort> origins,
+                NetworkAnonymizationKey network_anonymization_key);
++
++  // Updates whether this profile advertises Global Privacy Control.
++  SetGlobalPrivacyControlEnabled(bool enabled);
+ };
+--- a/services/network/network_context.h
++++ b/services/network/network_context.h
+@@ -213,4 +213,8 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
+     return &cors_exempt_header_list_;
+   }
+ 
++  bool global_privacy_control_enabled() const {
++    return global_privacy_control_enabled_;
++  }
++
+ #if BUILDFLAG(IS_ANDROID)
+@@ -244,5 +248,6 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
+   void SetClient(
+       mojo::PendingRemote<mojom::NetworkContextClient> client) override;
++  void SetGlobalPrivacyControlEnabled(bool enabled) override;
+   void CreateURLLoaderFactory(
+       mojo::PendingReceiver<mojom::URLLoaderFactory> receiver,
+       mojom::URLLoaderFactoryParamsPtr params) override;
+@@ -989,5 +994,7 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) NetworkContext
+   // ResourceRequest::cors_exempt_headers.
+   base::flat_set<std::string> cors_exempt_header_list_;
+ 
++  bool global_privacy_control_enabled_ = false;
++
+   // Manages CORS preflight requests and its cache.
+   cors::PreflightController cors_preflight_controller_;
+--- a/services/network/network_context.cc
++++ b/services/network/network_context.cc
+@@ -692,4 +694,6 @@ NetworkContext::NetworkContext(
+       prefetch_cache_(prefetch_enabled_ ? std::make_unique<PrefetchCache>()
+                                         : nullptr) {
++  global_privacy_control_enabled_ = params_->global_privacy_control_enabled;
++
+ #if BUILDFLAG(IS_WIN) && DCHECK_IS_ON()
+   if (params_->file_paths) {
+@@ -1024,6 +1028,10 @@ void NetworkContext::SetClient(
+   client_.Bind(std::move(client));
+ }
+ 
++void NetworkContext::SetGlobalPrivacyControlEnabled(bool enabled) {
++  global_privacy_control_enabled_ = enabled;
++}
++
+ void NetworkContext::CreateURLLoaderFactory(
+     mojo::PendingReceiver<mojom::URLLoaderFactory> receiver,
+     mojom::URLLoaderFactoryParamsPtr params) {
+--- a/services/network/url_loader_context.h
++++ b/services/network/url_loader_context.h
+@@ -38,4 +38,5 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) URLLoaderContext {
+  public:
+   virtual bool ShouldRequireIsolationInfo() const = 0;
++  virtual bool GlobalPrivacyControlEnabled() const { return false; }
+   virtual const cors::OriginAccessList& GetOriginAccessList() const = 0;
+   virtual const mojom::URLLoaderFactoryParams& GetFactoryParams() const = 0;
+--- a/services/network/url_loader_factory.h
++++ b/services/network/url_loader_factory.h
+@@ -74,5 +74,6 @@ class URLLoaderFactory : public mojom::URLLoaderFactory,
+ 
+   // URLLoaderContext implementation.
+   bool ShouldRequireIsolationInfo() const override;
++  bool GlobalPrivacyControlEnabled() const override;
+   const cors::OriginAccessList& GetOriginAccessList() const override;
+   const mojom::URLLoaderFactoryParams& GetFactoryParams() const override;
+--- a/services/network/url_loader_factory.cc
++++ b/services/network/url_loader_factory.cc
+@@ -173,5 +173,9 @@ bool URLLoaderFactory::ShouldRequireIsolationInfo() const {
+   return context_->require_network_anonymization_key();
+ }
+ 
++bool URLLoaderFactory::GlobalPrivacyControlEnabled() const {
++  return context_->global_privacy_control_enabled();
++}
++
+ scoped_refptr<ResourceSchedulerClient>
+ URLLoaderFactory::GetResourceSchedulerClient() const {
+--- a/services/network/url_loader.cc
++++ b/services/network/url_loader.cc
+@@ -521,6 +521,11 @@ URLLoader::URLLoader(
+   url_loader_util::ConfigureUrlRequest(request, *factory_params_,
+                                        *origin_access_list_, *url_request_,
+                                        shared_resource_checker);
++  if (context.GlobalPrivacyControlEnabled() &&
++      request.url.SchemeIsHTTPOrHTTPS()) {
++    url_request_->SetExtraRequestHeaderByName("Sec-GPC", "1",
++                                               /*overwrite=*/true);
++  }
+   if (context.ShouldRequireIsolationInfo()) {
+     DCHECK(!url_request_->isolation_info().IsEmpty());
+   }

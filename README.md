@@ -82,6 +82,16 @@ enabled, its reporting uploads remain disabled, and no telemetry endpoint is
 configured. The offline `devutils/privacy_probe.py` checks this source-level
 fresh-profile contract without launching Chromium or contacting a service.
 
+### Opt-in Global Privacy Control
+
+`chrome://settings` exposes an opt-in Global Privacy Control toggle. It is off
+by default. When enabled, profile HTTP(S) requests send `Sec-GPC: 1`, and
+`navigator.globalPrivacyControl` is true in windows and workers. The signal is
+only a request to honor the user's privacy preference: sites may ignore it, and
+it is not a legal-compliance guarantee. Preference changes apply without a
+restart. See the [W3C GPC specification](https://www.w3.org/TR/gpc/) and
+[MDN's Sec-GPC reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-GPC).
+
 ### Extension permission boundaries
 
 The bundled NTP declares only its fixed weather origins. RSS is opt-in and uses

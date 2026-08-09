@@ -58,6 +58,10 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **Local profile migration.** Added a versioned JSON export/import tool for
   selected NTP settings, shortcuts, notes, and HTTP(S) bookmarks with dry-run
   conflict reporting and explicit password, cookie, and history exclusion.
+- **Opt-in Global Privacy Control.** Added an off-by-default settings toggle,
+  `Sec-GPC: 1` header injection, Window/Worker DOM exposure, and a browser
+  fixture covering enabled/disabled behavior. The signal is advisory and is not
+  a legal-compliance guarantee.
 
 ### Defaults & first-run (T2, T5)
 
