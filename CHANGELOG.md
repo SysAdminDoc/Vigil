@@ -5,7 +5,7 @@ All notable changes to **Vigil Browser** are documented in this file. Format fol
 stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for example
 `0.2.1-c145.0.7632.159`.
 
-## [Unreleased] &mdash; v0.2.1
+## [Unreleased] &mdash; v0.2.2
 
 ### Build & release pipeline (T4)
 

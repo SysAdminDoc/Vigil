@@ -1,5 +1,5 @@
 PackageIdentifier: SysAdminDoc.Vigil
-PackageVersion: 0.2.1
+PackageVersion: 0.2.2
 PackageLocale: en-US
 Publisher: SysAdminDoc
 PublisherUrl: https://github.com/SysAdminDoc
@@ -23,6 +23,6 @@ Tags:
   - ublock
   - sysadmin
   - hardened
-ReleaseNotesUrl: https://github.com/SysAdminDoc/Vigil/releases/tag/v0.2.1
+ReleaseNotesUrl: https://github.com/SysAdminDoc/Vigil/releases/tag/v0.2.2
 ManifestType: defaultLocale
 ManifestVersion: 1.6.0

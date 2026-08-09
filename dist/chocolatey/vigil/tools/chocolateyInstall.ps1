@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 $toolsDir   = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $packageName = 'vigil'
-$version     = '0.2.1'
+$version     = '0.2.2'
 $artifactRevision = '1.1'
 $urlBase     = "https://github.com/SysAdminDoc/Vigil/releases/download/v$version"
 
