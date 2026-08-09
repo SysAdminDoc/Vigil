@@ -281,6 +281,7 @@ def generate_receipt(
         update_manifests(repo_root, records)
     manifest_checks = inspect_manifests(repo_root)
     manifests_passed = all(check["passed"] for check in manifest_checks)
+    insecure_downloads = os.environ.get("VIGIL_SSL_VERIFICATION_DISABLED") == "1"
     installer_architectures = set(_artifact_map(records, "installer"))
     archive_architectures = set(_artifact_map(records, "archive"))
     required_architectures = set(inputs["release_architectures"])
@@ -292,13 +293,15 @@ def generate_receipt(
     report = {
         "schema_version": RECEIPT_SCHEMA_VERSION,
         "status": "pass" if (
-            not strict_manifests or (manifests_passed and artifact_contract_passed)
+            not strict_manifests
+            or (manifests_passed and artifact_contract_passed and not insecure_downloads)
         ) else "fail",
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "signing": {"status": "unsigned", "required": False},
         "environment": {
             "python": platform.python_version(),
             "platform": platform.platform(),
+            "ssl_verification_disabled": insecure_downloads,
         },
         "source": inputs,
         "extensions": _extension_inputs(repo_root),
@@ -315,6 +318,12 @@ def generate_receipt(
             "strict": strict_manifests,
             "passed": manifests_passed,
             "manifests": manifest_checks,
+        },
+        "release_safety": {
+            "insecure_downloads": {
+                "enabled": insecure_downloads,
+                "passed": not insecure_downloads,
+            },
         },
     }
     if output:

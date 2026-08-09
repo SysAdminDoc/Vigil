@@ -36,6 +36,8 @@ def test_readme_documents_the_executable_release_contract():
         "python package.py --offline",
         "python -m pytest -q",
         "python -m ruff check .",
+        "python devutils/build_preflight.py",
+        "python build.py --ci --offline --preflight",
         "python devutils/privacy_probe.py",
         "python devutils/smoke_test.py --build-out build/src/out/Default",
     ):

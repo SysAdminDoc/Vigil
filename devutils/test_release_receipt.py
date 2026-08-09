@@ -130,7 +130,28 @@ def test_strict_receipt_fails_placeholders_then_updates_all_manifests(tmp_path):
     ).read_text(encoding="utf-8")
 
 
-def test_strict_receipt_reports_missing_architecture(tmp_path):
+def test_strict_receipt_rejects_insecure_download_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("VIGIL_SSL_VERIFICATION_DISABLED", "1")
+    build = seed_repo(tmp_path, architectures=("x64", "x86", "arm64"))
+
+    report = generate_receipt(
+        tmp_path,
+        artifact_dir=build,
+        strict_manifests=True,
+        update_package_manifests=True,
+        release_base_url="https://example.test/releases/v0.2.1",
+    )
+
+    assert report["status"] == "fail"
+    assert report["environment"]["ssl_verification_disabled"] is True
+    assert report["release_safety"]["insecure_downloads"] == {
+        "enabled": True,
+        "passed": False,
+    }
+
+
+def test_strict_receipt_reports_missing_architecture(tmp_path, monkeypatch):
+    monkeypatch.delenv("VIGIL_SSL_VERIFICATION_DISABLED", raising=False)
     build = seed_repo(tmp_path, architectures=("x64",))
 
     report = generate_receipt(tmp_path, artifact_dir=build, strict_manifests=True)

@@ -173,7 +173,22 @@ python package.py
 
 # Package without network access after seeding build/download_cache/
 python package.py --offline
+
+# Validate a seeded incremental cache before any build mutation
+python devutils/build_preflight.py
+python build.py --ci --offline --preflight
 ```
+
+Offline builds are fail-closed. An incremental preflight checks the existing
+source tree and the exact SHA-256-pinned uBlock archive; a fresh `--tarball`
+build additionally enumerates every ungoogled-Chromium download and rejects
+missing or unfinished `.partial` files before extraction. Build and package
+staging uses sibling temporary paths with recoverable promotion, so an
+interrupted run can be resumed after the preflight passes. Compare incremental
+and fresh-tarball outputs only after both use the same `toolchain.json`, source
+revision, architecture, and deterministic timestamp inputs. The SSL bypass
+flag is development-only, requires `VIGIL_DEV_ALLOW_INSECURE_DOWNLOADS=1`, and
+strict release receipts reject artifacts produced with it.
 
 ### Release source of truth
 
@@ -249,6 +264,7 @@ The repository checks can be run without a browser session:
 ```bash
 python -m pytest -q
 python -m ruff check .
+python devutils/build_preflight.py
 python devutils/privacy_probe.py
 python devutils/smoke_test.py --build-out build/src/out/Default
 node --check ntp-extension/newtab.js

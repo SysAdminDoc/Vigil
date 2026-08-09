@@ -422,7 +422,8 @@ def main():
     parser.add_argument(
         '--disable-ssl-verification',
         action='store_true',
-        help='Disables SSL verification for downloading')
+        help=('DEV ONLY: disable SSL verification; requires '
+              'VIGIL_DEV_ALLOW_INSECURE_DOWNLOADS=1 and cannot be used by CI/offline builds'))
     parser.add_argument(
         '--7z-path',
         dest='sevenz_path',
@@ -460,11 +461,56 @@ def main():
         '--offline',
         action='store_true',
         help='Refuse network access while staging pinned extension assets.')
+    parser.add_argument(
+        '--preflight',
+        action='store_true',
+        help='Verify cache/source inputs and exit without mutating the build tree.')
     args = parser.parse_args()
+
+    if args.disable_ssl_verification and (
+        args.ci
+        or args.offline
+        or os.environ.get('VIGIL_DEV_ALLOW_INSECURE_DOWNLOADS') != '1'
+    ):
+        parser.error(
+            '--disable-ssl-verification is development-only; set '
+            'VIGIL_DEV_ALLOW_INSECURE_DOWNLOADS=1 and do not combine it with '
+            '--ci or --offline')
+    if args.disable_ssl_verification:
+        # Carry the fact that the bypass was actually used into the package
+        # subprocess and its strict release receipt. The allow-list variable
+        # alone is permission, not evidence that a bypass occurred.
+        os.environ['VIGIL_SSL_VERIFICATION_DISABLED'] = '1'
+    if args.offline and not args.ci and not args.tarball:
+        parser.error('--offline requires --ci for an existing source tree or --tarball for a seeded source archive')
 
     # Set common variables
     source_tree = _ROOT_DIR / 'build' / 'src'
     downloads_cache = _ROOT_DIR / 'build' / 'download_cache'
+
+    source_ready = (source_tree / 'BUILD.gn').exists()
+    if args.offline or args.preflight:
+        if not source_ready and not args.tarball:
+            parser.error(
+                'offline preflight requires an existing build/src/BUILD.gn or '
+                '--tarball; refusing a network clone')
+        from devutils.build_preflight import run_preflight, PreflightError
+
+        mode = 'fresh-tarball' if args.tarball or not source_ready else 'incremental'
+        try:
+            report = run_preflight(
+                _ROOT_DIR,
+                cache_dir=downloads_cache,
+                build_out=source_tree / 'out' / 'Default',
+                mode=mode,
+            )
+        except (OSError, PreflightError) as exc:
+            parser.error(f'build preflight failed: {exc}')
+        print(f"Build preflight: {'PASS' if report['passed'] else 'FAIL'} ({mode})")
+        if not report['passed']:
+            parser.error('required cached inputs are missing or invalid')
+        if args.preflight:
+            return
 
     if not args.ci or not (source_tree / 'BUILD.gn').exists():
         # Setup environment

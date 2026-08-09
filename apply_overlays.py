@@ -11,9 +11,41 @@ Also installs the custom New Tab Page and applies branding from branding.json.
 """
 
 import json
+import os
 import shutil
 import sys
+import tempfile
 from pathlib import Path
+
+
+def _atomic_copy(source, target):
+    """Promote one overlay file without exposing a partial write."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f'.{target.name}.stage-', dir=target.parent)
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        shutil.copy2(source, temporary)
+        os.replace(temporary, target)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def _atomic_write(path, content):
+    """Write generated overlay text through a sibling temporary file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f'.{path.name}.stage-', dir=path.parent)
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        temporary.write_text(content, encoding='utf-8')
+        os.replace(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
 
 
 def apply_chromium_src_overlays(root_dir, source_tree):
@@ -36,7 +68,7 @@ def apply_chromium_src_overlays(root_dir, source_tree):
             shutil.copy2(dst_file, backup)
 
         dst_file.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src_file, dst_file)
+        _atomic_copy(src_file, dst_file)
         count += 1
         print(f'  Overlay: {rel_path}')
 
@@ -63,7 +95,7 @@ def apply_policy_theme_overlay(root_dir, source_tree):
         if needle not in html:
             print('  Policy WebUI stylesheet insertion point is missing, skipping.')
             return
-        html_path.write_text(html.replace(needle, replacement, 1), encoding='utf-8')
+        _atomic_write(html_path, html.replace(needle, replacement, 1))
 
     build = build_path.read_text(encoding='utf-8')
     build_marker = '    "vigil_policy_theme.css",'
@@ -72,8 +104,7 @@ def apply_policy_theme_overlay(root_dir, source_tree):
         if needle not in build:
             print('  Policy WebUI resource insertion point is missing, skipping.')
             return
-        build_path.write_text(build.replace(needle, needle + build_marker + '\n', 1),
-                              encoding='utf-8')
+        _atomic_write(build_path, build.replace(needle, needle + build_marker + '\n', 1))
 
     print('  Wired Vigil theme into the chrome://policy WebUI.')
 
@@ -108,7 +139,7 @@ def install_ntp(root_dir, source_tree):
         rel = f.relative_to(ntp_dir)
         dst = ntp_target / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(f, dst)
+        _atomic_copy(f, dst)
         print(f'  NTP asset: {rel}')
 
 
@@ -160,14 +191,14 @@ def install_icons(root_dir, source_tree):
             if dst.exists():
                 backup = dst.with_suffix(dst.suffix + '.orig')
                 if not backup.exists():
-                    shutil.copy2(dst, backup)
-                shutil.copy2(src, dst)
+                    _atomic_copy(dst, backup)
+                _atomic_copy(src, dst)
                 count += 1
                 print(f'  Icon: {src_name} -> {target_rel}')
             else:
                 # Target doesn't exist yet; create parent and copy
                 dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src, dst)
+                _atomic_copy(src, dst)
                 count += 1
                 print(f'  Icon (new): {src_name} -> {target_rel}')
 
@@ -198,7 +229,7 @@ def apply_branding(root_dir, source_tree):
         content = content.replace('Chromium', browser_name)
         if company:
             content = content.replace('The Chromium Authors', company)
-        branding_path.write_text(content, encoding='utf-8')
+        _atomic_write(branding_path, content)
         print(f'  Branded: {branding_path.relative_to(source_tree)}')
 
     # Replace browser name in string resources
@@ -212,7 +243,7 @@ def apply_branding(root_dir, source_tree):
             content = fpath.read_text(encoding='utf-8')
             if 'Chromium' in content:
                 content = content.replace('Chromium', browser_name)
-                fpath.write_text(content, encoding='utf-8')
+                _atomic_write(fpath, content)
                 print(f'  Strings: {rel_path}')
 
     print(f'  Branding applied: {browser_name} by {company}')
@@ -250,7 +281,7 @@ def apply_version_toolchain_overlay(root_dir, source_tree):
     if needle not in content:
         print('  chrome://version insertion point is missing, skipping.')
         return
-    version_page.write_text(content.replace(needle, row + needle, 1), encoding='utf-8')
+    _atomic_write(version_page, content.replace(needle, row + needle, 1))
     print('  Added pinned toolchain details to chrome://version.')
 
 

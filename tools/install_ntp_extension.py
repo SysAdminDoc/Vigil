@@ -37,6 +37,8 @@ import shutil
 import sys
 from pathlib import Path
 
+from atomic_stage import atomic_copy_tree
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 NTP_DIR = REPO_ROOT / "ntp-extension"
 DEFAULT_BUILD_OUT = REPO_ROOT / "build" / "src" / "out" / "Default"
@@ -80,30 +82,27 @@ def stage_extension(ext_id: str, build_out: Path):
     manifest = json.loads((NTP_DIR / "manifest.json").read_text(encoding="utf-8"))
     version = manifest["version"]
     target = build_out / "Extensions" / ext_id / version
-    if target.exists():
-        shutil.rmtree(target)
-    target.mkdir(parents=True, exist_ok=True)
-
-    for src in NTP_DIR.rglob("*"):
-        if src.is_dir():
-            continue
-        # Skip generated artifacts
-        if src.suffix in (".pem", ".crx"):
-            continue
-        rel = src.relative_to(NTP_DIR)
-        dst = target / rel
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
+    atomic_copy_tree(
+        NTP_DIR,
+        target,
+        ignore=shutil.ignore_patterns("*.pem", "*.crx"),
+    )
     print(f"  Staged {NTP_DIR.name}/ -> Extensions/{ext_id}/{version}/")
 
     pointer_dir = build_out / "default_extensions"
     pointer_dir.mkdir(parents=True, exist_ok=True)
     pointer = pointer_dir / f"{ext_id}.json"
-    pointer.write_text(
-        json.dumps({
-            "external_crx": f"Extensions/{ext_id}/{version}",
-            "external_version": version
-        }, indent=2) + "\n", encoding="utf-8")
+    pointer_data = json.dumps({
+        "external_crx": f"Extensions/{ext_id}/{version}",
+        "external_version": version
+    }, indent=2) + "\n"
+    pointer_stage = pointer.with_name(f".{pointer.name}.stage")
+    pointer_stage.write_text(pointer_data, encoding="utf-8")
+    try:
+        pointer_stage.replace(pointer)
+    finally:
+        if pointer_stage.exists():
+            pointer_stage.unlink()
     print(f"  Wrote external-extensions pointer: {pointer.relative_to(build_out)}")
 
 

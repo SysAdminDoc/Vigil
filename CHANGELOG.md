@@ -52,6 +52,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   ship an English locale baseline, local fallback lookup, localized manifest
   metadata, and static coverage for dynamic, accessibility, and service-worker
   strings without adding a translation network dependency.
+- **Offline build recovery contract.** Added fail-closed cache/source preflight,
+  unfinished-download detection, development-only SSL-bypass marking, and
+  atomic/recoverable overlay, extension, package, archive, and MSI staging.
 
 ### Defaults & first-run (T2, T5)
 

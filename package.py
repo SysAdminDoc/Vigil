@@ -25,6 +25,9 @@ import filescfg
 from _common import ENCODING, get_chromium_version
 sys.path.pop(0)
 
+from devutils.build_preflight import assert_package_ready
+from tools.atomic_stage import atomic_copy_file, atomic_copy_tree
+
 def _get_release_revision():
     revision_path = Path(__file__).resolve().parent / 'ungoogled-chromium' / 'revision.txt'
     return revision_path.read_text(encoding=ENCODING).strip()
@@ -112,6 +115,11 @@ def _create_msi(root_dir, build_outputs, file_list, version, target_cpu):
 
     msi_path = root_dir / 'build' / (
         f'vigil_{version}_installer_{target_cpu}.msi')
+    # WiX selects its backend from the output suffix; retain .msi for the
+    # temporary path while keeping it hidden and sibling to the final file.
+    msi_stage = msi_path.with_name(f'.{msi_path.stem}.stage{msi_path.suffix}')
+    wixpdb_path = msi_path.with_suffix('.wixpdb')
+    wixpdb_stage = msi_stage.with_suffix('.wixpdb')
     wxs_path = root_dir / 'installer' / 'vigil.wxs'
     if not wxs_path.exists():
         raise RuntimeError(f'MSI authoring file is missing: {wxs_path}')
@@ -129,15 +137,32 @@ def _create_msi(root_dir, build_outputs, file_list, version, target_cpu):
             except OSError:
                 shutil.copy2(source, destination)
 
-        subprocess.run([
-            wix, 'build',
-            '-arch', _get_wix_arch(target_cpu),
-            '-d', f'BuildOutput={stage}',
-            '-d', f'ProductVersion={version}',
-            '-d', f'Platform={target_cpu}',
-            str(wxs_path),
-            '-out', str(msi_path),
-        ], cwd=str(root_dir), check=True)
+        if msi_stage.exists():
+            msi_stage.unlink()
+        if wixpdb_stage.exists():
+            wixpdb_stage.unlink()
+        try:
+            subprocess.run([
+                wix, 'build',
+                '-arch', _get_wix_arch(target_cpu),
+                '-d', f'BuildOutput={stage}',
+                '-d', f'ProductVersion={version}',
+                '-d', f'Platform={target_cpu}',
+                str(wxs_path),
+                '-out', str(msi_stage),
+            ], cwd=str(root_dir), check=True)
+            os.replace(msi_stage, msi_path)
+            if wixpdb_stage.exists():
+                os.replace(wixpdb_stage, wixpdb_path)
+            elif wixpdb_path.exists():
+                # Do not leave a sidecar from an earlier package beside a new
+                # MSI when WiX changes whether it emits a PDB.
+                wixpdb_path.unlink()
+        finally:
+            if msi_stage.exists():
+                msi_stage.unlink()
+            if wixpdb_stage.exists():
+                wixpdb_stage.unlink()
     print(f'Created MSI: {msi_path}')
     return msi_path
 
@@ -164,13 +189,15 @@ def main():
     args = parser.parse_args()
 
     build_outputs = Path('build/src/out/Default')
+    root_dir = Path(__file__).resolve().parent
+    assert_package_ready(root_dir, build_outputs, offline=args.offline)
     target_cpu = _get_target_cpu(build_outputs)
     normalized_cpu = _normalize_cpu_arch(args.cpu_arch, target_cpu)
 
-    shutil.copyfile('build/src/out/Default/mini_installer.exe',
-        'build/ungoogled-chromium_{}-{}.{}_installer_{}.exe'.format(
-            get_chromium_version(), _get_release_revision(),
-            _get_packaging_revision(), _get_target_cpu(build_outputs)))
+    mini_installer = Path('build/ungoogled-chromium_{}-{}.{}_installer_{}.exe'.format(
+        get_chromium_version(), _get_release_revision(),
+        _get_packaging_revision(), _get_target_cpu(build_outputs)))
+    atomic_copy_file(build_outputs / 'mini_installer.exe', mini_installer)
 
     timestamp = None
     try:
@@ -184,11 +211,10 @@ def main():
         _get_packaging_revision(), _get_target_cpu(build_outputs)))
 
     # Copy initial_preferences next to chrome.exe for first-run defaults
-    root_dir = Path(__file__).resolve().parent
     initial_prefs_src = root_dir / 'initial_preferences'
     initial_prefs_dst = build_outputs / 'initial_preferences'
     if initial_prefs_src.exists():
-        shutil.copyfile(initial_prefs_src, initial_prefs_dst)
+        atomic_copy_file(initial_prefs_src, initial_prefs_dst)
         print('Copied initial_preferences to build output')
 
     # Ship the administrator-facing managed-policy baselines with the
@@ -196,9 +222,7 @@ def main():
     policies_src = root_dir / 'policies'
     policies_dst = build_outputs / 'policies'
     if policies_src.exists():
-        if policies_dst.exists():
-            shutil.rmtree(policies_dst)
-        shutil.copytree(policies_src, policies_dst)
+        atomic_copy_tree(policies_src, policies_dst)
         print('Copied managed policy baselines to build output')
 
     # Run extension setup to download and bundle uBlock Origin
@@ -242,9 +266,7 @@ def main():
     ntp_src = root_dir / 'ntp'
     ntp_dst = build_outputs / 'ntp'
     if ntp_src.exists():
-        if ntp_dst.exists():
-            shutil.rmtree(ntp_dst)
-        shutil.copytree(ntp_src, ntp_dst)
+        atomic_copy_tree(ntp_src, ntp_dst)
         print('Copied custom NTP to build output')
 
     # Collect extra files (initial_preferences, policies, extensions,
@@ -265,8 +287,18 @@ def main():
     import itertools
     all_files = list(itertools.chain(files_generator, extra_files_generator()))
 
-    filescfg.create_archive(
-        all_files, tuple(), build_outputs, output, timestamp)
+    # Keep the archive suffix so filescfg selects the ZIP writer while the
+    # temporary sibling remains distinct from the published artifact.
+    archive_stage = output.with_name(f'.{output.stem}.stage{output.suffix}')
+    if archive_stage.exists():
+        archive_stage.unlink()
+    try:
+        filescfg.create_archive(
+            all_files, tuple(), build_outputs, archive_stage, timestamp)
+        os.replace(archive_stage, output)
+    finally:
+        if archive_stage.exists():
+            archive_stage.unlink()
     _create_msi(
         root_dir, build_outputs, all_files, _get_vigil_version(root_dir),
         target_cpu)
