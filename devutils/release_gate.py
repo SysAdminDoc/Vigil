@@ -17,6 +17,11 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Mapping
 
+if __package__:
+    from .diagnostics import make_check, make_diagnostics_report
+else:
+    from diagnostics import make_check, make_diagnostics_report  # type: ignore[no-redef]
+
 
 REPORT_SCHEMA_VERSION = 1
 DEFAULT_POLICY_NAME = "release_policy.json"
@@ -174,28 +179,44 @@ def evaluate(
     security_age_days = (as_of - refresh_date).days
 
     checks = [
-        {
-            "id": "upstream_metadata",
-            "passed": True,
-            "detail": "upstream version, date, and HTTPS sources are present",
-        },
-        {
-            "id": "security_age",
-            "passed": 0 <= security_age_days <= policy["max_security_age_days"],
-            "detail": (
+        make_check(
+            "upstream_metadata",
+            True,
+            detail="upstream version, date, and HTTPS sources are present",
+            evidence={
+                "stable_version": upstream["stable_version"],
+                "reference_refresh_date": refresh_date.isoformat(),
+            },
+        ),
+        make_check(
+            "security_age",
+            0 <= security_age_days <= policy["max_security_age_days"],
+            detail=(
                 f"{security_age_days} days since {refresh_date.isoformat()} "
                 f"(maximum {policy['max_security_age_days']})"
             ),
-        },
-        {
-            "id": "major_lag",
-            "passed": 0 <= major_lag <= policy["max_major_lag"],
-            "detail": (
+            evidence={
+                "age_days": security_age_days,
+                "maximum_days": policy["max_security_age_days"],
+            },
+            failure_code="UPSTREAM_SECURITY_REFRESH_STALE",
+        ),
+        make_check(
+            "major_lag",
+            0 <= major_lag <= policy["max_major_lag"],
+            detail=(
                 f"Chromium {revisions['chromium']} trails stable "
                 f"{upstream['stable_version']} by {major_lag} major release(s) "
                 f"(maximum {policy['max_major_lag']})"
             ),
-        },
+            evidence={
+                "current": revisions["chromium"],
+                "stable": upstream["stable_version"],
+                "major_lag": major_lag,
+                "maximum_major_lag": policy["max_major_lag"],
+            },
+            failure_code="UPSTREAM_MAJOR_LAG",
+        ),
     ]
     passed = all(check["passed"] for check in checks)
     return {
@@ -221,6 +242,12 @@ def evaluate(
             ),
         },
         "checks": checks,
+        "diagnostics": make_diagnostics_report(
+            kind="release-gate",
+            checks=checks,
+            source=revisions,
+            architecture={},
+        ),
         "emergency_patch_path": policy.get("emergency_patch_path", []),
     }
 

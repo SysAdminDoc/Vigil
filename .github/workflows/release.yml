@@ -105,7 +105,11 @@ jobs:
         run: python build.py --ci -j 2
 
       - name: Run packaged smoke test
-        run: python devutils/smoke_test.py --build-out build/src/out/Default
+        run: >-
+          python devutils/smoke_test.py
+          --build-out build/src/out/Default
+          --receipt build/release-receipt.json
+          --diagnostics-output build/smoke-report.json
 
       - name: Enforce package-manager hashes and write strict receipt
         run: >-
@@ -114,6 +118,8 @@ jobs:
           --output build/strict-release-receipt.json
           --strict-manifests
           --update-manifests
+          --smoke-report build/smoke-report.json
+          --support-output build/support-receipt.json
 
       - name: Upload reviewable build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -124,5 +130,6 @@ jobs:
             build/*.msi
             build/*.zip
             build/*receipt.json
+            build/smoke-report.json
           if-no-files-found: error
           retention-days: 14

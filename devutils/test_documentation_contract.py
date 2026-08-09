@@ -40,6 +40,7 @@ def test_readme_documents_the_executable_release_contract():
         "python build.py --ci --offline --preflight",
         "python devutils/profile_transfer.py --help",
         "python devutils/privacy_probe.py",
+        "python devutils/diagnostics.py",
         "python devutils/smoke_test.py --build-out build/src/out/Default",
     ):
         assert command in readme
@@ -48,6 +49,7 @@ def test_readme_documents_the_executable_release_contract():
         "vigil_*_installer_*.msi",
         "ungoogled-chromium_*_windows_*.zip",
         "build/release-receipt.json",
+        "build/support-receipt.json",
     ):
         assert artifact in readme
 

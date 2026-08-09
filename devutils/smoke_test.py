@@ -42,10 +42,26 @@ import argparse
 import base64
 import hashlib
 import json
+import re
 import sys
 import tempfile
 import zipfile
 from pathlib import Path
+
+if __package__:
+    from .diagnostics import (
+        load_json_object,
+        make_check,
+        make_diagnostics_report,
+        write_json_atomic,
+    )
+else:
+    from diagnostics import (  # type: ignore[no-redef]
+        load_json_object,
+        make_check,
+        make_diagnostics_report,
+        write_json_atomic,
+    )
 
 # Vigil expects this uBO Chrome Web Store extension ID
 UBO_EXT_ID = "cjpalhdlnbpafiamejdnhcphjbkeiagm"
@@ -61,26 +77,113 @@ class Result:
         self.passed = 0
         self.failed = 0
         self.skipped = 0
+        self.checks = []
 
-    def ok(self, label):
+    @staticmethod
+    def _stable_check_id(label):
+        without_parentheses = re.sub(r"\([^)]*\)", "", label)
+        without_value = re.sub(r"\s(?:=|->)\s.*$", "", without_parentheses)
+        slug = re.sub(r"[^a-z0-9]+", "_", without_value.lower()).strip("_")
+        return f"smoke.{slug or 'check'}"
+
+    def ok(self, label, *, check_id=None, evidence=None):
         print(f"  PASS  {label}")
         self.passed += 1
+        self.checks.append(
+            make_check(
+                check_id or self._stable_check_id(label),
+                True,
+                severity="info",
+                evidence=evidence,
+            )
+        )
 
-    def fail(self, label, detail=""):
+    def fail(self, label, detail="", *, check_id=None, evidence=None, failure_code=None):
         print(f"  FAIL  {label}")
         if detail:
             print(f"        {detail}")
         self.failed += 1
+        self.checks.append(
+            make_check(
+                check_id or self._stable_check_id(label),
+                False,
+                detail=detail,
+                evidence=evidence,
+                failure_code=failure_code,
+            )
+        )
 
-    def skip(self, label, reason):
+    def skip(self, label, reason, *, check_id=None):
         print(f"  SKIP  {label} ({reason})")
         self.skipped += 1
+        self.checks.append(
+            make_check(
+                check_id or self._stable_check_id(label),
+                True,
+                severity="info",
+                detail=reason,
+                skipped=True,
+            )
+        )
+
+    def diagnostics_report(self):
+        return make_diagnostics_report(
+            kind="smoke-test",
+            checks=self.checks,
+            counts={
+                "passed": self.passed,
+                "failed": self.failed,
+                "skipped": self.skipped,
+                "total": self.passed + self.failed + self.skipped,
+            },
+        )
 
     def summary(self):
         total = self.passed + self.failed + self.skipped
         print(f"\nSummary: {self.passed} passed, {self.failed} failed, "
               f"{self.skipped} skipped, {total} total")
         return 0 if self.failed == 0 else 1
+
+
+def assert_release_receipt(receipt_path: Path, r: Result):
+    """Make smoke validation consume the structured release receipt."""
+
+    try:
+        receipt = load_json_object(receipt_path)
+    except ValueError as exc:
+        r.fail(
+            "release receipt missing or invalid",
+            str(exc),
+            check_id="release_receipt.readable",
+            failure_code="RELEASE_RECEIPT_UNREADABLE",
+        )
+        return
+    if receipt.get("status") == "pass":
+        r.ok(
+            "release receipt status = pass",
+            check_id="release_receipt.status",
+            evidence={"schema_version": receipt.get("schema_version")},
+        )
+    else:
+        r.fail(
+            "release receipt status is not pass",
+            str(receipt.get("status", "missing")),
+            check_id="release_receipt.status",
+            evidence={"status": receipt.get("status")},
+            failure_code="RELEASE_RECEIPT_FAILED",
+        )
+    if isinstance(receipt.get("diagnostics"), dict):
+        r.ok(
+            "release receipt diagnostics present",
+            check_id="release_receipt.diagnostics",
+            evidence={"schema_version": receipt["diagnostics"].get("schema_version")},
+        )
+    else:
+        r.fail(
+            "release receipt diagnostics missing",
+            check_id="release_receipt.diagnostics",
+            failure_code="RELEASE_DIAGNOSTICS_MISSING",
+        )
 
 
 def find_build_outputs(repo_root: Path):
@@ -268,14 +371,17 @@ def assert_ubo_bundle(out_dir: Path, r: Result):
         r.fail("no uBO version dir under Extensions/<id>/")
         return
     v = versions[0]
-    r.ok(f"uBO version directory: {v.name}")
+    r.ok(f"uBO version directory: {v.name}", check_id="smoke.ubo.version_directory")
     manifest = v / "manifest.json"
     if not manifest.exists():
         r.fail("uBO manifest.json missing")
         return
     try:
         m = json.loads(manifest.read_text(encoding="utf-8"))
-        r.ok(f"uBO manifest valid (declared version {m.get('version')!r})")
+        r.ok(
+            f"uBO manifest valid (declared version {m.get('version')!r})",
+            check_id="smoke.ubo.manifest_valid",
+        )
     except json.JSONDecodeError as e:
         r.fail("uBO manifest invalid JSON", str(e))
         return
@@ -320,7 +426,10 @@ def assert_ntp_extension(repo_root: Path, out_dir: Path, r: Result):
     version = m.get("version")
     staged = out_dir / "Extensions" / ext_id / version
     if (staged / "manifest.json").exists():
-        r.ok(f"staged NTP extension: {ext_id}/{version}")
+        r.ok(
+            f"staged NTP extension: {ext_id}/{version}",
+            check_id="smoke.ntp.staged_extension",
+        )
     else:
         r.fail("staged NTP extension missing", str(staged))
     pointer = out_dir / "default_extensions" / f"{ext_id}.json"
@@ -451,6 +560,16 @@ def main():
     parser.add_argument(
         "--selenium", action="store_true",
         help="Run the optional Selenium step (step 10).")
+    parser.add_argument(
+        "--receipt",
+        type=Path,
+        help="Consume a release receipt and verify its structured diagnostics.",
+    )
+    parser.add_argument(
+        "--diagnostics-output",
+        type=Path,
+        help="Write the structured smoke-test report to this JSON path.",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
@@ -483,6 +602,9 @@ def main():
     print(f"Vigil smoke test against: {out_dir}")
     r = Result()
 
+    if args.receipt:
+        assert_release_receipt(args.receipt.resolve(), r)
+
     assert_files_present(out_dir, r)
     prefs = load_initial_prefs(out_dir, r)
     assert_search_engine(prefs, r)
@@ -501,7 +623,14 @@ def main():
     else:
         print("\n[10] Selenium launch  SKIP (pass --selenium to run)")
 
-    return r.summary()
+    result = r.summary()
+    if args.diagnostics_output:
+        try:
+            write_json_atomic(args.diagnostics_output, r.diagnostics_report())
+        except OSError as exc:
+            print(f"ERROR: could not write diagnostics report: {exc}", file=sys.stderr)
+            return 2
+    return result
 
 
 if __name__ == "__main__":

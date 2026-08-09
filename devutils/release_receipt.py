@@ -15,6 +15,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+if __package__:
+    from .diagnostics import (
+        build_release_diagnostics,
+        build_support_receipt,
+        load_json_object,
+        write_json_atomic,
+    )
+else:
+    from diagnostics import (  # type: ignore[no-redef]
+        build_release_diagnostics,
+        build_support_receipt,
+        load_json_object,
+        write_json_atomic,
+    )
+
 
 RECEIPT_SCHEMA_VERSION = 1
 ARCHITECTURES = ("x64", "x86", "arm64")
@@ -262,6 +277,8 @@ def generate_receipt(
     strict_manifests: bool = False,
     update_package_manifests: bool = False,
     release_base_url: str | None = None,
+    support_output: Path | None = None,
+    smoke_report: Path | None = None,
 ) -> dict[str, Any]:
     repo_root = repo_root.resolve()
     artifact_dir = artifact_dir.resolve()
@@ -290,6 +307,19 @@ def generate_receipt(
         | (required_architectures - archive_architectures)
     )
     artifact_contract_passed = not missing_architectures
+    diagnostics = build_release_diagnostics(
+        records=records,
+        artifact_contract={
+            "required_architectures": sorted(required_architectures),
+            "installer_architectures": sorted(installer_architectures),
+            "archive_architectures": sorted(archive_architectures),
+            "missing_architectures": missing_architectures,
+            "passed": artifact_contract_passed,
+        },
+        manifest_checks=manifest_checks,
+        strict_manifests=strict_manifests,
+        insecure_downloads=insecure_downloads,
+    )
     report = {
         "schema_version": RECEIPT_SCHEMA_VERSION,
         "status": "pass" if (
@@ -325,6 +355,7 @@ def generate_receipt(
                 "passed": not insecure_downloads,
             },
         },
+        "diagnostics": diagnostics,
     }
     if output:
         output = output.resolve()
@@ -332,6 +363,9 @@ def generate_receipt(
         temporary = output.with_name(f".{output.name}.tmp")
         temporary.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         os.replace(temporary, output)
+    if support_output:
+        smoke = load_json_object(smoke_report) if smoke_report else None
+        write_json_atomic(support_output, build_support_receipt(report, smoke))
     return report
 
 
@@ -344,6 +378,16 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--strict-manifests", action="store_true")
     parser.add_argument("--update-manifests", action="store_true")
     parser.add_argument("--release-base-url")
+    parser.add_argument(
+        "--support-output",
+        type=Path,
+        help="Write a privacy-safe support receipt after the release receipt.",
+    )
+    parser.add_argument(
+        "--smoke-report",
+        type=Path,
+        help="Smoke-test report to include in --support-output.",
+    )
     return parser
 
 
@@ -358,8 +402,10 @@ def main(argv: list[str] | None = None) -> int:
             strict_manifests=args.strict_manifests,
             update_package_manifests=args.update_manifests,
             release_base_url=args.release_base_url,
+            support_output=args.support_output,
+            smoke_report=args.smoke_report,
         )
-    except (OSError, ReceiptError) as exc:
+    except (OSError, ReceiptError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
     print(json.dumps(report, indent=2, sort_keys=True))

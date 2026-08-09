@@ -190,6 +190,11 @@ python build.py --ci --offline --preflight
 
 # Inspect the local profile migration tool
 python devutils/profile_transfer.py --help
+
+# Create a privacy-safe support receipt from release and smoke reports
+python devutils/diagnostics.py --receipt build/release-receipt.json \
+  --smoke-report build/smoke-report.json \
+  --output build/support-receipt.json
 ```
 
 Offline builds are fail-closed. An incremental preflight checks the existing
@@ -342,6 +347,19 @@ hashes and source/toolchain inputs:
 
 ```bash
 python package.py --receipt
+```
+
+After the packaged smoke test, `devutils/diagnostics.py` combines that report
+with the release receipt into `build/support-receipt.json`. The support receipt
+has stable check IDs and failure codes, records versions/toolchain IDs and
+architectures, and redacts URLs, absolute/profile paths, and keyed secrets so it
+can be attached to an admin support ticket without exporting browsing data:
+
+```bash
+python devutils/diagnostics.py \
+  --receipt build/release-receipt.json \
+  --smoke-report build/smoke-report.json \
+  --output build/support-receipt.json
 ```
 
 Release validation adds `--strict-manifests --update-manifests`; it fails when

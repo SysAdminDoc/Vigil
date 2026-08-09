@@ -5,6 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $EventSource = 'Vigil-Kiosk'
+$MaxEventMessageLength = 512
 
 function Write-KioskEvent {
   param(
@@ -13,7 +14,12 @@ function Write-KioskEvent {
     [string]$Message
   )
 
-  $bounded = if ($Message.Length -gt 512) { $Message.Substring(0, 512) } else { $Message }
+  if ($null -eq $Message) { $Message = '' }
+  $bounded = if ($Message.Length -gt $MaxEventMessageLength) {
+    $Message.Substring(0, $MaxEventMessageLength)
+  } else {
+    $Message
+  }
   try {
     Write-EventLog -LogName Application -Source $EventSource -EventId $EventId `
       -EntryType $EntryType -Message $bounded

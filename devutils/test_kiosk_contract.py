@@ -32,7 +32,8 @@ def test_powershell_launcher_allowlists_url_and_arguments():
 
 
 def test_watchdog_uses_bounded_recovery_and_non_interpolated_launcher():
-    source = read("kiosk-watchdog.ps1") + read("install-watchdog.ps1")
+    watchdog = read("kiosk-watchdog.ps1")
+    source = watchdog + read("install-watchdog.ps1")
 
     for marker in (
         "max_restart_attempts",
@@ -48,6 +49,8 @@ def test_watchdog_uses_bounded_recovery_and_non_interpolated_launcher():
     assert "@LAUNCHER@" not in source
     assert ".Replace('@LAUNCHER@'" not in source
     assert "Write-Host \"Set VigilKioskUrl policy: $KioskUrl\"" not in source
+    assert "$MaxEventMessageLength = 512" in watchdog
+    assert "$Message.Substring(0, $MaxEventMessageLength)" in watchdog
 
 
 def test_kiosk_policy_owns_autoplay_decision():

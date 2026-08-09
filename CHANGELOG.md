@@ -25,6 +25,12 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
   with SHA-256 hashes, source/toolchain/uBlock inputs, and explicit unsigned
   status. Strict release validation updates package-manager manifests only from
   present artifacts and fails on missing architectures or placeholder hashes.
+- **Structured privacy-safe diagnostics.** Release gates and smoke tests now
+  emit stable check IDs and failure codes, while `devutils/diagnostics.py`
+  combines their reports into a support receipt containing release versions,
+  toolchain IDs, and architecture evidence with URLs, absolute/profile paths,
+  and keyed secrets redacted. Kiosk event messages use an explicit 512-character
+  bound.
 - **Explicit architecture contract.** Packaging now normalizes x64/x86/arm64
   names against Chromium’s legacy `FILES.cfg` tags and the GN target, rejecting
   mismatches before creating a portable archive or MSI.
