@@ -55,6 +55,9 @@ stable version, so versions are written as `<vigil>-c<chromium>` &mdash; for exa
 - **Offline build recovery contract.** Added fail-closed cache/source preflight,
   unfinished-download detection, development-only SSL-bypass marking, and
   atomic/recoverable overlay, extension, package, archive, and MSI staging.
+- **Local profile migration.** Added a versioned JSON export/import tool for
+  selected NTP settings, shortcuts, notes, and HTTP(S) bookmarks with dry-run
+  conflict reporting and explicit password, cookie, and history exclusion.
 
 ### Defaults & first-run (T2, T5)
 

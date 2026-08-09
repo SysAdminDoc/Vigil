@@ -177,6 +177,9 @@ python package.py --offline
 # Validate a seeded incremental cache before any build mutation
 python devutils/build_preflight.py
 python build.py --ci --offline --preflight
+
+# Inspect the local profile migration tool
+python devutils/profile_transfer.py --help
 ```
 
 Offline builds are fail-closed. An incremental preflight checks the existing
@@ -252,6 +255,37 @@ chromium_src/chrome/browser/some_file.cc
 
 Edit `initial_preferences` -- this is a standard Chromium [initial preferences file](https://www.chromium.org/administrators/configuring-other-preferences/).
 
+### Local profile migration
+
+`devutils/profile_transfer.py` provides an account-free, versioned local
+migration path for the NTP settings snapshot returned by
+`chrome.storage.local.get()` and the bookmark tree returned by
+`chrome.bookmarks.getTree()`. It carries selected display settings, shortcuts,
+notes, and HTTP(S) bookmarks; passwords, cookies, and history are rejected and
+never written to an export. Preview an import before writing new snapshots:
+
+```bash
+python devutils/profile_transfer.py export \
+  --settings settings-snapshot.json \
+  --bookmarks bookmarks-tree.json \
+  --output vigil-profile.json
+python devutils/profile_transfer.py import \
+  --input vigil-profile.json \
+  --current-settings settings-snapshot.json \
+  --current-bookmarks bookmarks-tree.json \
+  --dry-run
+python devutils/profile_transfer.py import \
+  --input vigil-profile.json \
+  --current-settings settings-snapshot.json \
+  --current-bookmarks bookmarks-tree.json \
+  --settings-output migrated-settings.json \
+  --bookmarks-output migrated-bookmarks.json
+```
+
+The import report lists settings overwritten, duplicate bookmark URLs, missing
+bookmark roots, and added folders/items. It only reads and writes local JSON;
+it does not open Chromium databases or contact a network service.
+
 ## Build verification
 
 The supported release path is a local Windows build. Use `python build.py --ci -j N`
@@ -265,6 +299,7 @@ The repository checks can be run without a browser session:
 python -m pytest -q
 python -m ruff check .
 python devutils/build_preflight.py
+python devutils/profile_transfer.py --help
 python devutils/privacy_probe.py
 python devutils/smoke_test.py --build-out build/src/out/Default
 node --check ntp-extension/newtab.js
