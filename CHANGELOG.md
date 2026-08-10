@@ -248,3 +248,324 @@ Recent upstream releases prior to the Vigil fork (selected):
 
 For the full upstream history see
 <https://github.com/ungoogled-software/ungoogled-chromium-windows/commits/master>.
+
+## Roadmap archive — 2026-08-10 — ROADMAP.md
+
+<details>
+<summary>Original roadmap snapshot</summary>
+
+```markdown
+# Roadmap
+
+**Version**: v0.2 draft &middot; **Updated**: 2026-05-17 &middot; **Supersedes**: v0.1 (2025-04-23)
+
+Forward-looking plan for [Vigil Browser](README.md) &mdash; a lean, privacy-respecting Chromium fork built on
+[ungoogled-chromium-windows](https://github.com/ungoogled-software/ungoogled-chromium-windows) with a
+Brave-style `chromium_src/` overlay system, a dark new-tab page, and uBlock Origin pre-installed.
+
+This roadmap is dense by design. Every claim about a competitor or upstream is footnoted to a URL in the
+[Appendix](#appendix-sources). Items with no source are internal observations from this repo's tree.
+
+---
+
+## Charter & non-goals
+
+**Charter.** Vigil ships the privacy-and-defaults browser that an IT admin would build for themselves
+&mdash; preconfigured for a sysadmin/clinic/power-user audience, with no telemetry, no rewards, no crypto,
+no in-browser LLM, no in-browser VPN service. The reference is "Brave Origin, but free" &mdash; Brave's own
+$60 one-time paid bloat-removal tier confirms the audience exists.[^pg-origin][^pg-origin-discuss]
+
+**Non-goals.** These are off-table by design (see [Rejected](#rejected--explicit-non-goals) for full reasoning):
+crypto wallets, Web3 name resolution, BAT-style sponsored ads, integrated LLM chatbots,
+integrated paid VPN service, integrated mail/calendar/feeds, gamer/RGB features, novelty
+tab paradigms (Arc), referral-link rewriting,[^pg-brave] and telemetry-by-default.
+
+**Audience signal.** The maintainer's sibling projects &mdash; **BetterNext** (a NextDNS companion)
+and **VoyanceFirewall** (a clinic/enterprise Windows lock-down tool) &mdash; point at the same user:
+the person who installs the browser on someone else's machine and wants the result to stay clean.
+Wherever the roadmap mentions clinic/kiosk/admin features, that's the alignment.
+
+---
+
+## Status snapshot (Phase 0 audit)
+
+What ships in `master` today:
+
+- v0.1.0 &middot; Chromium 145.0.7632.159[^cl] &middot; Windows-only build pipeline.
+- Brave-style `chromium_src/` overlay system targeting `chrome://settings`, `chrome://flags`, `chrome://history`,
+  `chrome://bookmarks`, `chrome://downloads`, `chrome://extensions`, and the security-interstitial CSS,
+  with a single dark "IT-admin" Vigil theme.
+- `initial_preferences` JSON sets first-run defaults: bookmark bar on, Safe Browsing off, DNT on,
+  autofill off, translate off, network prediction off, default search = Google with `suggest_url`.
+- `setup_extensions.py` fetches the latest **uBlock Origin** Chromium build from
+  `gorhill/uBlock`'s GitHub Releases and stages it under `Extensions/cjpalhdlnbpafiamejdnhcphjbkeiagm/<v>/`
+  plus a `default_extensions/<id>.json` external-extensions pointer.
+- Patches restore the **Chrome Web Store** and **Google search engine** (otherwise stripped by ungoogled).
+- Custom dark new-tab HTML (`ntp/newtab.html`) with clock, search, configurable shortcuts, settings panel.
+- Generated Vigil "shield + eye" icon set via Pillow (`branding/generate_icons.py`); branding text/icons
+  applied from `branding.json` at build time via `apply_overlays.py`.
+- CI: hand-chained 12-stage build for x64, 16-stage for x86, additional chain for arm64, all dodging the
+  GitHub Actions 6-hour single-job limit.
+
+What's stubbed, broken, or missing on inspection (drives the [Now](#now) tier):
+
+- The custom NTP is *copied to* `chrome/browser/resources/new_tab_page_custom/` and `build_outputs/ntp/`,
+  but **nothing rewrites `chrome://newtab` to serve it**, so the dark NTP in `ntp/newtab.html` likely never
+  loads as the default new tab. See [`apply_overlays.py:47-68`](apply_overlays.py#L47-L68) &amp;
+  [`package.py:106-112`](package.py#L106-L112).
+- `default_search_provider_data` ships **Google with `suggest_url`** &mdash; contradicts the
+  "privacy-focused defaults" line in the README, and is exactly the issue the audience left Chrome over.
+- **Safe Browsing disabled** with no offline replacement; users lose phishing protection.
+- **No code signing** &rArr; SmartScreen Defender warning on every install, hurting trust badly.
+- **No auto-updater** &mdash; users must manually grab releases.
+- **`CHANGELOG.md` is malformed** (literal `%Y->-` and merge-commit text on the version line).
+- **No test suite, no `CONTRIBUTING.md`, no `ARCHITECTURE.md`** &mdash; bus-factor of one.
+- The 28-stage CI chain is a known time-bomb: any single failed step requires manual restart.
+
+---
+
+## Themes
+
+| ID | Theme | Posture |
+|---|---|---|
+| T1 | **Privacy hardening (curated, not novelty)** | Adopt patches that work; reject anything that breaks parity-fingerprinting |
+| T2 | **Anti-bloat &amp; audit-defaults** | Vigil's wedge: ship Brave Origin's promise free |
+| T3 | **IT-admin / clinic readiness** | ADMX, kiosk, policy-managed defaults, MSI installer |
+| T4 | **Build &amp; distribution pipeline maturity** | Code-signed, attested, auto-updated, multi-channel |
+| T5 | **First-run &amp; sensible defaults** | The defaults *are* the product |
+| T6 | **Extension ecosystem (MV2 long-tail)** | Preserve Manifest V2 against upstream removal |
+| T7 | **UX polish &mdash; parity wins, no novelty tax** | Verticals, workspaces, split, reader; *not* Arc-style invention |
+| T8 | **Platform coverage** | Windows-first; Linux earned; macOS later |
+| T9 | **Sibling-project integration** | BetterNext &amp; VoyanceFirewall as native panels, not extensions |
+| T10 | **Project health** | Docs, tests, contributing, governance |
+
+---
+
+## Now &mdash; v0.2.0 (~6 weeks)
+
+Things that are wrong or missing today and are cheap to fix. Each lands with a unit-test or smoke-test where applicable.
+
+### Defaults &amp; first-run [T2, T5]
+
+### Project health [T10]
+
+---
+
+## Next &mdash; v0.3 / v0.4 (one quarter)
+
+### Manifest V2 long-tail [T6]
+
+### Privacy hardening (curated) [T1]
+
+### IT-admin readiness [T3]
+
+### UX polish &mdash; parity, not novelty [T7]
+
+### Distribution &amp; updates [T4]
+
+---
+
+## Rejected &mdash; explicit non-goals
+
+Each line is the contradiction between a competitor feature and Vigil's philosophy. If a future
+maintainer wants to revisit, they need to argue against the source linked here.
+
+- **Crypto wallet, BAT-style sponsored ads, Web3 name resolution (`.brave` / `.eth` / `.bit`).**
+  Brave's full implementation;[^brave-wallet][^brave-rewards][^brave-tld] Mises is the Web3
+  fork.[^mises][^mises-core] Audience mismatch + recurring user complaints
+  about the surface.[^brave-issue-disablerewards] Vigil's wedge is being the un-crypto privacy
+  browser.
+- **Integrated LLM chatbot ("Leo AI" equivalent).** Brave Leo,[^brave-leo] Edge Copilot,[^edge-copilot]
+  Sidekick,[^sidekick] Dia (post-Arc).[^arc-dead] Each adds a CVE class (e.g. prompt injection
+  in Leo[^brave-issue-leo-injection]), telemetry, and a maintenance burden Vigil cannot afford.
+  Users who want this can install a Chrome extension.
+- **Integrated paid VPN service.** Brave Firewall+VPN at $9.99/mo[^brave-vpn] is squarely a SaaS
+  product. Vigil ships *integration* with already-deployed VPNs (Mullvad, Tailscale, ProtonVPN
+  via the system stack), not its own.
+- **Brave Talk / integrated video conferencing.** Jitsi exists.[^brave-features] Out of scope.
+- **Integrated mail / calendar / RSS reader (Vivaldi pattern).**[^vivaldi-mail] Floorp couldn't
+  sustain a feed reader; the maintenance cost is 2&times; the rest of the project.
+- **Razer Chroma / RGB lighting / gamer features (Opera GX).**[^opera-gx] Audience mismatch.
+- **Referral-link rewriting / install-source affiliate codes.**[^pg-brave] Vigil's
+  install must be telemetry-free.
+- **Telemetry on by default (Edge / Chrome behavior).** Audited via the [Brave deviations
+  list][^brave-deviations] as the floor.
+- **Novelty tab paradigms (Arc Spaces as a UI primitive).** Arc died.[^arc-dead] Vigil's
+  vertical tabs / workspaces / split view ship as *features* on top of the standard chrome,
+  not as a replacement chrome.
+- **Closed-source UI layer (Vivaldi pattern).**[^vivaldi-closed] Vigil is MIT/BSD from the
+  installer to the icon-PNG renderer in `branding/generate_icons.py`.
+- **Web Environment Integrity / Privacy Sandbox Topics &amp; Protected Audience APIs.** Topics /
+  Protected Audience / Attribution Reporting retired Oct 2025;[^psbx] disable in
+  `initial_preferences` regardless of upstream state.
+- **Backwards compatibility with Windows 7/8.** Supermium covers that audience.[^supermium]
+  Vigil targets Win 10 22H2 minimum.
+
+---
+
+## Risk &amp; dependency map
+
+| Risk | Trigger | Mitigation |
+|---|---|---|
+| **Upstream Chromium ships a patch that breaks an overlay** | Every 4-6 weeks (Chromium stable cadence) | `chromium_src/` is per-file replacement &mdash; the build *fails to compile* rather than silently misbehaves,[^brave-patching] which is detected by `N14` smoke test |
+| **Manifest V2 enforcement tightens further** | Possible Chromium 150-155 window | `X1` (carry MV2 patch); fallback `L4` (adblock-rust at network layer means uBO is not the only line of defense) |
+| **uBO MV3-only release (uBO Lite) becomes the only release** | gorhill/uBlock cadence | `L4`; documented user-facing notice |
+| **SignPath OSS program declines Vigil** | Possible &mdash; clinic/political concerns | Fallback to Azure Trusted Signing at $9.99/mo[^azure-signing] &mdash; budget &lt;$120/yr |
+| **GitHub Actions 6h job limit changes** | Unlikely but historical precedent | `N7` matrix means each stage is &lt;5h; reusable workflow means a runner switch is a one-line change |
+| **GitHub Releases hosting limits hit** | At ~50 releases &times; 3 arch &times; 200MB | Add a CDN mirror (Cloudflare R2 free tier covers it); document |
+| **Solo maintainer bus-factor** | Always | `N13` (docs); `N14` (tests); accept the risk &mdash; this is OSS |
+| **Brave Origin captures the no-bloat audience first** | They have momentum[^pg-origin] | Stay free + open-source + on winget; Brave's $60 is the moat we beat |
+| **Arc-style "browser death" cycle** | Industry, not technical | Refuse novelty (Rejected list); never depend on a service we don't host |
+
+---
+
+## Release rhythm
+
+- **Cadence.** Track ungoogled-chromium-windows releases (currently every ~2-3 weeks within a
+  major)[^ucw-releases]. Vigil version = `<chromium>-<ucw>-vigil.<n>`. Drop `0.x` prefix when
+  v1.0 ships (target: after `N1-N15` + `X1` + `X10` + `X20` all land &mdash; the smallest set that
+  defines the product).
+- **Channels.** Stable (default) + Canary (`X22`). No "Beta" channel until a third contributor
+  exists.
+- **Source of truth.** GitHub Releases. winget &amp; scoop &amp; chocolatey pull from there. No
+  third-party mirrors authoritatively distribute Vigil installers.
+
+---
+
+## Open questions for the maintainer
+
+1. **Default search engine** (`N1`) &mdash; DuckDuckGo, Brave Search, Startpage, or Kagi as the
+   first-run pick?
+2. **DRM (Widevine)** &mdash; ship enabled (clinic training-video reality[^helium-drm]) or off
+   like Helium?
+3. **Telemetry posture document** &mdash; do uBO update pings to GitHub Releases count as
+   telemetry that needs an opt-out?
+4. **Brave Origin response** &mdash; do we publish a comparison table on the README?
+5. **Sibling-project boundary** &mdash; does BetterNext become a Vigil-only extension shipped in
+   the installer (`Y1`), stay a separate browser extension, or ship as both?
+
+These are the v0.2 design-review prompts, not yet decisions.
+
+---
+
+## Appendix: Sources
+
+The following list is the union of citations across this roadmap. Sources are grouped by
+research direction. Every roadmap claim above maps to one of these URLs.
+
+### Upstream &amp; competitor projects
+
+[^cl]: Internal: see [`CHANGELOG.md`](CHANGELOG.md) (note: malformed; `N11`).
+[^uc-issues]: ungoogled-chromium open issues &mdash; <https://github.com/ungoogled-software/ungoogled-chromium/issues>
+[^ucw-releases]: ungoogled-chromium-windows releases &mdash; <https://github.com/ungoogled-software/ungoogled-chromium-windows/releases>
+[^brave-patching]: Brave wiki: Patching Chromium / chromium_src overlays &mdash; <https://github.com/brave/brave-browser/wiki/Patching-Chromium>
+[^brave-deviations]: Brave wiki: Deviations from Chromium &mdash; <https://github.com/brave/brave-browser/wiki/Deviations-from-Chromium-(features-we-disable-or-remove)>
+[^brave-sync]: Brave Sync v2 docs &mdash; <https://github.com/brave/brave-browser/wiki/Brave-Sync-v2>
+[^brave-go-sync]: Brave go-sync server &mdash; <https://github.com/brave/go-sync>
+[^brave-vpn]: Brave Firewall + VPN &mdash; <https://brave.com/firewall-vpn/>
+[^brave-wallet]: Brave Wallet &mdash; <https://brave.com/wallet/>
+[^brave-tld]: Brave `.brave` TLD &mdash; <https://brave.com/blog/brave-tld/>
+[^brave-rewards]: Brave Rewards &mdash; <https://brave.com/brave-rewards/>
+[^brave-features]: Brave Privacy Features (incl. Brave Talk) &mdash; <https://brave.com/privacy-features/>
+[^brave-leo]: Brave Leo AI &mdash; <https://brave.com/leo/>
+[^brave-tor]: Brave: What is a Private Window with Tor &mdash; <https://support.brave.app/hc/en-us/articles/360018121491>
+[^brave-latest]: Brave latest release notes (2026) &mdash; <https://brave.com/latest/>
+[^brave-speedreader]: Brave SpeedReader blog &mdash; <https://brave.com/blog/speed-reader/>
+[^brave-repro]: Brave reproducible-builds issue #5830 &mdash; <https://github.com/brave/brave-browser/issues/5830>
+[^brave-issue-disablerewards]: Brave issue #43030 (Disable crypto by default) &mdash; <https://github.com/brave/brave-browser/issues/43030>
+[^brave-issue-leo-injection]: Brave issue #55576 (Leo prompt injection) &mdash; <https://github.com/brave/brave-browser/issues>
+[^adblock-rust]: brave/adblock-rust &mdash; <https://github.com/brave/adblock-rust>
+[^adblock-rust-mem]: Brave adblock memory-reduction post &mdash; <https://brave.com/privacy-updates/36-adblock-memory-reduction/>
+[^cromite]: Cromite repo &mdash; <https://github.com/uazo/cromite>
+[^cromite-features]: Cromite FEATURES.md &mdash; <https://github.com/uazo/cromite/blob/master/docs/FEATURES.md>
+[^iridium-diff]: Iridium differences-from-Chromium &mdash; <https://github.com/iridium-browser/tracker/wiki/Differences-between-Iridium-and-Chromium>
+[^iridium-wiki]: Iridium customizations (DeepWiki) &mdash; <https://deepwiki.com/iridium-browser/iridium-browser-windows/6-iridium-customizations>
+[^thorium-mv2]: Thorium MV2 retention &mdash; <https://github.com/Alex313031/thorium/releases>
+[^supermium]: Supermium repo &mdash; <https://github.com/win32ss/supermium>
+[^helium-drm]: Helium DRM caveat write-up &mdash; <https://browsers.to/helium>
+[^zen-workspaces]: Zen Workspaces manual &mdash; <https://docs.zen-browser.app/user-manual/workspaces>
+[^zen-split]: Zen Split-view manual &mdash; <https://docs.zen-browser.app/user-manual/split-view>
+[^zen-features]: Zen Browser feature page &mdash; <https://zen-browser.app/>
+[^floorp-cmd]: Floorp 12.14.0 command palette &mdash; <https://github.com/Floorp-Projects/Floorp/releases>
+[^vivaldi-features]: Vivaldi feature surface &mdash; <https://vivaldi.com/features/>
+[^vivaldi-stacks]: Vivaldi tab stacks &mdash; <https://help.vivaldi.com/desktop/tabs/tab-stacks/>
+[^vivaldi-mail]: Vivaldi mail/calendar/feed bundle announcement &mdash; <https://vivaldi.com/blog/vivaldi-mail-calendar-feed-reader-are-here/>
+[^vivaldi-closed]: Vivaldi closed-source UI explainer &mdash; <https://vivaldi.com/blog/technology/why-isnt-vivaldi-browser-open-source/>
+[^opera-gx]: Opera GX features &mdash; <https://www.opera.com/gx/features>
+[^arc-spaces]: Arc Spaces docs &mdash; <https://resources.arc.net/hc/en-us/articles/19228064149143>
+[^arc-dead]: Arc browser discontinuation, ghacks &mdash; <https://www.ghacks.net/2025/05/27/arc-browser-has-been-discontinued-but-the-companys-building-a-new-browser-dia/>
+[^mises]: Mises browser &mdash; <https://www.mises.site/>
+[^mises-core]: Mises browser core &mdash; <https://github.com/mises-id/mises-browser-core>
+[^sidekick]: Sidekick browser review &mdash; <https://browserprompt.com/tool-specific/sidekick-browser-review>
+
+### Privacy / community signal
+
+[^pg-browsers]: PrivacyGuides desktop browsers &mdash; <https://www.privacyguides.org/en/desktop-browsers/>
+[^pg-brave]: PrivacyGuides Brave caveats &mdash; <https://www.privacyguides.org/en/desktop-browsers/#brave>
+[^pg-origin]: PrivacyGuides news: Brave Launches Paid Bloat-Free Brave Origin &mdash; <https://www.privacyguides.org/news/2026/04/21/brave-launches-paid-bloat-free-brave-origin/>
+[^pg-origin-discuss]: PrivacyGuides forum on Brave Origin &mdash; <https://discuss.privacyguides.net/t/brave-launches-paid-bloat-free-brave-origin/37300>
+[^pg-search]: PrivacyGuides search engines &mdash; <https://www.privacyguides.org/en/search-engines/>
+[^pg-dns]: PrivacyGuides DNS providers &mdash; <https://www.privacyguides.org/en/dns/>
+[^nextdns-ext1]: NextDNS extension (community) &mdash; <https://github.com/JackStuart/NextDNS-Extension>
+[^nextdns-ext2]: NextDNS browser-plugin request &mdash; <https://help.nextdns.io/t/p8hfsaw/browser-plugin-extension-for-easy-allow-and-block>
+[^nextdns-ext3]: NXEnhanced (NextDNS) &mdash; <https://github.com/hjk789/NXEnhanced>
+[^ubo-deploy]: uBlock Origin deploy guide &mdash; <https://github.com/gorhill/uBlock/wiki/Deploying-uBlock-Origin>
+
+### Standards, specs &amp; CVEs
+
+[^mv2-timeline]: Chrome Manifest V2 deprecation timeline &mdash; <https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline>
+[^mv2-blog]: Chromium MV2 phase-out blog &mdash; <https://blog.chromium.org/2024/05/manifest-v2-phase-out-begins.html>
+[^https-default]: Google security blog: HTTPS by default &mdash; <https://security.googleblog.com/2025/10/https-by-default.html>
+[^https-flag]: chrome://flags HTTPS-Only Mode (via roundup) &mdash; <https://techpp.com/2026/04/07/best-chrome-flags/>
+[^ech-status]: Chrome ECH chromestatus &mdash; <https://chromestatus.com/feature/6196703843581952>
+[^psbx]: Privacy Sandbox status &mdash; <https://privacysandbox.google.com/overview/status>
+[^psbx-news]: Google retires Topics/PAAPI (AdExchanger, Oct 2025) &mdash; <https://www.adexchanger.com/privacy/google-pulls-the-plug-on-topics-paapi-and-other-major-privacy-sandbox-apis-as-the-cma-says-cheerio/>
+[^permpolicy]: Permissions-Policy on developer.chrome.com &mdash; <https://developer.chrome.com/docs/privacy-security/permissions-policy>
+[^cve-edge-webusb]: CVE-2026-5276 Edge WebUSB &mdash; <https://windowsnews.ai/article/cve-2026-5276-microsoft-edge-webusb-vulnerability-requires-immediate-patching.409595>
+[^cve-fedcm]: CVE-2026-4680 Chrome FedCM &mdash; <https://windowsnews.ai/article/chrome-fedcm-vulnerability-cve-2026-4680-critical-use-after-free-flaw-patched-in-version-14607680165.408068>
+[^tabbed-pwa]: Tabbed application mode docs &mdash; <https://developer.chrome.com/docs/capabilities/tabbed-application-mode>
+[^crx3]: CRX3 npm tool &mdash; <https://www.npmjs.com/package/crx3>
+
+### Build, distribution, signing
+
+[^chromium-detbuild]: Chromium deterministic builds doc &mdash; <https://chromium.googlesource.com/chromium/src/+/HEAD/docs/deterministic_builds.md>
+[^slsa-attest]: actions/attest-build-provenance &mdash; <https://github.com/actions/attest-build-provenance>
+[^slsa-attest-docs]: GitHub docs: artifact attestations &mdash; <https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds>
+[^signpath]: SignPath Foundation &mdash; <https://signpath.org/>
+[^signpath-oss]: SignPath OSS solutions &mdash; <https://signpath.io/solutions/open-source-community>
+[^azure-signing]: Azure Trusted Signing pricing &mdash; <https://azure.microsoft.com/en-us/pricing/details/trusted-signing/>
+[^azure-signing-faq]: Azure Artifact Signing FAQ &mdash; <https://learn.microsoft.com/en-us/azure/artifact-signing/faq>
+[^velopack]: Velopack &mdash; <https://velopack.io/>
+[^velopack-vs-squirrel]: Velopack docs: migrating from Squirrel &mdash; <https://docs.velopack.io/migrating/squirrel>
+[^omaha-4]: Omaha 4 tutorial &mdash; <https://omaha-consulting.com/chromium-updater-omaha-4-tutorial>
+[^omaha-protocol]: Omaha 4 protocol &mdash; <https://chromium.googlesource.com/chromium/src/+/f4b7e04ec3114a76e645dc49ff09adb90643821b/docs/updater/protocol_4.md>
+[^winget-repo]: microsoft/winget-pkgs &mdash; <https://github.com/microsoft/winget-pkgs>
+[^winget-pkgs]: winget repository guide &mdash; <https://learn.microsoft.com/en-us/windows/package-manager/package/repository>
+[^scoop-manifest]: Scoop app-manifests wiki &mdash; <https://github.com/ScoopInstaller/Scoop/wiki/App-Manifests>
+[^gha-arm64-private]: GitHub Actions ARM64 GA in private repos (Jan 2026) &mdash; <https://github.blog/changelog/2026-01-29-arm64-standard-runners-are-now-available-in-private-repositories/>
+
+### IT-admin / enterprise
+
+[^chrome-enterprise]: Chrome Enterprise policy list &mdash; <https://chromeenterprise.google/policies/>
+[^edge-configure]: Microsoft Edge configure-for-enterprise docs &mdash; <https://learn.microsoft.com/en-us/deployedge/configure-microsoft-edge>
+[^edge-intune-mam]: Edge Intune MAM overview &mdash; <https://learn.microsoft.com/en-us/intune/intune-service/apps/mamedge-overview>
+[^edge-workspaces]: Edge Workspaces docs &mdash; <https://learn.microsoft.com/en-us/deployedge/microsoft-edge-workspaces>
+[^edge-vt]: Edge vertical tabs &mdash; <https://www.microsoft.com/en-us/edge/features/vertical-tabs>
+[^edge-sleep]: Edge sleeping tabs &mdash; <https://www.microsoft.com/en-us/edge/features/sleeping-tabs>
+[^edge-copilot]: Edge Copilot disable guide &mdash; <https://www.datastudios.org/post/how-to-disable-microsoft-copilot-in-windows-edge-microsoft-365-apps-and-organizational-environmen>
+[^chromium-kiosk]: Chromium kiosk public-session docs &mdash; <https://chromium.googlesource.com/chromium/src/+/main/docs/enterprise/kiosk_public_session.md>
+[^chromium-extpolicy]: Chromium extension policy admin doc &mdash; <https://www.chromium.org/administrators/configuring-policy-for-extensions/>
+
+### DNS providers list reference
+
+[^adguard-dns-providers]: AdGuard DNS providers reference &mdash; <https://adguard-dns.io/kb/general/dns-providers/>
+
+### Tooling references
+
+[^wix]: WiX Toolset (MS-RL/MIT) &mdash; <https://wixtoolset.org/>
+[^uc-macos]: ungoogled-chromium-macos &mdash; <https://github.com/ungoogled-software/ungoogled-chromium-macos>
+[^uc-android]: ungoogled-chromium-android &mdash; <https://github.com/ungoogled-software/ungoogled-chromium-android>
+[^playwright]: Playwright (Chromium-channel automation) &mdash; <https://playwright.dev/docs/browsers#google-chrome--microsoft-edge>
+```
+
+</details>
