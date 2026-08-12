@@ -105,6 +105,22 @@ def _filescfg_cpu_arch(target_cpu):
         raise RuntimeError(f'No FILES.cfg mapping for CPU architecture: {target_cpu}') from exc
 
 
+def _create_archive_atomically(file_iter, build_outputs, output_path, timestamp=None):
+    """Create a portable archive without changing its published root name."""
+    stage_dir = Path(tempfile.mkdtemp(
+        prefix=f'.{output_path.stem}.stage-',
+        dir=output_path.parent,
+    ))
+    archive_stage = stage_dir / output_path.name
+    try:
+        filescfg.create_archive(
+            file_iter, tuple(), build_outputs, archive_stage, timestamp)
+        os.replace(archive_stage, output_path)
+    finally:
+        if stage_dir.exists():
+            shutil.rmtree(stage_dir)
+
+
 def _create_msi(root_dir, build_outputs, file_list, version, target_cpu):
     """Build a per-machine MSI from the same files as the portable archive."""
     wix = shutil.which('wix')
@@ -287,18 +303,9 @@ def main():
     import itertools
     all_files = list(itertools.chain(files_generator, extra_files_generator()))
 
-    # Keep the archive suffix so filescfg selects the ZIP writer while the
-    # temporary sibling remains distinct from the published artifact.
-    archive_stage = output.with_name(f'.{output.stem}.stage{output.suffix}')
-    if archive_stage.exists():
-        archive_stage.unlink()
-    try:
-        filescfg.create_archive(
-            all_files, tuple(), build_outputs, archive_stage, timestamp)
-        os.replace(archive_stage, output)
-    finally:
-        if archive_stage.exists():
-            archive_stage.unlink()
+    # Stage in a sibling directory while retaining the final filename. The
+    # upstream archive writer uses the filename stem as the archive root.
+    _create_archive_atomically(all_files, build_outputs, output, timestamp)
     _create_msi(
         root_dir, build_outputs, all_files, _get_vigil_version(root_dir),
         target_cpu)

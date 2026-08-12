@@ -194,6 +194,17 @@ def find_build_outputs(repo_root: Path):
     return out
 
 
+def find_extracted_build_root(extract_dir: Path) -> Path:
+    """Resolve a portable ZIP's direct root or its single named directory."""
+    if (extract_dir / "chrome.exe").is_file():
+        return extract_dir
+    candidates = [
+        child for child in extract_dir.iterdir()
+        if child.is_dir() and (child / "chrome.exe").is_file()
+    ]
+    return candidates[0] if len(candidates) == 1 else extract_dir
+
+
 def assert_files_present(out_dir: Path, r: Result):
     """Step 1: required files are in the build output."""
     print("\n[1] File-presence checks")
@@ -586,7 +597,7 @@ def main():
         if inst.suffix.lower() == ".zip":
             with zipfile.ZipFile(inst) as zf:
                 zf.extractall(tmp)
-            out_dir = tmp
+            out_dir = find_extracted_build_root(tmp)
         else:
             print("Only --installer *.zip is supported for now.", file=sys.stderr)
             return 2
