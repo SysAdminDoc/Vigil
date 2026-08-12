@@ -25,6 +25,11 @@ def test_release_version_and_chromium_target_have_one_checked_source():
     for extension in ("ntp-extension", "palette-extension"):
         manifest = json.loads(read(ROOT / extension / "manifest.json"))
         assert manifest["version"] == version
+    about_page = read(
+        ROOT / "chromium_src" / "chrome" / "browser" / "resources"
+        / "settings" / "about_page" / "about_page.html"
+    )
+    assert f">Version {version}</div>" in about_page
 
 
 def test_readme_documents_the_executable_release_contract():

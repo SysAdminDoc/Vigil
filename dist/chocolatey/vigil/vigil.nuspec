@@ -5,7 +5,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>vigil</id>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
     <packageSourceUrl>https://github.com/SysAdminDoc/Vigil/tree/master/dist/chocolatey/vigil</packageSourceUrl>
     <owners>SysAdminDoc</owners>
     <title>Vigil Browser</title>
@@ -41,7 +41,7 @@ Differences from upstream Chromium:
 See https://github.com/SysAdminDoc/Vigil/blob/master/ROADMAP.md for full
 charter and non-goals.
     ]]></description>
-    <releaseNotes>https://github.com/SysAdminDoc/Vigil/releases/tag/v0.2.2</releaseNotes>
+    <releaseNotes>https://github.com/SysAdminDoc/Vigil/releases/tag/v0.2.3</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
